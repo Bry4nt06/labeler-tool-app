@@ -148,6 +148,8 @@ const state = {
   showQuadrantReferences: false,
   wipeBuilderOpen: false,
   mapLibrary: [],
+  servoProfileLibrary: [],
+  activeServoProfileId: "",
   machineTypes: ["TopMatic", "Autocol", "TopModul"],
   mapLocked: true,
   previewBottleAngle: null,

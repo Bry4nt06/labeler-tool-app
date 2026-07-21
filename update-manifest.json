@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.46",
+  "version": "0.7.47",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Introduces the ServoForge Labeler product identity."
+  "notes": "Adds the persistent custom Servo Profile Library."
 }

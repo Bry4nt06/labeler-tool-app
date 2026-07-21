@@ -67,6 +67,8 @@ function loadSavedSettings() {
     delete state.buildInputs.frontInspectionOffsetDeg;
     if (saved.applicationMode) state.applicationMode = saved.applicationMode;
     if (Array.isArray(saved.mapLibrary)) state.mapLibrary = saved.mapLibrary;
+    if (Array.isArray(saved.servoProfileLibrary)) state.servoProfileLibrary = saved.servoProfileLibrary;
+    if (typeof saved.activeServoProfileId === "string") state.activeServoProfileId = saved.activeServoProfileId;
     if (Array.isArray(saved.machineTypes)) {
       state.machineTypes = [...new Set(["TopMatic", "Autocol", "TopModul", ...saved.machineTypes.map((value) => String(value).trim()).filter(Boolean)])];
     }
@@ -141,6 +143,8 @@ function settingsSnapshot() {
     showQuadrantReferences: state.showQuadrantReferences,
     wipeBuilderOpen: state.wipeBuilderOpen,
     mapLibrary: state.mapLibrary,
+    servoProfileLibrary: state.servoProfileLibrary,
+    activeServoProfileId: state.activeServoProfileId,
     machineTypes: state.machineTypes,
     activeMapId: state.activeMapId,
     mapZoom: state.mapZoom,
@@ -244,7 +248,7 @@ async function registerToolUpdateService() {
 async function checkForToolUpdates() {
   const button = els.checkForUpdates;
   const status = els.updateCheckStatus;
-  const currentVersion = document.querySelector('meta[name="application-version"]')?.content || "0.7.46";
+  const currentVersion = document.querySelector('meta[name="application-version"]')?.content || "0.7.47";
   const manifestUrl = document.querySelector('meta[name="update-manifest-url"]')?.content?.trim();
   if (pendingServiceWorker) {
     if (button) button.disabled = true;
