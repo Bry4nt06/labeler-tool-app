@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Labeler Tool">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ServoForge Labeler">
   <rect width="512" height="512" rx="96" fill="#173f35"/>
   <circle cx="256" cy="256" r="164" fill="none" stroke="#75d6b8" stroke-width="28"/>
   <circle cx="256" cy="256" r="54" fill="#75d6b8"/>

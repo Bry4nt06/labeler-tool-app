@@ -179,6 +179,15 @@ h1 {
   letter-spacing: 0;
 }
 
+.product-module {
+  color: var(--muted);
+  font-size: 0.58em;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin-left: 0.35rem;
+  text-transform: uppercase;
+}
+
 h2 {
   font-size: 15px;
   margin-bottom: 12px;

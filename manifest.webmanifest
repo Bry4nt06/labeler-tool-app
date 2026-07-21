@@ -1,6 +1,6 @@
 {
-  "name": "Labeler Servo Map Tool",
-  "short_name": "Labeler Tool",
+  "name": "ServoForge Labeler",
+  "short_name": "ServoForge",
   "description": "Mechanical map and servo profile builder for bottle labeler systems.",
   "id": "./",
   "start_url": "./",

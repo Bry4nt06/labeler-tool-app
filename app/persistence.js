@@ -244,7 +244,7 @@ async function registerToolUpdateService() {
 async function checkForToolUpdates() {
   const button = els.checkForUpdates;
   const status = els.updateCheckStatus;
-  const currentVersion = document.querySelector('meta[name="application-version"]')?.content || "0.7.45";
+  const currentVersion = document.querySelector('meta[name="application-version"]')?.content || "0.7.46";
   const manifestUrl = document.querySelector('meta[name="update-manifest-url"]')?.content?.trim();
   if (pendingServiceWorker) {
     if (button) button.disabled = true;

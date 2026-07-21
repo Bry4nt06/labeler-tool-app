@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="application-version" content="0.7.45" />
+    <meta name="application-version" content="0.7.46" />
     <meta name="update-manifest-url" content="./update-manifest.json" />
     <meta name="theme-color" content="#173f35" />
-    <title>Labeler Servo Map Tool</title>
+    <title>ServoForge Labeler</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/labeler-tool-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=0.7.45" />
+    <link rel="stylesheet" href="styles.css?v=0.7.46" />
   </head>
   <body>
     <main class="app">
       <section class="topbar">
         <div>
-          <h1>Labeler Servo Map Tool</h1>
+          <h1>ServoForge <span class="product-module">Labeler Tool</span></h1>
           <p>Scalable mechanical map and servo profile builder for TopModul-style bottle plate systems.</p>
         </div>
         <details class="top-settings-menu">
@@ -37,7 +37,7 @@
             </label>
             <button id="saveSettings" type="button">Save Settings</button>
             <button id="checkForUpdates" type="button">Check for Updates</button>
-            <output id="updateCheckStatus" class="update-check-status" aria-live="polite">Version 0.7.45 • Updates are checked automatically.</output>
+            <output id="updateCheckStatus" class="update-check-status" aria-live="polite">Version 0.7.46 • Updates are checked automatically.</output>
             <button id="exportSettings" type="button">Export Settings</button>
             <label class="file-action">Import Settings<input id="importSettings" type="file" accept="application/json,.json" /></label>
             <button id="exportJson" type="button">Export JSON</button>
@@ -249,22 +249,22 @@
     <script src="drivers/geometry/label-geometry-driver.js"></script>
     <script src="drivers/application/application-mode-driver.js"></script>
     <script src="drivers/mechanical/mechanical-motion-driver.js"></script>
-    <script src="drivers/mechanical/cold-glue-motion-driver.js?v=0.7.45"></script>
+    <script src="drivers/mechanical/cold-glue-motion-driver.js?v=0.7.46"></script>
     <script src="drivers/servo/servo-command-driver.js"></script>
     <script src="drivers/validation/motion-validation-driver.js"></script>
     <script src="drivers/profile/apl-profile-driver.js"></script>
-    <script src="app/defaults.js?v=0.7.45"></script>
-    <script src="app/persistence.js?v=0.7.45"></script>
+    <script src="app/defaults.js?v=0.7.46"></script>
+    <script src="app/persistence.js?v=0.7.46"></script>
     <script src="app/geometry-and-planning.js"></script>
     <script src="app/profile-generation.js"></script>
-    <script src="app/simulation-engine.js?v=0.7.45"></script>
+    <script src="app/simulation-engine.js?v=0.7.46"></script>
     <script src="app/assemblies.js"></script>
     <script src="app/wipe-down-builder.js"></script>
     <script src="app/validation.js"></script>
     <script src="app/setup-bindings.js"></script>
     <script src="app/map-rendering.js"></script>
-    <script src="app/table-rendering.js?v=0.7.45"></script>
-    <script src="app/bootstrap.js?v=0.7.45"></script>
+    <script src="app/table-rendering.js?v=0.7.46"></script>
+    <script src="app/bootstrap.js?v=0.7.46"></script>
     <script src="app.js"></script>
   </body>
 </html>
