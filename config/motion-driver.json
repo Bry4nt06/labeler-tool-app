@@ -1,0 +1,40 @@
+{
+  "profileMode": "paired-aggregate",
+  "aggregatePairs": {
+    "neck": [
+      1,
+      2
+    ],
+    "body": [
+      3,
+      4
+    ],
+    "back": [
+      5,
+      6
+    ]
+  },
+  "commandSequence": [
+    3,
+    7,
+    3
+  ],
+  "pairRules": {
+    "sameRelativePlatePath": true,
+    "sameTableTravel": true,
+    "sameTurnSpeed": true,
+    "useShortestSharedContactWindow": true,
+    "separatePairExitTransition": true,
+    "pairExitSequence": [
+      7,
+      3,
+      7
+    ],
+    "exceptions": {
+      "apl-compact-two-label": "Use the validated workbook-reference command layout; do not apply the generic 32-row pair-exit structure."
+    }
+  },
+  "motionOutsideContact": "hold",
+  "carryContinuousPlatePosition": true,
+  "faultAtRatio": 21
+}

@@ -1,0 +1,325 @@
+"use strict";
+
+function deepClone(value) {
+  if (value === undefined || value === null) return value;
+  return JSON.parse(JSON.stringify(value));
+}
+
+const defaultMapPoints = [
+  ["Agg 1 Spender Plate Position", 68.5],
+  ["Wipe-Down Agg 1 Roller 1 Center (Op Side)", 72],
+  ["Wipe-Down Agg 1 Roller 2 Center (Op Side)", 77.5],
+  ["Wipe-Down Agg 1 Roller 3 Center (Non-Op Side)", 89.5],
+  ["Wipe-Down Agg 1 Roller 4 Center (Non-Op Side)", 95],
+  ["Agg 2 Spender Plate Position", 108.5],
+  ["Wipe-Down Agg 2 Roller 1 Center (Op Side)", 112],
+  ["Wipe-Down Agg 2 Roller 2 Center (Op Side)", 117.5],
+  ["Wipe-Down Agg 2 Roller 3 Center (Non-Op Side)", 129.5],
+  ["Wipe-Down Agg 2 Roller 4 Center (Non-Op Side)", 135],
+  ["Agg 3 Spender Plate Position", 148.5],
+  ["Wipe-Down Agg 3 Op Side Pad Position Start", 149],
+  ["Wipe-Down Agg 3 Op Side Pad Position Stop", 169],
+  ["Agg 4 Spender Plate Position", 188.5],
+  ["Wipe-Down Agg 4 Op Side Pad Position Start", 189],
+  ["Wipe-Down Agg 4 Op Side Pad Position Stop", 209],
+  ["Agg 5 Spender Plate Position", 229.5],
+  ["Wipe-Down Agg 5 Op Side Pad Position Start", 230],
+  ["Wipe-Down Agg 5 Op Side Pad Position Stop", 250],
+  ["Agg 6 Spender Plate Position", 269.5],
+  ["Wipe-Down Agg 6 Op Side Pad Position Start", 270],
+  ["Wipe-Down Agg 6 Op Side Pad Position Stop", 290],
+  ["Back Label Inspection/Coding Position Start", 304],
+  ["Back Label Inspection/Coding Position Stop", 315]
+].map(([name, angle], index) => ({ id: `mp${index + 1}`, name, angle }));
+
+// Read-only factory reference used while laying out a new machine map. These
+// values are intentionally independent of the active/editable map.
+const permanentLabelerMapReferencePoints = Object.freeze([
+  ["Zero", 0],
+  ["Agg 1 Spender", 68.5],
+  ["Agg 1 Roller 1", 72],
+  ["Agg 1 Roller 2", 77.5],
+  ["Agg 1 Roller 3", 89.5],
+  ["Agg 1 Roller 4", 95],
+  ["Agg 2 Spender", 108.5],
+  ["Agg 2 Roller 1", 112],
+  ["Agg 2 Roller 2", 117.5],
+  ["Agg 2 Roller 3", 129.5],
+  ["Agg 2 Roller 4", 135],
+  ["Agg 3 Spender", 148.5],
+  ["Agg 3 Wipe Start", 149],
+  ["Agg 3 Wipe Stop", 169],
+  ["Agg 4 Spender", 188.5],
+  ["Agg 4 Wipe Start", 189],
+  ["Agg 4 Wipe Stop", 209],
+  ["Neck/Body Inspection", 216],
+  ["End Inspection", 219],
+  ["Agg 5 Spender", 229.5],
+  ["Agg 5 Wipe Start", 230],
+  ["Agg 5 Wipe Stop", 250],
+  ["Agg 6 Spender", 269.5],
+  ["Agg 6 Wipe Start", 270],
+  ["Agg 6 Wipe Stop", 290],
+  ["Back Inspect/Code", 304],
+  ["End Coding", 315]
+].map(([name, angle]) => Object.freeze({ name, angle })));
+
+const defaultProgram = [];
+
+const defaultAssemblies = [
+  { station: 1, enabled: true, type: "rollers", sides: ["inner", "outer"], spenderAngle: 68.5, innerRollerAngles: [89.5, 95], outerRollerAngles: [72, 77.5], padSpanDeg: 20, padSideOffsetDeg: 3, brushStartAngle: 72, brushEndAngle: 95, requiredPlateRotation: 360 },
+  { station: 2, enabled: true, type: "rollers", sides: ["inner", "outer"], spenderAngle: 108.5, innerRollerAngles: [129.5, 135], outerRollerAngles: [112, 117.5], padSpanDeg: 20, padSideOffsetDeg: 3, brushStartAngle: 112, brushEndAngle: 135, requiredPlateRotation: 360 },
+  { station: 3, enabled: true, type: "pads", sides: ["outer"], spenderAngle: 148.5, innerRollerAngles: [149, 169], outerRollerAngles: [149, 169], padSpanDeg: 20, padSideOffsetDeg: 3, brushStartAngle: 149, brushEndAngle: 169, requiredPlateRotation: 180 },
+  { station: 4, enabled: true, type: "pads", sides: ["outer"], spenderAngle: 188.5, innerRollerAngles: [189, 209], outerRollerAngles: [189, 209], padSpanDeg: 20, padSideOffsetDeg: 3, brushStartAngle: 189, brushEndAngle: 209, requiredPlateRotation: 180 },
+  { station: 5, enabled: true, type: "pads", sides: ["outer"], spenderAngle: 229.5, innerRollerAngles: [230, 250], outerRollerAngles: [230, 250], padSpanDeg: 20, padSideOffsetDeg: 3, brushStartAngle: 230, brushEndAngle: 250, requiredPlateRotation: 180 },
+  { station: 6, enabled: true, type: "pads", sides: ["outer"], spenderAngle: 269.5, innerRollerAngles: [270, 290], outerRollerAngles: [270, 290], padSpanDeg: 20, padSideOffsetDeg: 3, brushStartAngle: 270, brushEndAngle: 290, requiredPlateRotation: 180 }
+];
+
+const applicationPresets = {
+  apl: {
+    description: "Applied plastic label configuration. Only rollers and wipe-down pads are available. Brush controls and brush map points are hidden.",
+    defaults: defaultAssemblies
+  },
+  "cold-glue": {
+    description: "Cold Glue maps are built from roller and brush objects. Cold Glue label specifications use center-tack application across the label surface.",
+    defaults: defaultAssemblies
+  }
+};
+
+const SPENDER_PLATE_ARM_ANGLE = 75;
+const SETTINGS_KEY = "labelerToolSettings";
+const profileTiming = {
+  spenderArriveEarly: 1,
+  neckRoller2Offset: -4.5,
+  neckRoller3Offset: -5.5,
+  neckRoller4Offset: -4.5,
+  wipe1Delay: 4,
+  wipe1Duration: 2.5,
+  wipe2Duration: 13,
+  wipeHoldStopOffset: 0,
+  backInspectArriveEarly: 1,
+  pairExitReferencePadding: 2,
+  frontInspectAfterWipeDeg: 7,
+  neckBodyInspectionHoldDeg: 4,
+  codingArriveEarlyDeg: 75,
+  frontInspectionOffsetDeg: 25
+};
+
+const defaultBottleSpecs = [
+  { id: 1, bottleType: "LNNR - 7 Oz", diameterTargetMm: 53.57, radiusReductionMm: 0.25 },
+  { id: 2, bottleType: "SSNR - 12 Oz", diameterTargetMm: 60.68, radiusReductionMm: 0.3 },
+  { id: 3, bottleType: "LNNR - 12 Oz", diameterTargetMm: 61.52, radiusReductionMm: 0.41 },
+  { id: 4, bottleType: "S1NR - 11.2OZ", diameterTargetMm: 60, radiusReductionMm: 0.3 },
+  { id: 5, bottleType: "HLNR - 12Oz", diameterTargetMm: 61.52, radiusReductionMm: 0.312 }
+];
+
+const defaultLabelSpecs = [
+  { id: 1, applicationMode: "apl", brand: "11.2 Stella (HL,RG)", specNumber: "", bottleType: "S1NR - 11.2OZ", bodyLengthMm: 85.71, backLengthMm: 76.84, neckHeightMm: 67.16, neckLengthMm: 109.5, neckBottomCurveMm: 110.5, neckBottomCircumferenceMm: 104.5, codeBoxCenterMm: 24 },
+  { id: 2, applicationMode: "apl", brand: "12oz Bud Light Lime (9F)", specNumber: "2736-A", bottleType: "LNNR - 12 Oz", bodyLengthMm: 97.993, backLengthMm: 47.498, neckHeightMm: 27.61, neckLengthMm: 37.313, neckBottomCurveMm: 39.313, neckBottomCircumferenceMm: 105, codeBoxCenterMm: 14 },
+  { id: 3, applicationMode: "apl", brand: "12oz Land Shark (LN)", specNumber: "2162-B", bottleType: "HLNR - 12Oz", bodyLengthMm: 64.9, backLengthMm: 47.5, neckHeightMm: 0, neckLengthMm: 0, neckBottomCurveMm: 0, neckBottomCircumferenceMm: 104, codeBoxCenterMm: 12 },
+  { id: 4, applicationMode: "apl", brand: "12oz Platinum (NX)", specNumber: "2164-F", bottleType: "LNNR - 12 Oz", bodyLengthMm: 75.844, backLengthMm: 47.498, neckHeightMm: 18.0344, neckLengthMm: 35.585, neckBottomCurveMm: 37, neckBottomCircumferenceMm: 104, codeBoxCenterMm: 14 },
+  { id: 5, applicationMode: "apl", brand: "12oz Mic Family (T6,41,FO,79,BT,87)", specNumber: "2457-A", bottleType: "SSNR - 12 Oz", bodyLengthMm: 66.7, backLengthMm: 50.8, neckHeightMm: 40.001, neckLengthMm: 51.96, neckBottomCurveMm: 53, neckBottomCircumferenceMm: 105, codeBoxCenterMm: 14 }
+];
+
+const state = {
+  themePreset: (() => {
+    try {
+      return localStorage.getItem("labelerThemePreset") || "dark-green";
+    } catch {
+      return "dark-green";
+    }
+  })(),
+  activeTab: "specs",
+  headCount: 45,
+  radius: 250,
+  zeroAngle: 0,
+  direction: "ccw",
+  previewAngle: 0,
+  animationSpeed: 10,
+  animationSpeedUnit: "deg-per-second",
+  maxMoveRatio: 21,
+  tablePitchRadiusMm: 572.958,
+  referencePitchRadiusMm: 572.958,
+  autoScaleTableMap: true,
+  encoderCountsPerRev: 4096,
+  servoGearRatio: 1,
+  padClearanceMm: 5,
+  showMoveDistanceOverlay: false,
+  showQuadrantReferences: false,
+  wipeBuilderOpen: false,
+  mapLibrary: [],
+  machineTypes: ["TopMatic", "Autocol", "TopModul"],
+  mapLocked: true,
+  previewBottleAngle: null,
+  activeMapId: "",
+  mapZoom: 1,
+  mapPanX: 0,
+  mapPanY: 0,
+  selectedMapObjectId: "",
+  builderHistory: { undo: [], redo: [] },
+  builderSaveState: "saved",
+  applicationMode: "apl",
+  assemblies: deepClone(defaultAssemblies),
+  coldGlueMap: [],
+  coldGlueAggregateSettings: null,
+  aplMapObjects: [],
+  isPlaying: true,
+  depths: {
+    spender: 12,
+    opRoller: 14,
+    nonOpRoller: -18,
+    wipeInner: -4,
+    wipeOuter: 16
+  },
+  selectedBrand: "12oz Bud Light Lime (9F)",
+  selectedBottle: "LNNR - 12 Oz",
+  buildInputs: {
+    neckSpenderPlateDeg: 75,
+    neckApplication: "Center",
+    neckContactMm: 4.4,
+    bodyContactMm: 5,
+    backContactMm: 5,
+    neckOverWipeDeg: 66,
+    bodyOverWipeDeg: 10,
+    backOverWipeDeg: 10,
+    plateStartPositionDeg: 0,
+    neckOffsetMm: 0,
+    bodyOffsetMm: 0,
+    backOffsetMm: 0,
+    backInspectionOffsetMm: 0
+  },
+  bottleSpecs: deepClone(defaultBottleSpecs),
+  labelSpecs: deepClone(defaultLabelSpecs),
+  mapPoints: deepClone(defaultMapPoints),
+  program: deepClone(defaultProgram),
+  servoOverrides: {},
+  simulation: {
+    useCustom: false,
+    turns: Array.from({ length: defaultProgram.length }, () => null),
+    rows: [],
+    deletedRows: [],
+    lines: []
+  }
+};
+
+const els = {
+  themePreset: document.querySelector("#themePreset"),
+  applicationSetupButton: document.querySelector("#wipeDownBuilderButton"),
+  wipeDownBuilderButton: document.querySelector("#wipeDownBuilderButton"),
+  applicationSetupDialog: document.querySelector("#applicationSetupDialog"),
+  mapRightRail: document.querySelector("#mapRightRail"),
+  fitMapView: document.querySelector("#fitMapView"),
+  resetMapView: document.querySelector("#resetMapView"),
+  labelerMapButton: document.querySelector("#labelerMapButton"),
+  labelerMapReference: document.querySelector("#labelerMapReference"),
+  labelerMapReferenceName: document.querySelector("#labelerMapReferenceName"),
+  labelerMapReferenceBody: document.querySelector("#labelerMapReferenceBody"),
+  closeLabelerMap: document.querySelector("#closeLabelerMap"),
+  closeApplicationSetup: document.querySelector("#closeApplicationSetup"),
+  applyApplicationSetup: document.querySelector("#applyApplicationSetup"),
+  applicationMode: document.querySelector("#applicationMode"),
+  mapLibrarySelect: document.querySelector("#mapLibrarySelect"),
+  mapName: document.querySelector("#mapName"),
+  mapHeadCount: document.querySelector("#mapHeadCount"),
+  mapMachineType: document.querySelector("#mapMachineType"),
+  addMachineType: document.querySelector("#addMachineType"),
+  mapDirection: document.querySelector("#mapDirection"),
+  mapRadius: document.querySelector("#mapRadius"),
+  mapReferencePitchRadiusMm: document.querySelector("#mapReferencePitchRadiusMm"),
+  mapEncoderCountsPerRev: document.querySelector("#mapEncoderCountsPerRev"),
+  mapServoGearRatio: document.querySelector("#mapServoGearRatio"),
+  mapAutoScaleTableMap: document.querySelector("#mapAutoScaleTableMap"),
+  mapZeroAngle: document.querySelector("#mapZeroAngle"),
+  mapMaxMoveRatio: document.querySelector("#mapMaxMoveRatio"),
+  mapAggregateCount: document.querySelector("#mapAggregateCount"),
+  mapStationCount: document.querySelector("#mapStationCount"),
+  machineLayoutSection: document.querySelector("#machineLayoutSection"),
+  machineLayoutSummary: document.querySelector("#machineLayoutSummary"),
+  aggregateToggleList: document.querySelector("#aggregateToggleList"),
+  stationToggleList: document.querySelector("#stationToggleList"),
+  mapLibrarySection: document.querySelector("#mapLibrarySection"),
+  mapLibrarySummary: document.querySelector("#mapLibrarySummary"),
+  aggregateAnglesSection: document.querySelector("#aggregateAnglesSection"),
+  aggregateAnglesSummary: document.querySelector("#aggregateAnglesSummary"),
+  aggregateAngleEditor: document.querySelector("#aggregateAngleEditor"),
+  addMapObjectSection: document.querySelector("#addMapObjectSection"),
+  configuredMapObjectsSection: document.querySelector("#configuredMapObjectsSection"),
+  newMachineMap: document.querySelector("#newMachineMap"),
+  saveMachineMap: document.querySelector("#saveMachineMap"),
+  deleteMachineMap: document.querySelector("#deleteMachineMap"),
+  applicationModeDescription: document.querySelector("#applicationModeDescription"),
+  assemblyEditor: document.querySelector("#assemblyEditor"),
+  objectLocationEditor: document.querySelector("#objectLocationEditor"),
+  tablePitchRadiusMm: document.querySelector("#tablePitchRadiusMm"),
+  padClearanceMm: document.querySelector("#padClearanceMm"),
+  showMoveDistanceOverlay: document.querySelector("#showMoveDistanceOverlay"),
+  showQuadrantReferences: document.querySelector("#showQuadrantReferences"),
+  assemblySetupSummary: document.querySelector("#assemblySetupSummary"),
+  saveSettings: document.querySelector("#saveSettings"),
+  checkForUpdates: document.querySelector("#checkForUpdates"),
+  updateCheckStatus: document.querySelector("#updateCheckStatus"),
+  exportSettings: document.querySelector("#exportSettings"),
+  importSettings: document.querySelector("#importSettings"),
+  loadGeneratedTurns: document.querySelector("#loadGeneratedTurns"),
+  clearCustomTurns: document.querySelector("#clearCustomTurns"),
+  previewAngle: document.querySelector("#previewAngle"),
+  tableAngleJumpForm: document.querySelector("#tableAngleJumpForm"),
+  tableAngleJump: document.querySelector("#tableAngleJump"),
+  playPause: document.querySelector("#playPause"),
+  animationSpeed: document.querySelector("#animationSpeed"),
+  animationStepReadout: document.querySelector("#animationStepReadout"),
+  importFaultConfig: document.querySelector("#importFaultConfig"),
+  spenderDepth: document.querySelector("#spenderDepth"),
+  opRollerDepth: document.querySelector("#opRollerDepth"),
+  nonOpRollerDepth: document.querySelector("#nonOpRollerDepth"),
+  wipeInnerDepth: document.querySelector("#wipeInnerDepth"),
+  wipeOuterDepth: document.querySelector("#wipeOuterDepth"),
+  pitchReadout: document.querySelector("#pitchReadout"),
+  mapSvg: document.querySelector("#mapSvg"),
+  mapLockToggle: document.querySelector("#mapLockToggle"),
+  editMapButton: document.querySelector("#editMapButton"),
+  undoMapEdit: document.querySelector("#undoMapEdit"),
+  previewBottleAngle: document.querySelector("#previewBottleAngle"),
+  mapFaultNotice: document.querySelector("#mapFaultNotice"),
+  activeMapName: document.querySelector("#activeMapName"),
+  validationDetails: document.querySelector("#validationDetails"),
+  validationList: document.querySelector("#validationList"),
+  showWipeDownData: document.querySelector("#showWipeDownData"),
+  closeWipeDownData: document.querySelector("#closeWipeDownData"),
+  wipeDownDataPanel: document.querySelector("#wipeDownDataPanel"),
+  wipeLabelSection: document.querySelector("#wipeLabelSection"),
+  wipeLabelLength: document.querySelector("#wipeLabelLength"),
+  wipeCurrentTurn: document.querySelector("#wipeCurrentTurn"),
+  wipePlateAngle: document.querySelector("#wipePlateAngle"),
+  wipePercent: document.querySelector("#wipePercent"),
+  wipeLeftSurfaceFill: document.querySelector("#wipeLeftSurfaceFill"),
+  wipeRightSurfaceFill: document.querySelector("#wipeRightSurfaceFill"),
+  wipeLabelGraphic: document.querySelector("#wipeLabelGraphic"),
+  wipeProgressText: document.querySelector("#wipeProgressText"),
+  wipeLeadingBackspin: document.querySelector("#wipeLeadingBackspin"),
+  wipeBackspinFill: document.querySelector("#wipeBackspinFill"),
+  wipeBackspinText: document.querySelector("#wipeBackspinText"),
+  wipeTackLine: document.querySelector("#wipeTackLine"),
+  wipeTackText: document.querySelector("#wipeTackText"),
+  wipeLeftEdge: document.querySelector("#wipeLeftEdge"),
+  wipeRightEdge: document.querySelector("#wipeRightEdge"),
+  wipeDirectionText: document.querySelector("#wipeDirectionText"),
+  wipeApplicationText: document.querySelector("#wipeApplicationText"),
+  stations: document.querySelector("#stations"),
+  wipeBuilderList: document.querySelector("#wipeBuilderList"),
+  builderObjectName: document.querySelector("#builderObjectName"),
+  builderObjectType: document.querySelector("#builderObjectType"),
+  builderObjectSide: document.querySelector("#builderObjectSide"),
+  builderObjectStart: document.querySelector("#builderObjectStart"),
+  builderObjectEnd: document.querySelector("#builderObjectEnd"),
+  builderObjectExtension: document.querySelector("#builderObjectExtension"),
+  addBuilderObject: document.querySelector("#addBuilderObject"),
+  resetBuilderMap: document.querySelector("#resetBuilderMap"),
+  builderStatus: document.querySelector("#builderStatus"),
+  bottleSpecs: document.querySelector("#bottleSpecs"),
+  labelSpecs: document.querySelector("#labelSpecs"),
+  buildInputs: document.querySelector("#buildInputs"),
+  program: document.querySelector("#program"),
+  simulation: document.querySelector("#simulation"),
+  heads: document.querySelector("#heads")
+};

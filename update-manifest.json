@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "version": "0.7.45",
+  "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
+  "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
+  "notes": "Adds automatic hosted updates and installable offline app support."
+}

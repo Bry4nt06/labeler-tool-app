@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Labeler Tool">
+  <rect width="512" height="512" rx="96" fill="#173f35"/>
+  <circle cx="256" cy="256" r="164" fill="none" stroke="#75d6b8" stroke-width="28"/>
+  <circle cx="256" cy="256" r="54" fill="#75d6b8"/>
+  <path d="M256 92v74M256 346v74M92 256h74M346 256h74" stroke="#f3f7f5" stroke-width="28" stroke-linecap="round"/>
+  <path d="M352 124h78v126h-78z" fill="#f3f7f5"/>
+  <path d="M368 146h46v82h-46z" fill="#c8efe3"/>
+</svg>

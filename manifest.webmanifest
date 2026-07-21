@@ -1,0 +1,19 @@
+{
+  "name": "Labeler Servo Map Tool",
+  "short_name": "Labeler Tool",
+  "description": "Mechanical map and servo profile builder for bottle labeler systems.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0c1715",
+  "theme_color": "#173f35",
+  "icons": [
+    {
+      "src": "assets/labeler-tool-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

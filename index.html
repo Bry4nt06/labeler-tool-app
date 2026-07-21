@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="application-version" content="0.7.45" />
+    <meta name="update-manifest-url" content="./update-manifest.json" />
+    <meta name="theme-color" content="#173f35" />
+    <title>Labeler Servo Map Tool</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/labeler-tool-icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css?v=0.7.45" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="topbar">
+        <div>
+          <h1>Labeler Servo Map Tool</h1>
+          <p>Scalable mechanical map and servo profile builder for TopModul-style bottle plate systems.</p>
+        </div>
+        <details class="top-settings-menu">
+          <summary>Settings</summary>
+          <div class="actions top-settings-panel">
+            <label class="theme-control">Theme
+              <select id="themePreset">
+                <option value="dark-green">Dark green</option>
+                <option value="graphite">Graphite</option>
+                <option value="deep-blue">Deep blue</option>
+                <option value="steel">Steel grey</option>
+                <option value="emerald">Emerald</option>
+                <option value="light">Light</option>
+              </select>
+            </label>
+            <label class="switch-setting" for="showQuadrantReferences">
+              <span class="switch-copy"><strong>Show map quadrants</strong><small>Display references at 90°, 180°, 270°, and 359.9°.</small></span>
+              <span class="switch-control"><input id="showQuadrantReferences" type="checkbox" /><span class="switch-track" aria-hidden="true"></span></span>
+            </label>
+            <button id="saveSettings" type="button">Save Settings</button>
+            <button id="checkForUpdates" type="button">Check for Updates</button>
+            <output id="updateCheckStatus" class="update-check-status" aria-live="polite">Version 0.7.45 • Updates are checked automatically.</output>
+            <button id="exportSettings" type="button">Export Settings</button>
+            <label class="file-action">Import Settings<input id="importSettings" type="file" accept="application/json,.json" /></label>
+            <button id="exportJson" type="button">Export JSON</button>
+            <label class="file-action">Import Fault JSON<input id="importFaultConfig" type="file" accept="application/json,.json" /></label>
+            <button id="exportCsv" type="button">Export CSV</button>
+          </div>
+        </details>
+      </section>
+
+      <section class="layout">
+        <aside class="panel setup preview-panel">
+          <h2>Preview &amp; Animation</h2>
+          <p class="panel-help">Machine configuration is stored per map under Map Builder.</p>
+          <label>Preview table angle <input id="previewAngle" type="range" min="0" max="360" step="0.5" /></label>
+          <div class="anim-controls">
+            <button id="playPause" type="button">Pause</button>
+            <label class="animation-step-control"><span class="animation-step-label">Animation speed</span><input id="animationSpeed" type="range" min="1" max="50" step="0.5" /><output id="animationStepReadout" for="animationSpeed">10 deg / sec</output></label>
+          </div>
+          <div class="metrics">
+            <div><span>Pitch</span><strong id="pitchReadout">0 deg</strong></div>
+          </div>
+        </aside>
+
+        <section class="map-area">
+          <div class="map-head">
+            <div class="map-heading"><h2>Mechanical Map</h2><span id="activeMapName" class="active-map-name">—</span></div>
+            <div class="map-toolbar">
+              <button id="fitMapView" type="button" class="secondary-button compact-map-button">Fit View</button>
+              <button id="resetMapView" type="button" class="secondary-button compact-map-button">Reset View</button>
+              <button id="undoMapEdit" type="button" class="secondary-button compact-map-button">Undo</button>
+              <button id="editMapButton" type="button" class="secondary-button compact-map-button">Edit Map</button>
+              <button id="labelerMapButton" type="button" class="secondary-button compact-map-button">Labeler Map</button>
+              <button id="wipeDownBuilderButton" type="button" class="compact-builder-button">Map Builder</button>
+            </div>
+          </div>
+          <div class="map-stage">
+            <div class="map-canvas">
+              <svg id="mapSvg" viewBox="-340 -315 680 630" role="img" aria-label="Circular map of labeler heads and stations"></svg>
+              <div id="mapFaultNotice" class="map-fault-notice" hidden></div>
+              <button id="mapLockToggle" type="button" class="map-lock-toggle" aria-pressed="true">Locked</button>
+              <form id="tableAngleJumpForm" class="table-angle-jump" aria-label="Jump to table angle">
+                <label for="tableAngleJump">Table angle</label>
+                <input id="tableAngleJump" type="number" min="0" max="359.9" step="0.1" inputmode="decimal" />
+                <span>°</span>
+                <button type="submit">Go</button>
+              </form>
+              <div class="map-overlay-control">
+                <label class="switch-setting" for="showMoveDistanceOverlay">
+                  <span class="switch-copy"><strong>Show active move distance</strong><small>Display the current table and plate move.</small></span>
+                  <span class="switch-control"><input id="showMoveDistanceOverlay" type="checkbox" /><span class="switch-track" aria-hidden="true"></span></span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <aside id="labelerMapReference" class="labeler-map-reference" hidden aria-label="Labeler map reference">
+          <div class="labeler-map-reference-head"><div><h2>Labeler Map</h2><p id="labelerMapReferenceName">Permanent map-building reference • read only</p></div><button id="closeLabelerMap" type="button" class="secondary-button">Close</button></div>
+          <div class="labeler-map-reference-scroll">
+            <table><thead><tr><th>Map point</th><th>Table angle</th></tr></thead><tbody id="labelerMapReferenceBody"></tbody></table>
+          </div>
+        </aside>
+
+        <aside class="right-rail" id="mapRightRail">
+          <aside id="applicationSetupDialog" class="wipe-builder-drawer" hidden aria-label="Map Builder">
+              <div class="dialog-head">
+                <div><h2>Map Builder</h2><p>Create and save reusable machine maps.</p></div>
+                <button id="closeApplicationSetup" type="button" class="secondary-button">Close</button>
+              </div>
+              <div class="builder-scroll-content">
+              <details id="mapLibrarySection" class="builder-card map-library-card collapsible-builder-section" open>
+                <summary><span><strong>1. Machine &amp; Map</strong><small id="mapLibrarySummary">Select or edit a saved machine map.</small></span></summary>
+                <div class="collapsible-builder-content">
+                <div class="builder-card-head"><div><p>Each map stores its application, machine setup, heads, aggregates, stations, depths, and objects.</p></div></div>
+                <div class="map-library-grid">
+                  <label>Saved map<select id="mapLibrarySelect"></select></label>
+                  <label>Map name<input id="mapName" type="text" /></label>
+                  <label>Application<select id="applicationMode"><option value="apl">APL</option><option value="cold-glue">Cold Glue</option></select></label>
+                  <label>Head count<input id="mapHeadCount" type="number" min="1" max="120" step="1" /></label>
+                  <label>Machine type<select id="mapMachineType"></select></label>
+                  <button id="addMachineType" type="button" class="secondary-button">Add Machine</button>
+                </div>
+                <details id="builderMachineSettingsSection" class="nested-builder-section machine-settings-section">
+                  <summary><span><strong>Settings</strong><small>Direction, radius, encoder, servo, zero, and fault limits.</small></span></summary>
+                  <div class="map-library-grid map-machine-settings-grid collapsible-builder-content">
+                  <label>Direction<select id="mapDirection"><option value="cw">Clockwise</option><option value="ccw">Counter-clockwise</option></select></label>
+                  <label>Map radius<input id="mapRadius" type="number" min="1" step="0.1" /></label>
+                  <label>Reference pitch radius (mm)<input id="mapReferencePitchRadiusMm" type="number" min="1" step="0.001" /></label>
+                  <label>Encoder counts / revolution<input id="mapEncoderCountsPerRev" type="number" min="1" step="1" /></label>
+                  <label>Servo gear ratio<input id="mapServoGearRatio" type="number" min="0.001" step="0.001" /></label>
+                  <label>Zero angle<input id="mapZeroAngle" type="number" min="0" max="359.999" step="0.1" /></label>
+                  <label>Plate/table fault ratio<input id="mapMaxMoveRatio" type="number" min="0.1" step="0.1" /></label>
+                  <label class="switch-setting compact-switch"><span class="switch-copy"><strong>Scale from reference radius</strong></span><span class="switch-control"><input id="mapAutoScaleTableMap" type="checkbox" /><span class="switch-track" aria-hidden="true"></span></span></label>
+                  <input id="mapAggregateCount" type="number" min="1" max="6" step="1" hidden />
+                  <input id="mapStationCount" type="number" min="1" max="6" step="1" hidden />
+                  </div>
+                </details>
+                <div class="map-library-actions"><button id="newMachineMap" type="button" class="secondary-button">New From Current</button><button id="saveMachineMap" type="button">Save Map</button><button id="deleteMachineMap" type="button" class="danger">Delete Map</button></div>
+                <div id="applicationModeDescription" class="mode-description"></div>
+                </div>
+              </details>
+
+              <details id="machineLayoutSection" class="builder-card collapsible-builder-section machine-layout-section">
+                <summary><span><strong>2. Station Setup</strong><small id="machineLayoutSummary">Enable machine slots and set aggregate table angles.</small></span></summary>
+                <div class="collapsible-builder-content">
+                  <div class="machine-layout-groups">
+                    <fieldset><legend>Aggregates</legend><div id="aggregateToggleList" class="machine-toggle-grid"></div></fieldset>
+                    <fieldset><legend>Stations</legend><div id="stationToggleList" class="machine-toggle-grid"></div></fieldset>
+                  </div>
+                  <section id="aggregateAnglesSection" class="aggregate-angle-panel" aria-label="Aggregate table angles">
+                    <div class="builder-subhead"><strong>Aggregate Table Angles</strong><small id="aggregateAnglesSummary">Physical mounting location of each active aggregate.</small></div>
+                    <div id="aggregateAngleEditor"></div>
+                  </section>
+                </div>
+              </details>
+              <div class="wipe-builder-body">
+                <details id="objectDepthSection" class="builder-card object-depth-settings collapsible-builder-section">
+                  <summary><span><strong>Object Depth</strong><small>Radial distance from the bottle-table path.</small></span></summary>
+                  <div class="collapsible-builder-content object-depth-grid">
+                    <label>Spender depth<input id="spenderDepth" type="number" step="0.1" /></label>
+                    <label>Outside roller depth<input id="opRollerDepth" type="number" step="0.1" /></label>
+                    <label>Inside roller depth<input id="nonOpRollerDepth" type="number" step="0.1" /></label>
+                    <label>Inside wipe depth<input id="wipeInnerDepth" type="number" step="0.1" /></label>
+                    <label>Outside wipe depth<input id="wipeOuterDepth" type="number" step="0.1" /></label>
+                  </div>
+                </details>
+                <details id="addMapObjectSection" class="builder-card builder-add-card collapsible-builder-section">
+                  <summary><span><strong>3. Add Object</strong><small>Create a pad, roller, brush, coder, or gripper.</small></span></summary>
+                  <div class="collapsible-builder-content builder-add-grid">
+                  <label>Name <input id="builderObjectName" type="text" placeholder="Example: Body outside wipe" /></label>
+                  <label>Type <select id="builderObjectType"></select></label>
+                  <label id="builderObjectStationLabel">Station <select id="builderObjectStation"><option value="1">Station 1</option><option value="2">Station 2</option><option value="3">Station 3</option><option value="4">Station 4</option><option value="5">Station 5</option><option value="6">Station 6</option></select></label>
+                  <label>Position <select id="builderObjectSide"><option value="outer">Outside</option><option value="inner">Inside</option></select></label>
+                  <label id="builderObjectStartLabel">Start / point 1 (deg) <input id="builderObjectStart" type="number" step="0.1" value="0" /></label>
+                  <label id="builderObjectEndLabel">Stop / point 2 (deg) <input id="builderObjectEnd" type="number" step="0.1" value="10" /></label>
+                  <label id="builderExtensionLabel">Brush extension (table distance) <input id="builderObjectExtension" type="number" step="1" value="20" /></label>
+                  <label id="builderSensorAssistLabel" class="builder-checkbox-label" hidden><input id="builderSensorAssist" type="checkbox" /> Orient bottle for sensor<small>Creates the shortest turn that meets the required label view.</small></label>
+                  <label id="builderSensorVisibilityLabel" hidden>Required label view (%) <input id="builderSensorVisibility" type="number" min="1" max="100" step="1" value="50" /><small>100% faces the label centerline directly toward the sensor.</small></label>
+                  <button id="addBuilderObject" type="button">Add to Map</button>
+                  </div>
+                </details>
+                <details id="configuredMapObjectsSection" class="builder-card builder-list-card collapsible-builder-section">
+                  <summary><span><strong id="builderListHeading">4. Map Objects</strong><small>Open a station, then open only the object you want to edit.</small></span></summary>
+                  <div class="collapsible-builder-content">
+                    <div class="builder-section-actions"><button id="undoBuilderEdit" type="button" class="secondary-button">Undo</button><button id="redoBuilderEdit" type="button" class="secondary-button">Redo</button><button id="guidedMapSetup" type="button" class="secondary-button">Guided Setup</button><button id="optimizeColdGlueMap" type="button" class="secondary-button">Optimize Cold Glue</button><button id="resetBuilderMap" type="button" class="secondary-button">Reset Map</button></div>
+                    <div id="wipeBuilderList" class="wipe-builder-list"></div>
+                  </div>
+                </details>
+                <input id="tablePitchRadiusMm" type="number" hidden><input id="padClearanceMm" type="number" hidden><div id="assemblyEditor" hidden></div><div id="objectLocationEditor" hidden></div><span id="assemblySetupSummary" hidden></span>
+              </div>
+              </div>
+              <div class="dialog-foot"><span id="builderStatus">Changes are applied live.</span><button id="applyApplicationSetup" type="button">Save &amp; Close</button></div>
+            </aside>
+
+          <section class="panel validation">
+            <div class="validation-head"><h2>Validation</h2><button id="showWipeDownData" type="button" class="secondary-button compact-builder-button" aria-controls="wipeDownDataPanel" aria-expanded="false">Wipe Data</button></div>
+            <div id="validationDetails" class="validation-details"></div>
+            <div id="validationList"></div>
+          </section>
+          <section id="wipeDownDataPanel" class="panel wipe-down-data-panel" role="dialog" aria-modal="false" aria-labelledby="wipeDownDataTitle" hidden>
+            <div class="wipe-data-head"><div><h2 id="wipeDownDataTitle">Label Wipe-Down</h2><span id="wipeLabelSection">Waiting for label</span></div><div class="wipe-data-actions"><strong id="wipePercent">0%</strong><button id="closeWipeDownData" type="button" class="secondary-button compact-builder-button">Close</button></div></div>
+            <div class="wipe-data-grid">
+              <div><span>Label length</span><strong id="wipeLabelLength">-</strong></div>
+              <div><span>Current turn</span><strong id="wipeCurrentTurn">Waiting for wipe-down</strong></div>
+              <div><span>Bottle plate angle</span><strong id="wipePlateAngle">0°</strong></div>
+            </div>
+            <div id="wipeLabelGraphic" class="wipe-label-graphic" role="img" aria-label="0% of the label surface wiped">
+              <div id="wipeLeftSurfaceFill" class="wipe-surface-fill wipe-surface-left"></div>
+              <div id="wipeRightSurfaceFill" class="wipe-surface-fill wipe-surface-right"></div>
+              <div id="wipeLeadingBackspin" class="wipe-leading-backspin" hidden><div id="wipeBackspinFill" class="wipe-backspin-fill"></div><span id="wipeBackspinText">5 mm backspin</span></div>
+              <div id="wipeTackLine" class="wipe-center-line"><span id="wipeTackText">Center tack</span></div>
+              <span id="wipeLeftEdge" class="wipe-edge wipe-edge-left">Left edge</span><span id="wipeRightEdge" class="wipe-edge wipe-edge-right">Right edge</span>
+            </div>
+            <div class="wipe-progress-caption"><span id="wipeDirectionText">Center → edges</span><strong id="wipeProgressText">0% wiped</strong><span id="wipeApplicationText">Center tack</span></div>
+          </section>
+        </aside>
+      </section>
+
+      <section class="tabs">
+        <button class="tab active" data-tab="specs" type="button">Specs</button>
+        <button class="tab" data-tab="buildInputs" type="button">Build Inputs</button>
+        <button class="tab" data-tab="program" type="button">Servo Program</button>
+        <button class="tab" data-tab="simulation" type="button">Servo Simulation</button>
+        <span class="simulation-actions-spacer" aria-hidden="true"></span>
+        <label class="bottle-angle-control">Bottle angle <input id="previewBottleAngle" type="number" step="0.1" placeholder="Generated" /><span>deg</span></label>
+        <button id="loadGeneratedTurns" class="simulation-action" type="button" hidden>Load From Servo Program</button>
+        <button id="clearCustomTurns" class="simulation-action" type="button" hidden>Clear Custom Turns</button>
+      </section>
+
+      <section id="stations" hidden></section>
+      <section id="specs" class="table-wrap active">
+        <div class="spec-stack">
+          <div class="spec-section">
+            <h2>Bottle Specs</h2>
+            <div id="bottleSpecs"></div>
+          </div>
+          <div class="spec-section">
+            <h2>Label Specs</h2>
+            <div id="labelSpecs"></div>
+          </div>
+        </div>
+      </section>
+      <section id="buildInputs" class="table-wrap"></section>
+      <section id="program" class="table-wrap"></section>
+      <section id="simulation" class="table-wrap"></section>
+      <section id="heads" class="table-wrap" hidden></section>
+    </main>
+    <script src="drivers/geometry/label-geometry-driver.js"></script>
+    <script src="drivers/application/application-mode-driver.js"></script>
+    <script src="drivers/mechanical/mechanical-motion-driver.js"></script>
+    <script src="drivers/mechanical/cold-glue-motion-driver.js?v=0.7.45"></script>
+    <script src="drivers/servo/servo-command-driver.js"></script>
+    <script src="drivers/validation/motion-validation-driver.js"></script>
+    <script src="drivers/profile/apl-profile-driver.js"></script>
+    <script src="app/defaults.js?v=0.7.45"></script>
+    <script src="app/persistence.js?v=0.7.45"></script>
+    <script src="app/geometry-and-planning.js"></script>
+    <script src="app/profile-generation.js"></script>
+    <script src="app/simulation-engine.js?v=0.7.45"></script>
+    <script src="app/assemblies.js"></script>
+    <script src="app/wipe-down-builder.js"></script>
+    <script src="app/validation.js"></script>
+    <script src="app/setup-bindings.js"></script>
+    <script src="app/map-rendering.js"></script>
+    <script src="app/table-rendering.js?v=0.7.45"></script>
+    <script src="app/bootstrap.js?v=0.7.45"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
