@@ -336,6 +336,15 @@ function generatedColdGlueFixedProfile() {
     plate = targetPlate;
     add(3, target, plate, `${action} - Reference`, extra);
   };
+  const moveToReferenceWithoutExtraLap = (targetTable, targetPlate, action, extra = {}) => {
+    if (Math.abs(norm(num(targetTable, lastTable)) - norm(lastTable)) <= 0.001) {
+      add(7, lastTable, plate, action, extra);
+      plate = targetPlate;
+      add(3, lastTable, plate, `${action} - Reference`, extra);
+      return;
+    }
+    moveToReference(targetTable, targetPlate, action, extra);
+  };
   const plateTravelTo = (targetPlate) => Math.abs(((num(targetPlate, plate) - plate + 540) % 360) - 180);
   const moveInWindow = (startTable, endTable, targetPlate, action, extra = {}) => {
     const start = unwrapAfter(startTable, lastTable);
@@ -363,6 +372,57 @@ function generatedColdGlueFixedProfile() {
   const pairedBrushPlan = (section, stationObjects) => {
     const wipe = sectionWipePlan(section);
     if (!wipe) return null;
+    const channels = stationObjects.filter((item) => item.kind === "brush-channel");
+    if (channels.length) {
+      const firstHalfRequired = Math.max(0, num(wipe.labelDeg, 0) / 2 + num(wipe.overWipeDeg, 0));
+      const reverseRequired = Math.max(0, num(wipe.labelDeg, 0) + num(wipe.overWipeDeg, 0) * 2);
+      const requiredRotation = firstHalfRequired + reverseRequired;
+      let moves = [];
+      channels.forEach((channel) => {
+        const outerStart = num(channel.outerStart, channel.start);
+        const outerEnd = Math.max(outerStart, num(channel.outerEnd, channel.end));
+        const innerStart = num(channel.innerStart, channel.start);
+        const innerEnd = Math.max(innerStart, num(channel.innerEnd, channel.end));
+        const channelStart = Math.min(outerStart, innerStart);
+        const channelEnd = Math.max(outerEnd, innerEnd);
+        const holdStart = Math.min(channelEnd, Math.max(channelStart, num(channel.bottleHoldStartDeg, channelStart)));
+        const points = [...new Set([outerStart, outerEnd, innerStart, innerEnd, ...(channel.holdBottleAngle ? [holdStart] : [])])].sort((a, b) => a - b);
+        for (let index = 0; index < points.length - 1; index += 1) {
+          const start = points[index];
+          const end = points[index + 1];
+          if (end <= start + 0.001) continue;
+          const middle = (start + end) / 2;
+          const outerActive = middle >= outerStart && middle <= outerEnd;
+          const innerActive = middle >= innerStart && middle <= innerEnd;
+          const held = Boolean(channel.holdBottleAngle) && middle >= holdStart - 0.001;
+          if (held || (outerActive && innerActive)) moves.push({ id: channel.id, stage: "opposed", start, end, rotation: 0, direction: 0, holdAngle: num(channel.bottleHoldAngleDeg, 90), holdCurrent: held && Boolean(channel.holdCurrentBottleAngle), configuredHold: held });
+          else if (outerActive) moves.push({ id: channel.id, stage: "outer", start, end, direction: 1 });
+          else if (innerActive) moves.push({ id: channel.id, stage: "inner", start, end, direction: -1 });
+        }
+      });
+      const issues = [];
+      const candidates = moves.filter((move) => move.stage === "outer" || move.stage === "inner").sort((a, b) => a.start - b.start);
+      const totalOpenSpan = candidates.reduce((sum, move) => sum + move.end - move.start, 0);
+      const safeRatio = state.maxMoveRatio * 0.9;
+      const plannedRatio = totalOpenSpan > 0 ? Math.min(safeRatio, requiredRotation / totalOpenSpan) : 0;
+      const initialDirection = candidates[0]?.direction || 1;
+      let firstRemaining = firstHalfRequired;
+      let reverseRemaining = reverseRequired;
+      const allocated = candidates.map((move) => {
+        const reversing = firstRemaining <= 0.001;
+        const remaining = reversing ? reverseRemaining : firstRemaining;
+        const rotation = Math.min(remaining, (move.end - move.start) * plannedRatio);
+        if (reversing) reverseRemaining -= rotation;
+        else firstRemaining -= rotation;
+        return { ...move, rotation, ratio: plannedRatio, direction: reversing ? -initialDirection : initialDirection, centerTackStage: reversing ? "reverse-to-second-edge" : "first-half-to-edge" };
+      });
+      const candidateSet = new Set(candidates);
+      moves = [...moves.filter((move) => !candidateSet.has(move)), ...allocated].sort((a, b) => a.start - b.start);
+      const remainingRotation = Math.max(0, firstRemaining) + Math.max(0, reverseRemaining);
+      if (requiredRotation > 0.001 && !candidates.length && !channels.every((channel) => channel.holdBottleAngle)) issues.push({ level: "bad", code: "cold-glue-channel-closed", message: "The Brush Channel has no open one-sided brush length available to wipe the label." });
+      else if (remainingRotation > 0.001 && candidates.length) issues.push({ level: "bad", code: "cold-glue-channel-capacity", message: `The open Brush Channel length is short by ${remainingRotation.toFixed(1)} deg of bottle rotation.` });
+      return { labelDeg: wipe.labelDeg, overWipeDeg: wipe.overWipeDeg, channelMoves: moves, issues };
+    }
     const brushes = stationObjects.filter((item) => item.kind === "brush");
     const outer = brushes.filter((item) => item.side !== "inner");
     const inner = brushes.filter((item) => item.side === "inner");
@@ -504,7 +564,8 @@ function generatedColdGlueFixedProfile() {
       // opposite orientation lets the brushes catch and peel the unwiped label.
       const allBrushAllocations = [
         ...(Array.isArray(stationPlan.process) ? stationPlan.process : stationPlan.outside || []),
-        ...(Array.isArray(stationPlan.final) ? stationPlan.final : stationPlan.inside || [])
+        ...(Array.isArray(stationPlan.final) ? stationPlan.final : stationPlan.inside || []),
+        ...(Array.isArray(stationPlan.channelMoves) ? stationPlan.channelMoves : [])
       ].filter((allocation) => Number.isFinite(num(allocation.start, NaN)))
         .sort((a, b) => num(a.start, 0) - num(b.start, 0));
       const firstBrush = allBrushAllocations[0];
@@ -522,9 +583,34 @@ function generatedColdGlueFixedProfile() {
         }
       }
 
-      if (Array.isArray(stationPlan.process) || Array.isArray(stationPlan.final)) {
-        (stationPlan.process || []).forEach((allocation) => applyMove(allocation.start, allocation.end, allocation.rotation, allocation.direction, `${sectionLabel(section)} Partial Brush Wipe-Down`, { station, section, brushStage: "process", brushRole: allocation.role, plannedRotation: allocation.rotation, plannedRatio: allocation.ratio, coveragePercent: stationPlan.partialCoveragePercent }));
-        (stationPlan.final || []).forEach((allocation) => applyMove(allocation.start, allocation.end, allocation.rotation, allocation.direction, `${sectionLabel(section)} Final Brush Wipe-Down`, { station, section, brushStage: "final", brushRole: allocation.role, plannedRotation: allocation.rotation, plannedRatio: allocation.ratio, coveragePercent: 100 - stationPlan.partialCoveragePercent }));
+      if (Array.isArray(stationPlan.channelMoves)) {
+        stationPlan.channelMoves.forEach((allocation) => {
+          if (allocation.stage === "opposed") {
+            const holdAngle = allocation.holdCurrent ? plate : num(allocation.holdAngle, 90);
+            const action = `${sectionLabel(section)} Brush Channel ${allocation.configuredHold ? "Configured" : "Opposed"} Hold at ${finishAngle(holdAngle)}°`;
+            moveToReferenceWithoutExtraLap(allocation.start, holdAngle, action, { station, section, brushStage: "opposed", channelHold: true, holdAngle });
+            applyMove(allocation.start, allocation.end, 0, 0, action, { station, section, brushStage: "opposed", channelHold: true, holdAngle });
+          } else if (allocation.rotation > 0.001) {
+            applyMove(allocation.start, allocation.end, allocation.rotation, allocation.direction, `${sectionLabel(section)} ${allocation.stage === "outer" ? "Outside" : "Inside"} Brush Channel Wipe-Down`, { station, section, brushStage: allocation.stage, plannedRotation: allocation.rotation, plannedRatio: allocation.ratio });
+          }
+        });
+      } else if (Array.isArray(stationPlan.process) || Array.isArray(stationPlan.final) || Array.isArray(stationPlan.holds)) {
+        const brushMoves = [
+          ...(stationPlan.process || []).map((allocation) => ({ ...allocation, generatedStage: "process" })),
+          ...(stationPlan.final || []).map((allocation) => ({ ...allocation, generatedStage: "final" })),
+          ...(stationPlan.holds || []).map((allocation) => ({ ...allocation, generatedStage: "hold" }))
+        ].sort((a, b) => num(a.start, 0) - num(b.start, 0));
+        brushMoves.forEach((allocation) => {
+          if (allocation.generatedStage === "hold") {
+            const holdAngle = allocation.holdCurrent ? plate : num(allocation.holdAngle, 90);
+            const holdAction = `${sectionLabel(section)} Brush Hold at ${finishAngle(holdAngle)}°`;
+            moveToReferenceWithoutExtraLap(allocation.start, holdAngle, holdAction, { station, section, brushStage: "hold", channelHold: true, holdAngle });
+            applyMove(allocation.start, allocation.end, 0, 0, holdAction, { station, section, brushStage: "hold", channelHold: true, holdAngle });
+            return;
+          }
+          const finalStage = allocation.generatedStage === "final";
+          applyMove(allocation.start, allocation.end, allocation.rotation, allocation.direction, `${sectionLabel(section)} ${finalStage ? "Final" : "Partial"} Brush Wipe-Down`, { station, section, brushStage: allocation.generatedStage, brushRole: allocation.role, plannedRotation: allocation.rotation, plannedRatio: allocation.ratio, coveragePercent: finalStage ? 100 - stationPlan.partialCoveragePercent : stationPlan.partialCoveragePercent });
+        });
       } else {
         stationPlan.outside.forEach((allocation) => applyMove(allocation.start, allocation.end, allocation.rotation, -1, `${sectionLabel(section)} Outside Brush Wipe-Down`, { station, section, brushStage: "outer", plannedRotation: allocation.rotation, plannedRatio: allocation.ratio }));
         stationPlan.inside.forEach((allocation) => applyMove(allocation.start, allocation.end, allocation.rotation, 1, `${sectionLabel(section)} Inside Brush Wipe-Down`, { station, section, brushStage: "inner", plannedRotation: allocation.rotation, plannedRatio: allocation.ratio }));

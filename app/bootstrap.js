@@ -163,9 +163,10 @@ function showStartupError(error) {
   }
 }
 
-function initializeLabelerApp() {
+async function initializeLabelerApp() {
   try {
     loadSavedSettings();
+    await applyCompanySettingsSeed();
     ensurePersistentApplicationMaps();
     if (typeof initializeStella660ColdGlueExample === "function" && initializeStella660ColdGlueExample()) saveCurrentSettings();
     bindSetup();

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.57",
+  "version": "0.7.60",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Colors aggregate degree values green and adds spacing within curved travel labels."
+  "notes": "Seeds company maps and libraries on updates without overwriting existing user inputs or matching entries."
 }

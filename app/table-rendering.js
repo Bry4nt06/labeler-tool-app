@@ -547,9 +547,19 @@ function wipeContextForSegment(row) {
   return null;
 }
 
+function telemetryWipeObjects(objects) {
+  return (Array.isArray(objects) ? objects : []).flatMap((item) => {
+    if (item?.kind !== "brush-channel") return [item];
+    return [
+      { ...item, id: `${item.id}-telemetry-outer`, kind: "brush", side: "outer", start: num(item.outerStart, item.start), end: num(item.outerEnd, item.end), channelId: item.id },
+      { ...item, id: `${item.id}-telemetry-inner`, kind: "brush", side: "inner", start: num(item.innerStart, item.start), end: num(item.innerEnd, item.end), channelId: item.id }
+    ];
+  });
+}
+
 function wipeObjectsForSection(section, station = null) {
   const machineMap = typeof activeMachineMap === "function" ? activeMachineMap() : null;
-  return (Array.isArray(machineMap?.objects) ? machineMap.objects : []).filter((item) => {
+  return telemetryWipeObjects(machineMap?.objects).filter((item) => {
     if (!["brush", "pad", "roller", "wipe"].includes(String(item?.kind || ""))) return false;
     const itemStation = Number(item?.station);
     return Number.isFinite(itemStation)

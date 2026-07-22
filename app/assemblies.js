@@ -533,6 +533,16 @@ function drawConfiguredAssemblies(add, layer) {
         drawMapObjectLabel(add, objectLayer, item, angle, state.radius + depth, 17);
         return;
       }
+      if (item.kind === "brush-channel") {
+        const brushHalfWidth = Math.max(4, Math.min(7, num(item.extension, 20) / 4));
+        const outerRadius = state.radius + state.depths.wipeOuter;
+        const innerRadius = state.radius + state.depths.wipeInner;
+        add("path", { d: arcPath(num(item.outerStart, item.start), num(item.outerEnd, item.end), outerRadius - brushHalfWidth, outerRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.58, stroke: brushStroke, "stroke-width": 2, "stroke-dasharray": "3 2", "data-cold-glue-brush-channel": item.id, "data-channel-side": "outer" }, objectLayer);
+        add("path", { d: arcPath(num(item.innerStart, item.start), num(item.innerEnd, item.end), innerRadius - brushHalfWidth, innerRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.58, stroke: brushStroke, "stroke-width": 2, "stroke-dasharray": "3 2", "data-cold-glue-brush-channel": item.id, "data-channel-side": "inner" }, objectLayer);
+        const labelAngle = (Math.min(num(item.outerStart, item.start), num(item.innerStart, item.start)) + Math.max(num(item.outerEnd, item.end), num(item.innerEnd, item.end))) / 2;
+        drawMapObjectLabel(add, objectLayer, item, labelAngle, (outerRadius + innerRadius) / 2, brushHalfWidth + 13);
+        return;
+      }
       if (item.kind !== "brush") return;
       const depth = item.side === "inner" ? state.depths.wipeInner : state.depths.wipeOuter;
       const brushCenterRadius = state.radius + depth;

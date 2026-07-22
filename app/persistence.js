@@ -204,6 +204,55 @@ function saveCurrentSettings() {
   window.setTimeout(() => { els.saveSettings.textContent = "Save Settings"; }, 1100);
 }
 
+const COMPANY_SETTINGS_SEED_VERSION = 1;
+const COMPANY_SETTINGS_SEED_KEY = "labelerCompanySettingsSeedVersion";
+
+function normalizedSeedKey(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function mergeMissingLibraryEntries(current, seeded, identity) {
+  const result = Array.isArray(current) ? current : [];
+  const keysFor = (entry) => [identity(entry)].flat().filter(Boolean);
+  const known = new Set(result.flatMap(keysFor));
+  (Array.isArray(seeded) ? seeded : []).forEach((entry) => {
+    const keys = keysFor(entry);
+    if (!keys.length || keys.some((key) => known.has(key))) return;
+    result.push(deepClone(entry));
+    keys.forEach((key) => known.add(key));
+  });
+  return result;
+}
+
+async function applyCompanySettingsSeed() {
+  if (Number(readStorage(COMPANY_SETTINGS_SEED_KEY)) >= COMPANY_SETTINGS_SEED_VERSION) return false;
+  try {
+    const response = await fetch("./config/company-default-settings.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Company settings returned ${response.status}.`);
+    const documentData = await response.json();
+    const seeded = documentData?.format === "labeler-tool-portable-settings" ? documentData.settings : documentData;
+    if (!seeded || typeof seeded !== "object") throw new Error("Company settings are invalid.");
+
+    const hasUserSettings = Boolean(readStorage(SETTINGS_KEY));
+    if (!hasUserSettings) {
+      if (!writeStorage(SETTINGS_KEY, JSON.stringify(seeded))) throw new Error("Browser storage is unavailable.");
+      loadSavedSettings();
+    } else {
+      state.mapLibrary = mergeMissingLibraryEntries(state.mapLibrary, seeded.mapLibrary, (item) => [normalizedSeedKey(item?.id), normalizedSeedKey(item?.name) ? `${normalizedSeedKey(item?.applicationMode)}|${normalizedSeedKey(item?.name)}` : ""]);
+      state.labelSpecs = mergeMissingLibraryEntries(state.labelSpecs, seeded.labelSpecs, (item) => `${normalizedSeedKey(item?.brand)}|${normalizedSeedKey(item?.bottleType)}|${normalizedSeedKey(item?.applicationMode)}`);
+      state.bottleSpecs = mergeMissingLibraryEntries(state.bottleSpecs, seeded.bottleSpecs, (item) => [normalizedSeedKey(item?.id), normalizedSeedKey(item?.bottleType)]);
+      state.servoProfileLibrary = mergeMissingLibraryEntries(state.servoProfileLibrary, seeded.servoProfileLibrary, (item) => [normalizedSeedKey(item?.id), normalizedSeedKey(item?.name) ? `${normalizedSeedKey(item?.mapId)}|${normalizedSeedKey(item?.name)}` : ""]);
+      state.machineTypes = [...new Set([...(state.machineTypes || []), ...(seeded.machineTypes || [])].map((value) => String(value).trim()).filter(Boolean))];
+      saveCurrentSettings();
+    }
+    writeStorage(COMPANY_SETTINGS_SEED_KEY, String(COMPANY_SETTINGS_SEED_VERSION));
+    return true;
+  } catch (error) {
+    console.error("Company settings seed unavailable", error);
+    return false;
+  }
+}
+
 function compareApplicationVersions(left, right) {
   const parts = (value) => String(value || "0").split(".").map((part) => Number.parseInt(part, 10) || 0);
   const a = parts(left);

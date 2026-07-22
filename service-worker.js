@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "servoforge-labeler-v0.7.57";
+const CACHE_NAME = "servoforge-labeler-v0.7.60";
 const APP_FILES = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const APP_FILES = [
   "./fault-config.json",
   "./manifest.webmanifest",
   "./update-manifest.json",
+  "./config/company-default-settings.json",
   "./assets/labeler-tool-icon.svg",
   "./drivers/geometry/label-geometry-driver.js",
   "./drivers/application/application-mode-driver.js",

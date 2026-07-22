@@ -1,0 +1,2028 @@
+{
+  "format": "labeler-tool-portable-settings",
+  "version": 1,
+  "exportedAt": "2026-07-21T23:46:15.736Z",
+  "settings": {
+    "themePreset": "graphite",
+    "headCount": 45,
+    "radius": 250,
+    "zeroAngle": 0,
+    "direction": "cw",
+    "previewAngle": 131.53599926268745,
+    "previewBottleAngle": null,
+    "animationSpeed": 1.5,
+    "animationSpeedUnit": "deg-per-second",
+    "maxMoveRatio": 21,
+    "tablePitchRadiusMm": 572.958,
+    "referencePitchRadiusMm": 572.965,
+    "autoScaleTableMap": true,
+    "encoderCountsPerRev": 10000,
+    "servoGearRatio": 1.051,
+    "padClearanceMm": 5,
+    "showMoveDistanceOverlay": true,
+    "showQuadrantReferences": true,
+    "wipeBuilderOpen": false,
+    "mapLibrary": [
+      {
+        "schemaVersion": 11,
+        "blankSeedVersion": 1,
+        "isTemplate": false,
+        "id": "map-blank-apl",
+        "name": "Blank APL Map",
+        "machineType": "TopModul",
+        "applicationMode": "apl",
+        "headCount": 45,
+        "aggregateCount": 6,
+        "stationCount": 6,
+        "enabledAggregates": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "enabledStations": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "aggregateAngles": {
+          "1": 68.5,
+          "2": 108.5,
+          "3": 148.5,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationAngles": {
+          "1": 68.5,
+          "2": 108.5,
+          "3": 148.5,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationSections": {},
+        "machineSettings": {
+          "direction": "ccw",
+          "radius": 250,
+          "referencePitchRadiusMm": 572.965,
+          "encoderCountsPerRev": 10000,
+          "servoGearRatio": 1.051,
+          "autoScaleTableMap": true,
+          "zeroAngle": 0,
+          "maxMoveRatio": 21
+        },
+        "depths": {
+          "spender": 12,
+          "opRoller": 19,
+          "nonOpRoller": -16,
+          "wipeInner": -16,
+          "wipeOuter": 17
+        },
+        "restoreDefaultObjects": false,
+        "objects": []
+      },
+      {
+        "schemaVersion": 11,
+        "blankSeedVersion": 1,
+        "isTemplate": false,
+        "id": "machine-map-1784426568359-9375",
+        "name": "45H TopModul APL",
+        "machineType": "TopModul",
+        "applicationMode": "apl",
+        "headCount": 45,
+        "aggregateCount": 4,
+        "stationCount": 4,
+        "enabledAggregates": [
+          true,
+          true,
+          true,
+          true,
+          false,
+          false
+        ],
+        "enabledStations": [
+          true,
+          true,
+          true,
+          true,
+          false,
+          false
+        ],
+        "aggregateAngles": {
+          "1": 68.5,
+          "2": 108.5,
+          "3": 148.5,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationAngles": {
+          "1": 68.5,
+          "2": 108.5,
+          "3": 148.5,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationSections": {},
+        "machineSettings": {
+          "direction": "cw",
+          "radius": 250,
+          "referencePitchRadiusMm": 572.965,
+          "encoderCountsPerRev": 10000,
+          "servoGearRatio": 1.051,
+          "autoScaleTableMap": true,
+          "zeroAngle": 0,
+          "maxMoveRatio": 21
+        },
+        "depths": {
+          "spender": 12,
+          "opRoller": 19,
+          "nonOpRoller": -16,
+          "wipeInner": -16,
+          "wipeOuter": 17
+        },
+        "restoreDefaultObjects": false,
+        "objects": [
+          {
+            "id": "apl-1784426672890-9686",
+            "name": "Agg 1 Roller 1",
+            "kind": "roller",
+            "application": "apl",
+            "side": "outer",
+            "start": 72,
+            "end": 77,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784426699971-8649",
+            "name": "Agg 1 Roller 2",
+            "kind": "roller",
+            "application": "apl",
+            "side": "outer",
+            "start": 77.5,
+            "end": 82.5,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784426730846-3008",
+            "name": "Agg 1 Roller3",
+            "kind": "roller",
+            "application": "apl",
+            "side": "inner",
+            "start": 89.5,
+            "end": 94.5,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784426741981-2426",
+            "name": "Agg 1 Roller 4",
+            "kind": "roller",
+            "application": "apl",
+            "side": "inner",
+            "start": 95,
+            "end": 100,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427038065-2175",
+            "name": "Agg 2 Roller 1",
+            "kind": "roller",
+            "application": "apl",
+            "side": "outer",
+            "start": 112,
+            "end": 117,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 2,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427051894-1050",
+            "name": "Agg 2 Roller 2",
+            "kind": "roller",
+            "application": "apl",
+            "side": "outer",
+            "start": 117.5,
+            "end": 122.5,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 2,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427062632-3473",
+            "name": "Agg 2 Roller 3",
+            "kind": "roller",
+            "application": "apl",
+            "side": "inner",
+            "start": 129.5,
+            "end": 134.5,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 2,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427075013-9587",
+            "name": "Agg 2 Roller 4",
+            "kind": "roller",
+            "application": "apl",
+            "side": "inner",
+            "start": 135,
+            "end": 140,
+            "wipeSpanDeg": 5,
+            "extension": 20,
+            "station": 2,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427182758-2217",
+            "name": "Wipe-Down",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 148.914678779028,
+            "end": 168.914678779028,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": 3,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427217805-6597",
+            "name": "Wipe-Down",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 189,
+            "end": 209,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": 4,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427245948-2967",
+            "name": "Coder",
+            "kind": "coding",
+            "application": "apl",
+            "side": "outer",
+            "start": 304,
+            "end": 309,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": null,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784435837968-5788",
+            "name": "sensor",
+            "kind": "sensor",
+            "application": "apl",
+            "side": "outer",
+            "start": 227.01603506777968,
+            "end": 230.01603506777968,
+            "angle": 227.01603506777968,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": true,
+            "requiredVisibilityPercent": 83,
+            "station": 4,
+            "role": "process",
+            "coveragePercent": 0
+          }
+        ]
+      },
+      {
+        "schemaVersion": 11,
+        "blankSeedVersion": 1,
+        "isTemplate": false,
+        "id": "machine-map-1784427388958-9702",
+        "name": "60H APL MAB1",
+        "machineType": "Autocol",
+        "applicationMode": "apl",
+        "headCount": 60,
+        "aggregateCount": 3,
+        "stationCount": 3,
+        "enabledAggregates": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "enabledStations": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "aggregateAngles": {
+          "1": 80.5,
+          "2": 108.5,
+          "3": 155,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationAngles": {
+          "1": 80.5,
+          "2": 108.5,
+          "3": 155,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationSections": {
+          "1": "neck",
+          "3": "body"
+        },
+        "machineSettings": {
+          "direction": "ccw",
+          "radius": 250,
+          "referencePitchRadiusMm": 572.965,
+          "encoderCountsPerRev": 10000,
+          "servoGearRatio": 1.051,
+          "autoScaleTableMap": true,
+          "zeroAngle": 270,
+          "maxMoveRatio": 24
+        },
+        "depths": {
+          "spender": 12,
+          "opRoller": 19,
+          "nonOpRoller": 0,
+          "wipeInner": -18,
+          "wipeOuter": 20
+        },
+        "restoreDefaultObjects": false,
+        "objects": [
+          {
+            "id": "apl-1784427572565-9137",
+            "name": "Wipe-Down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 83.70125192518674,
+            "end": 103.70125192518674,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427690411-9224",
+            "name": "Wipe-Down 2",
+            "kind": "pad",
+            "application": "apl",
+            "side": "inner",
+            "start": 105,
+            "end": 125,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427834953-7499",
+            "name": "Wipe-Down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 156,
+            "end": 176,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": 3,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784427891941-7234",
+            "name": "Wipe-Down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 230,
+            "end": 250,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": 5,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "apl-1784429885497-909",
+            "name": "Coder",
+            "kind": "coding",
+            "application": "apl",
+            "side": "outer",
+            "start": 279.24443845779115,
+            "end": 284.24443845779115,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "station": null,
+            "role": "process",
+            "coveragePercent": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          }
+        ]
+      },
+      {
+        "schemaVersion": 11,
+        "blankSeedVersion": 1,
+        "isTemplate": false,
+        "id": "machine-map-1784477554290-6537",
+        "name": "60H CG MAB1",
+        "machineType": "Autocol",
+        "applicationMode": "cold-glue",
+        "headCount": 60,
+        "aggregateCount": 3,
+        "stationCount": 3,
+        "enabledAggregates": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "enabledStations": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "aggregateAngles": {
+          "1": 81,
+          "2": 108.5,
+          "3": 153,
+          "4": 188.5,
+          "5": 231,
+          "6": 269.5
+        },
+        "stationAngles": {
+          "1": 81,
+          "2": 108.5,
+          "3": 153,
+          "4": 188.5,
+          "5": 231,
+          "6": 269.5
+        },
+        "stationSections": {
+          "1": "neck",
+          "3": "body",
+          "5": "back"
+        },
+        "machineSettings": {
+          "direction": "ccw",
+          "radius": 250,
+          "referencePitchRadiusMm": 572.965,
+          "encoderCountsPerRev": 10000,
+          "servoGearRatio": 1.051,
+          "autoScaleTableMap": true,
+          "zeroAngle": 270,
+          "maxMoveRatio": 24
+        },
+        "depths": {
+          "spender": 12,
+          "opRoller": 19,
+          "nonOpRoller": -16,
+          "wipeInner": -16,
+          "wipeOuter": 17
+        },
+        "restoreDefaultObjects": false,
+        "objects": [
+          {
+            "id": "stella-660-5-back-inner",
+            "name": "Outside Brush Channel",
+            "kind": "brush",
+            "application": "cold-glue",
+            "station": 1,
+            "side": "outer",
+            "role": "final",
+            "coveragePercent": 50,
+            "start": 92,
+            "end": 125,
+            "extension": 20,
+            "wipeSpanDeg": 0,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50
+          },
+          {
+            "id": "cold-glue-1784673323324-7619",
+            "name": "Inside Brush Channel",
+            "kind": "brush",
+            "application": "cold-glue",
+            "side": "inner",
+            "start": 121,
+            "end": 153,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0
+          },
+          {
+            "id": "cold-glue-1784674042378-827",
+            "name": "Outside Brush Channel",
+            "kind": "brush",
+            "application": "cold-glue",
+            "side": "outer",
+            "start": 165,
+            "end": 185,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 3,
+            "role": "final",
+            "coveragePercent": 0
+          },
+          {
+            "id": "cold-glue-1784674053300-9578",
+            "name": "Inside Brush Channel",
+            "kind": "brush",
+            "application": "cold-glue",
+            "side": "inner",
+            "start": 165,
+            "end": 185,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 3,
+            "role": "process",
+            "coveragePercent": 0
+          },
+          {
+            "id": "cold-glue-1784674133558-1987",
+            "name": "Outside Brush Channel",
+            "kind": "brush",
+            "application": "cold-glue",
+            "side": "inner",
+            "start": 243,
+            "end": 263,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 5,
+            "role": "process",
+            "coveragePercent": 0
+          },
+          {
+            "id": "cold-glue-1784674171178-273",
+            "name": "Outside Brush Channel",
+            "kind": "brush",
+            "application": "cold-glue",
+            "side": "outer",
+            "start": 243,
+            "end": 263,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 5,
+            "role": "process",
+            "coveragePercent": 0
+          }
+        ],
+        "coldGlueOptimizationVersion": 1,
+        "stella330FullWrapCalibrationVersion": 2
+      },
+      {
+        "schemaVersion": 11,
+        "blankSeedVersion": 1,
+        "isTemplate": false,
+        "id": "machine-map-1784551038032-413",
+        "name": "MAB1 APL",
+        "machineType": "Autocol",
+        "applicationMode": "apl",
+        "headCount": 60,
+        "aggregateCount": 3,
+        "stationCount": 3,
+        "enabledAggregates": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "enabledStations": [
+          true,
+          false,
+          true,
+          false,
+          true,
+          false
+        ],
+        "aggregateAngles": {
+          "1": 80.5,
+          "2": 108.5,
+          "3": 155,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationAngles": {
+          "1": 80.5,
+          "2": 108.5,
+          "3": 155,
+          "4": 188.5,
+          "5": 229.5,
+          "6": 269.5
+        },
+        "stationSections": {},
+        "machineSettings": {
+          "direction": "ccw",
+          "radius": 250,
+          "referencePitchRadiusMm": 572.965,
+          "encoderCountsPerRev": 10000,
+          "servoGearRatio": 1.051,
+          "autoScaleTableMap": true,
+          "zeroAngle": 270,
+          "maxMoveRatio": 24
+        },
+        "depths": {
+          "spender": 12,
+          "opRoller": 19,
+          "nonOpRoller": -16,
+          "wipeInner": -16,
+          "wipeOuter": 17
+        },
+        "restoreDefaultObjects": false,
+        "objects": [
+          {
+            "id": "apl-1784551446290-8493",
+            "name": "Outer Wipe-down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 84.80080751089292,
+            "end": 104.80080751089292,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0
+          },
+          {
+            "id": "apl-1784551465977-6276",
+            "name": "Inner Wipe-down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "inner",
+            "start": 107.97915355658222,
+            "end": 127.97915355658222,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 1,
+            "role": "process",
+            "coveragePercent": 0
+          },
+          {
+            "id": "apl-1784551605407-2189",
+            "name": "Inner Wipe-down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 160.14368275124593,
+            "end": 180.14368275124593,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 3,
+            "role": "process",
+            "coveragePercent": 0
+          },
+          {
+            "id": "apl-1784551632951-7713",
+            "name": "Inner Wipe-down 1",
+            "kind": "pad",
+            "application": "apl",
+            "side": "outer",
+            "start": 232.09396177218753,
+            "end": 252.09396177218753,
+            "wipeSpanDeg": 0,
+            "extension": 20,
+            "servoAssist": false,
+            "requiredVisibilityPercent": 50,
+            "station": 5,
+            "role": "process",
+            "coveragePercent": 0
+          }
+        ]
+      }
+    ],
+    "machineTypes": [
+      "TopMatic",
+      "Autocol",
+      "TopModul"
+    ],
+    "activeMapId": "machine-map-1784426568359-9375",
+    "mapZoom": 0.6584840293614721,
+    "mapPanX": -62.081243925991274,
+    "mapPanY": -117.61429904866394,
+    "mapLocked": false,
+    "depths": {
+      "spender": 12,
+      "opRoller": 19,
+      "nonOpRoller": -16,
+      "wipeInner": -16,
+      "wipeOuter": 17
+    },
+    "selectedBrand": "12oz Budweiser 2 Label",
+    "selectedBottle": "LNNR - 12 Oz",
+    "buildInputs": {
+      "neckSpenderPlateDeg": 75,
+      "neckApplication": "Center",
+      "neckContactMm": 4.4,
+      "bodyContactMm": 5,
+      "backContactMm": 5,
+      "neckOverWipeDeg": 66,
+      "bodyOverWipeDeg": 10,
+      "backOverWipeDeg": 10,
+      "plateStartPositionDeg": 0,
+      "neckOffsetMm": 0,
+      "bodyOffsetMm": 0,
+      "backOffsetMm": 0,
+      "backInspectionOffsetMm": 0,
+      "neckWipeDeg": 66,
+      "bodyWipeDeg": 10,
+      "backWipeDeg": 10,
+      "neckOffsetDeg": 0,
+      "bodyOffsetDeg": 0,
+      "backOffsetDeg": 0,
+      "backInspectionOffsetDeg": 0
+    },
+    "bottleSpecs": [
+      {
+        "id": 1,
+        "bottleType": "LNNR - 7 Oz",
+        "diameterTargetMm": 53.57,
+        "radiusReductionMm": 0.25
+      },
+      {
+        "id": 2,
+        "bottleType": "SSNR - 12 Oz",
+        "diameterTargetMm": 60.68,
+        "radiusReductionMm": 0.3
+      },
+      {
+        "id": 3,
+        "bottleType": "LNNR - 12 Oz",
+        "diameterTargetMm": 61.52,
+        "radiusReductionMm": 0.41
+      },
+      {
+        "id": 4,
+        "bottleType": "S1NR - 11.2OZ",
+        "diameterTargetMm": 60,
+        "radiusReductionMm": 0.3
+      },
+      {
+        "id": 5,
+        "bottleType": "HLNR - 12Oz",
+        "diameterTargetMm": 61.52,
+        "radiusReductionMm": 0.312
+      },
+      {
+        "id": 6,
+        "bottleType": "HLNR - 660ml",
+        "diameterTargetMm": 90.5,
+        "radiusReductionMm": 0.95
+      },
+      {
+        "id": 7,
+        "bottleType": "STDL - 330ml camden",
+        "diameterTargetMm": 60.7,
+        "radiusReductionMm": 0.3
+      },
+      {
+        "id": 8,
+        "bottleType": "660cl camden ",
+        "diameterTargetMm": 74.8,
+        "radiusReductionMm": 6.6
+      },
+      {
+        "id": 9,
+        "bottleType": "660ms OWGreen",
+        "diameterTargetMm": 74.8,
+        "radiusReductionMm": 2.1
+      }
+    ],
+    "labelSpecs": [
+      {
+        "id": 1,
+        "brand": "11.2 Stella (HL,RG)",
+        "specNumber": "",
+        "bottleType": "S1NR - 11.2OZ",
+        "bodyLengthMm": 85.71,
+        "backLengthMm": 76.84,
+        "neckHeightMm": 67.16,
+        "neckLengthMm": 109.5,
+        "neckBottomCurveMm": 110.5,
+        "neckBottomCircumferenceMm": 104.5,
+        "codeBoxCenterMm": 24,
+        "applicationMode": "apl"
+      },
+      {
+        "id": 2,
+        "brand": "12oz Bud Light Lime (9F)",
+        "specNumber": "2736-A",
+        "bottleType": "LNNR - 12 Oz",
+        "bodyLengthMm": 97.993,
+        "backLengthMm": 47.498,
+        "neckHeightMm": 27.61,
+        "neckLengthMm": 37.313,
+        "neckBottomCurveMm": 39.313,
+        "neckBottomCircumferenceMm": 105,
+        "codeBoxCenterMm": 14,
+        "applicationMode": "apl"
+      },
+      {
+        "id": 4,
+        "brand": "12oz Platinum (NX)",
+        "specNumber": "2164-F",
+        "bottleType": "LNNR - 12 Oz",
+        "bodyLengthMm": 75.844,
+        "backLengthMm": 47.498,
+        "neckHeightMm": 18.0344,
+        "neckLengthMm": 35.585,
+        "neckBottomCurveMm": 37,
+        "neckBottomCircumferenceMm": 104,
+        "codeBoxCenterMm": 14,
+        "applicationMode": "apl"
+      },
+      {
+        "id": 5,
+        "brand": "12oz Mic Family (T6,41,FO,79,BT,87)",
+        "specNumber": "2457-A",
+        "bottleType": "SSNR - 12 Oz",
+        "bodyLengthMm": 66.7,
+        "backLengthMm": 50.8,
+        "neckHeightMm": 40.001,
+        "neckLengthMm": 51.96,
+        "neckBottomCurveMm": 53,
+        "neckBottomCircumferenceMm": 105,
+        "codeBoxCenterMm": 20,
+        "applicationMode": "apl"
+      },
+      {
+        "id": 7,
+        "applicationMode": "cold-glue",
+        "brand": "660ml 3 Label Stella",
+        "specNumber": "",
+        "bottleType": "HLNR - 12Oz",
+        "bodyLengthMm": 120,
+        "backLengthMm": 110,
+        "neckHeightMm": 115,
+        "neckLengthMm": 135,
+        "neckBottomCurveMm": 134,
+        "neckBottomCircumferenceMm": 130,
+        "codeBoxCenterMm": 15
+      },
+      {
+        "id": 8,
+        "applicationMode": "apl",
+        "brand": "12oz Bud Light 2 Label",
+        "specNumber": "",
+        "bottleType": "LNNR - 12 Oz",
+        "bodyLengthMm": 107.95,
+        "backLengthMm": 0,
+        "neckHeightMm": 23.266,
+        "neckLengthMm": 43.155,
+        "neckBottomCurveMm": 44,
+        "neckBottomCircumferenceMm": 116,
+        "codeBoxCenterMm": 15
+      },
+      {
+        "id": 9,
+        "applicationMode": "apl",
+        "brand": "12oz Budweiser 2 Label",
+        "specNumber": "",
+        "bottleType": "LNNR - 12 Oz",
+        "bodyLengthMm": 107.95,
+        "backLengthMm": 0,
+        "neckHeightMm": 23.266,
+        "neckLengthMm": 43.155,
+        "neckBottomCurveMm": 44,
+        "neckBottomCircumferenceMm": 116,
+        "codeBoxCenterMm": 15
+      },
+      {
+        "id": 10,
+        "applicationMode": "apl",
+        "brand": "12oz Bud Zero",
+        "specNumber": "",
+        "bottleType": "LNNR - 12 Oz",
+        "bodyLengthMm": 107.95,
+        "backLengthMm": 0,
+        "neckHeightMm": 27.61,
+        "neckLengthMm": 65,
+        "neckBottomCurveMm": 63,
+        "neckBottomCircumferenceMm": 65,
+        "codeBoxCenterMm": 25
+      },
+      {
+        "id": 11,
+        "applicationMode": "apl",
+        "brand": "660ml Mahou",
+        "specNumber": "",
+        "bottleType": "HLNR - 660ml",
+        "bodyLengthMm": 82,
+        "backLengthMm": 65,
+        "neckHeightMm": 27,
+        "neckLengthMm": 88,
+        "neckBottomCurveMm": 90,
+        "neckBottomCircumferenceMm": 92,
+        "codeBoxCenterMm": 25
+      },
+      {
+        "id": 12,
+        "applicationMode": "apl",
+        "brand": "330ML Camden Hells",
+        "specNumber": "",
+        "bottleType": "STDL - 330ml camden",
+        "bodyLengthMm": 80,
+        "backLengthMm": 70,
+        "neckHeightMm": 25,
+        "neckLengthMm": 83.55,
+        "neckBottomCurveMm": 85,
+        "neckBottomCircumferenceMm": 116,
+        "codeBoxCenterMm": 25
+      },
+      {
+        "id": 13,
+        "applicationMode": "apl",
+        "brand": "660ml Camden",
+        "specNumber": "",
+        "bottleType": "HLNR - 12Oz",
+        "bodyLengthMm": 91.5,
+        "backLengthMm": 78.5,
+        "neckHeightMm": 27,
+        "neckLengthMm": 90,
+        "neckBottomCurveMm": 92,
+        "neckBottomCircumferenceMm": 116,
+        "codeBoxCenterMm": 25
+      },
+      {
+        "id": 14,
+        "applicationMode": "cold-glue",
+        "brand": "Stella 330ml",
+        "specNumber": "",
+        "bottleType": "HLNR - 12Oz",
+        "bodyLengthMm": 85.71,
+        "backLengthMm": 76.84,
+        "neckHeightMm": 67.16,
+        "neckLengthMm": 109.5,
+        "neckBottomCurveMm": 110.5,
+        "neckBottomCircumferenceMm": 104.5,
+        "codeBoxCenterMm": 24
+      }
+    ],
+    "mapPoints": [
+      {
+        "id": "mp1",
+        "name": "Agg 1 Spender Plate Position",
+        "angle": 68.5
+      },
+      {
+        "id": "mp2",
+        "name": "Wipe-Down Agg 1 Roller 1 Center (Op Side)",
+        "angle": 72
+      },
+      {
+        "id": "mp3",
+        "name": "Wipe-Down Agg 1 Roller 2 Center (Op Side)",
+        "angle": 82.5
+      },
+      {
+        "id": "mp4",
+        "name": "Wipe-Down Agg 1 Roller 3 Center (Non-Op Side)",
+        "angle": 89.5
+      },
+      {
+        "id": "mp5",
+        "name": "Wipe-Down Agg 1 Roller 4 Center (Non-Op Side)",
+        "angle": 100
+      },
+      {
+        "id": "mp6",
+        "name": "Agg 2 Spender Plate Position",
+        "angle": 108.5
+      },
+      {
+        "id": "mp7",
+        "name": "Wipe-Down Agg 2 Roller 1 Center (Op Side)",
+        "angle": 112
+      },
+      {
+        "id": "mp8",
+        "name": "Wipe-Down Agg 2 Roller 2 Center (Op Side)",
+        "angle": 122.5
+      },
+      {
+        "id": "mp9",
+        "name": "Wipe-Down Agg 2 Roller 3 Center (Non-Op Side)",
+        "angle": 129.5
+      },
+      {
+        "id": "mp10",
+        "name": "Wipe-Down Agg 2 Roller 4 Center (Non-Op Side)",
+        "angle": 140
+      },
+      {
+        "id": "mp11",
+        "name": "Agg 3 Spender Plate Position",
+        "angle": 148.41467895781003
+      },
+      {
+        "id": "mp12",
+        "name": "Wipe-Down Agg 3 Op Side Pad Position Start",
+        "angle": 148.914678779028
+      },
+      {
+        "id": "mp13",
+        "name": "Wipe-Down Agg 3 Op Side Pad Position Stop",
+        "angle": 168.914678779028
+      },
+      {
+        "id": "mp14",
+        "name": "Agg 4 Spender Plate Position",
+        "angle": 188.50000017878202
+      },
+      {
+        "id": "mp15",
+        "name": "Wipe-Down Agg 4 Op Side Pad Position Start",
+        "angle": 189
+      },
+      {
+        "id": "mp16",
+        "name": "Wipe-Down Agg 4 Op Side Pad Position Stop",
+        "angle": 209
+      },
+      {
+        "id": "mp18",
+        "name": "Agg 5 Spender Plate Position",
+        "angle": 229.5
+      },
+      {
+        "id": "mp19",
+        "name": "Wipe-Down Agg 5 Op Side Pad Position Start",
+        "angle": 229.99999982121798
+      },
+      {
+        "id": "mp20",
+        "name": "Wipe-Down Agg 5 Op Side Pad Position Stop",
+        "angle": 249.99999982121798
+      },
+      {
+        "id": "mp21",
+        "name": "Agg 6 Spender Plate Position",
+        "angle": 269.5
+      },
+      {
+        "id": "mp22",
+        "name": "Wipe-Down Agg 6 Op Side Pad Position Start",
+        "angle": 269.99999982121795
+      },
+      {
+        "id": "mp23",
+        "name": "Wipe-Down Agg 6 Op Side Pad Position Stop",
+        "angle": 289.99999982121795
+      },
+      {
+        "id": "mp24",
+        "name": "Back Label Inspection/Coding Position Start",
+        "angle": 304
+      },
+      {
+        "id": "mp25",
+        "name": "Back Label Inspection/Coding Position Stop",
+        "angle": 315
+      }
+    ],
+    "applicationMode": "apl",
+    "coldGlueMap": [
+      {
+        "id": "stella-660-5-back-inner",
+        "name": "Outside Brush Channel",
+        "kind": "brush",
+        "application": "cold-glue",
+        "station": 1,
+        "side": "outer",
+        "role": "final",
+        "coveragePercent": 50,
+        "start": 92,
+        "end": 125,
+        "extension": 20,
+        "wipeSpanDeg": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "cold-glue-1784673323324-7619",
+        "name": "Inside Brush Channel",
+        "kind": "brush",
+        "application": "cold-glue",
+        "side": "inner",
+        "start": 121,
+        "end": 153,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50,
+        "station": 1,
+        "role": "process",
+        "coveragePercent": 0
+      },
+      {
+        "id": "cold-glue-1784674042378-827",
+        "name": "Outside Brush Channel",
+        "kind": "brush",
+        "application": "cold-glue",
+        "side": "outer",
+        "start": 165,
+        "end": 185,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50,
+        "station": 3,
+        "role": "final",
+        "coveragePercent": 0
+      },
+      {
+        "id": "cold-glue-1784674053300-9578",
+        "name": "Inside Brush Channel",
+        "kind": "brush",
+        "application": "cold-glue",
+        "side": "inner",
+        "start": 165,
+        "end": 185,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50,
+        "station": 3,
+        "role": "process",
+        "coveragePercent": 0
+      },
+      {
+        "id": "cold-glue-1784674133558-1987",
+        "name": "Outside Brush Channel",
+        "kind": "brush",
+        "application": "cold-glue",
+        "side": "inner",
+        "start": 243,
+        "end": 263,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50,
+        "station": 5,
+        "role": "process",
+        "coveragePercent": 0
+      },
+      {
+        "id": "cold-glue-1784674171178-273",
+        "name": "Outside Brush Channel",
+        "kind": "brush",
+        "application": "cold-glue",
+        "side": "outer",
+        "start": 243,
+        "end": 263,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50,
+        "station": 5,
+        "role": "process",
+        "coveragePercent": 0
+      }
+    ],
+    "coldGlueAggregateSettings": {
+      "enabledAggregates": [
+        true,
+        false,
+        true,
+        false,
+        true,
+        false
+      ],
+      "enabledStations": [
+        true,
+        false,
+        true,
+        false,
+        true,
+        false
+      ],
+      "aggregateAngles": {
+        "1": 81,
+        "2": 108.5,
+        "3": 153,
+        "4": 188.5,
+        "5": 231,
+        "6": 269.5
+      },
+      "machineSettings": {
+        "direction": "ccw",
+        "radius": 250,
+        "referencePitchRadiusMm": 572.965,
+        "encoderCountsPerRev": 10000,
+        "servoGearRatio": 1.051,
+        "autoScaleTableMap": true,
+        "zeroAngle": 270,
+        "maxMoveRatio": 24
+      }
+    },
+    "aplMapObjects": [
+      {
+        "id": "apl-1784426672890-9686",
+        "name": "Agg 1 Roller 1",
+        "kind": "roller",
+        "application": "apl",
+        "side": "outer",
+        "start": 72,
+        "end": 77,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 1,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784426699971-8649",
+        "name": "Agg 1 Roller 2",
+        "kind": "roller",
+        "application": "apl",
+        "side": "outer",
+        "start": 77.5,
+        "end": 82.5,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 1,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784426730846-3008",
+        "name": "Agg 1 Roller3",
+        "kind": "roller",
+        "application": "apl",
+        "side": "inner",
+        "start": 89.5,
+        "end": 94.5,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 1,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784426741981-2426",
+        "name": "Agg 1 Roller 4",
+        "kind": "roller",
+        "application": "apl",
+        "side": "inner",
+        "start": 95,
+        "end": 100,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 1,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427038065-2175",
+        "name": "Agg 2 Roller 1",
+        "kind": "roller",
+        "application": "apl",
+        "side": "outer",
+        "start": 112,
+        "end": 117,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 2,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427051894-1050",
+        "name": "Agg 2 Roller 2",
+        "kind": "roller",
+        "application": "apl",
+        "side": "outer",
+        "start": 117.5,
+        "end": 122.5,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 2,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427062632-3473",
+        "name": "Agg 2 Roller 3",
+        "kind": "roller",
+        "application": "apl",
+        "side": "inner",
+        "start": 129.5,
+        "end": 134.5,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 2,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427075013-9587",
+        "name": "Agg 2 Roller 4",
+        "kind": "roller",
+        "application": "apl",
+        "side": "inner",
+        "start": 135,
+        "end": 140,
+        "wipeSpanDeg": 5,
+        "extension": 20,
+        "station": 2,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427182758-2217",
+        "name": "Wipe-Down",
+        "kind": "pad",
+        "application": "apl",
+        "side": "outer",
+        "start": 148.914678779028,
+        "end": 168.914678779028,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "station": 3,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427217805-6597",
+        "name": "Wipe-Down",
+        "kind": "pad",
+        "application": "apl",
+        "side": "outer",
+        "start": 189,
+        "end": 209,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "station": 4,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784427245948-2967",
+        "name": "Coder",
+        "kind": "coding",
+        "application": "apl",
+        "side": "outer",
+        "start": 304,
+        "end": 309,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "station": null,
+        "role": "process",
+        "coveragePercent": 0,
+        "servoAssist": false,
+        "requiredVisibilityPercent": 50
+      },
+      {
+        "id": "apl-1784435837968-5788",
+        "name": "sensor",
+        "kind": "sensor",
+        "application": "apl",
+        "side": "outer",
+        "start": 227.01603506777968,
+        "end": 230.01603506777968,
+        "angle": 227.01603506777968,
+        "wipeSpanDeg": 0,
+        "extension": 20,
+        "servoAssist": true,
+        "requiredVisibilityPercent": 83,
+        "station": 4,
+        "role": "process",
+        "coveragePercent": 0
+      }
+    ],
+    "servoOverrides": {
+      "machine-map-1784427388958-9702|apl|12oz Bud Light Lime (9F)|LNNR - 12 Oz": {
+        "3": {
+          "plateAngle": 137
+        },
+        "4": {
+          "plateAngle": 137
+        }
+      },
+      "machine-map-1784474050604-3928|apl|12oz Mic Family (T6,41,FO,79,BT,87)|SSNR - 12 Oz": {
+        "0": {
+          "tableAngle": 0
+        }
+      }
+    },
+    "assemblies": [
+      {
+        "station": 1,
+        "enabled": true,
+        "type": "rollers",
+        "sides": [
+          "outer",
+          "inner"
+        ],
+        "spenderAngle": 68.5,
+        "innerRollerAngles": [
+          89.5,
+          100
+        ],
+        "outerRollerAngles": [
+          72,
+          82.5
+        ],
+        "padSpanDeg": 20,
+        "padSideOffsetDeg": 3,
+        "brushStartAngle": 72,
+        "brushEndAngle": 95,
+        "requiredPlateRotation": 360,
+        "labelSection": "neck",
+        "outerBrushAngles": [
+          72,
+          83.5
+        ],
+        "innerBrushAngles": [
+          83.5,
+          95
+        ]
+      },
+      {
+        "station": 2,
+        "enabled": true,
+        "type": "rollers",
+        "sides": [
+          "outer",
+          "inner"
+        ],
+        "spenderAngle": 108.5,
+        "innerRollerAngles": [
+          129.5,
+          140
+        ],
+        "outerRollerAngles": [
+          112,
+          122.5
+        ],
+        "padSpanDeg": 20,
+        "padSideOffsetDeg": 3,
+        "brushStartAngle": 112,
+        "brushEndAngle": 135,
+        "requiredPlateRotation": 360,
+        "labelSection": "neck",
+        "outerBrushAngles": [
+          112,
+          123.5
+        ],
+        "innerBrushAngles": [
+          123.5,
+          135
+        ]
+      },
+      {
+        "station": 3,
+        "enabled": true,
+        "type": "pads",
+        "sides": [
+          "outer"
+        ],
+        "spenderAngle": 148.41467895781003,
+        "innerRollerAngles": [
+          149,
+          169
+        ],
+        "outerRollerAngles": [
+          149,
+          169
+        ],
+        "padSpanDeg": 20,
+        "padSideOffsetDeg": 3,
+        "brushStartAngle": 149,
+        "brushEndAngle": 169,
+        "requiredPlateRotation": 180,
+        "labelSection": "body",
+        "outerBrushAngles": [
+          149,
+          159
+        ],
+        "innerBrushAngles": [
+          159,
+          169
+        ]
+      },
+      {
+        "station": 4,
+        "enabled": true,
+        "type": "pads",
+        "sides": [
+          "outer"
+        ],
+        "spenderAngle": 188.50000017878202,
+        "innerRollerAngles": [
+          189,
+          209
+        ],
+        "outerRollerAngles": [
+          189,
+          209
+        ],
+        "padSpanDeg": 20,
+        "padSideOffsetDeg": 3,
+        "brushStartAngle": 189,
+        "brushEndAngle": 209,
+        "requiredPlateRotation": 180,
+        "labelSection": "body",
+        "outerBrushAngles": [
+          189,
+          199
+        ],
+        "innerBrushAngles": [
+          199,
+          209
+        ]
+      },
+      {
+        "station": 5,
+        "enabled": false,
+        "type": "none",
+        "sides": [],
+        "spenderAngle": 229.5,
+        "innerRollerAngles": [
+          230,
+          250
+        ],
+        "outerRollerAngles": [
+          230,
+          250
+        ],
+        "padSpanDeg": 20,
+        "padSideOffsetDeg": 3,
+        "brushStartAngle": 230,
+        "brushEndAngle": 250,
+        "requiredPlateRotation": 180,
+        "outerBrushAngles": [
+          230,
+          240
+        ],
+        "innerBrushAngles": [
+          240,
+          250
+        ]
+      },
+      {
+        "station": 6,
+        "enabled": false,
+        "type": "none",
+        "sides": [],
+        "spenderAngle": 269.5,
+        "innerRollerAngles": [
+          270,
+          290
+        ],
+        "outerRollerAngles": [
+          270,
+          290
+        ],
+        "padSpanDeg": 20,
+        "padSideOffsetDeg": 3,
+        "brushStartAngle": 270,
+        "brushEndAngle": 290,
+        "requiredPlateRotation": 180,
+        "outerBrushAngles": [
+          270,
+          280
+        ],
+        "innerBrushAngles": [
+          280,
+          290
+        ]
+      }
+    ],
+    "simulation": {
+      "useCustom": true,
+      "turns": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "rows": [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      "deletedRows": [],
+      "lines": [
+        {
+          "cmd": 3,
+          "tableAngle": 0,
+          "plateAngle": 0,
+          "action": "Spec.-shap. plate corners",
+          "autocolBoundary": "start-shape",
+          "hmi": 1,
+          "plc": 0,
+          "autocolProfile": true,
+          "generatedTableAngle": 0,
+          "generatedPlateAngle": 0,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 2,
+          "plateAngle": 0,
+          "action": "Rest",
+          "autocolBoundary": "start-rest",
+          "hmi": 2,
+          "plc": 1,
+          "autocolProfile": true,
+          "generatedTableAngle": 2,
+          "generatedPlateAngle": 0,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "hmi": 3,
+          "plc": 2,
+          "cmd": 7,
+          "tableAngle": 85,
+          "plateAngle": 0,
+          "action": "Turn for Neck Application at Aggregate 1",
+          "fixedColdGlueMap": false,
+          "motionSource": "cold-glue-machine-map",
+          "station": 1,
+          "section": "neck",
+          "autocolProfile": true,
+          "generatedTableAngle": 0,
+          "generatedPlateAngle": 0,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "hmi": 4,
+          "plc": 3,
+          "cmd": 3,
+          "tableAngle": 91,
+          "plateAngle": 90,
+          "action": "Turn for Neck Application at Aggregate 1 - Reference",
+          "fixedColdGlueMap": false,
+          "motionSource": "cold-glue-machine-map",
+          "station": 1,
+          "section": "neck",
+          "autocolProfile": true,
+          "generatedTableAngle": 81,
+          "generatedPlateAngle": 0,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "hmi": 5,
+          "plc": 4,
+          "cmd": 7,
+          "tableAngle": 92.5,
+          "plateAngle": 90,
+          "action": "Neck Face Bottle With Flow Before Brush Channel",
+          "fixedColdGlueMap": false,
+          "motionSource": "cold-glue-machine-map",
+          "station": 1,
+          "section": "neck",
+          "brushEntryAlignment": true,
+          "mapDirection": "ccw",
+          "flowFacingOffsetDeg": 90,
+          "autocolProfile": true,
+          "generatedTableAngle": 81,
+          "generatedPlateAngle": 0,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "hmi": 6,
+          "plc": 5,
+          "cmd": 3,
+          "tableAngle": 110,
+          "plateAngle": 238,
+          "action": "Neck Face Bottle With Flow Before Brush Channel - Reference",
+          "fixedColdGlueMap": false,
+          "motionSource": "cold-glue-machine-map",
+          "station": 1,
+          "section": "neck",
+          "brushEntryAlignment": true,
+          "mapDirection": "ccw",
+          "flowFacingOffsetDeg": 90,
+          "autocolProfile": true,
+          "generatedTableAngle": 88,
+          "generatedPlateAngle": 90,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 115,
+          "plateAngle": 238,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 128,
+          "plateAngle": 41,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 149.88888888888889,
+          "plateAngle": 41,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 152.44444444444446,
+          "plateAngle": 0,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 155,
+          "plateAngle": 0,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 164,
+          "plateAngle": 90,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "hmi": 9,
+          "plc": 8,
+          "cmd": 7,
+          "tableAngle": 210,
+          "plateAngle": 90,
+          "action": "Hold to Neck Final Brush Wipe-Down",
+          "fixedColdGlueMap": false,
+          "motionSource": "cold-glue-machine-map",
+          "autocolProfile": true,
+          "generatedTableAngle": 108,
+          "generatedPlateAngle": -166.5,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "hmi": 10,
+          "plc": 9,
+          "cmd": 3,
+          "tableAngle": 227,
+          "plateAngle": 180,
+          "action": "Neck Final Brush Wipe-Down - Entry Reference",
+          "fixedColdGlueMap": false,
+          "motionSource": "cold-glue-machine-map",
+          "autocolProfile": true,
+          "generatedTableAngle": 111.5,
+          "generatedPlateAngle": -166.5,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 235,
+          "plateAngle": 180,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 242,
+          "plateAngle": 260,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 265,
+          "plateAngle": 260,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 273,
+          "plateAngle": 300,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 285.8,
+          "plateAngle": 300,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 298,
+          "plateAngle": 385,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 300,
+          "plateAngle": 385,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 314,
+          "plateAngle": 210,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 7,
+          "tableAngle": 325,
+          "plateAngle": 210,
+          "action": "Correction",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 340,
+          "plateAngle": 190,
+          "action": "Rest",
+          "simulatorInserted": true
+        },
+        {
+          "cmd": 3,
+          "tableAngle": 359,
+          "plateAngle": 190,
+          "action": "End of curve",
+          "terminalRest": true,
+          "autocolBoundary": "end-curve",
+          "motionSource": "terminal-end-curve-rest",
+          "hmi": 28,
+          "plc": 27,
+          "autocolProfile": true,
+          "generatedTableAngle": 359,
+          "generatedPlateAngle": 7.5,
+          "tableAngleOverride": null,
+          "plateAngleOverride": null
+        }
+      ]
+    }
+  }
+}

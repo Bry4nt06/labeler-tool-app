@@ -19,6 +19,10 @@
       span: end - start,
       side,
       role,
+      holdBottleAngle: Boolean(item?.holdBottleAngle),
+      holdAngle: finite(item?.bottleHoldAngleDeg, 90),
+      holdCurrent: Boolean(item?.holdCurrentBottleAngle),
+      holdStart: Math.max(start, Math.min(end, finite(item?.bottleHoldStartDeg, start))),
       direction: side === "inner" ? 1 : -1,
       coveragePercent: Math.max(0, Math.min(100, finite(item?.coveragePercent, NaN)))
     };
@@ -126,12 +130,22 @@
       .map(normalizeBrush)
       .filter((brush) => brush.end > brush.start)
       .sort((a, b) => a.start - b.start || a.end - b.end);
-    const hasSharedOppositeChannel = normalizedBrushes.some((brush, index) => normalizedBrushes.some((candidate, candidateIndex) =>
+    const holds = [];
+    const wipeBrushes = normalizedBrushes.flatMap((brush) => {
+      if (brush.role === "hold") {
+        holds.push({ ...brush, start: brush.start, end: brush.end, span: brush.span });
+        return [];
+      }
+      if (!brush.holdBottleAngle) return [brush];
+      if (brush.holdStart < brush.end - 0.001) holds.push({ ...brush, start: brush.holdStart, end: brush.end, span: brush.end - brush.holdStart });
+      return brush.holdStart > brush.start + 0.001 ? [{ ...brush, end: brush.holdStart, span: brush.holdStart - brush.start }] : [];
+    });
+    const hasSharedOppositeChannel = wipeBrushes.some((brush, index) => wipeBrushes.some((candidate, candidateIndex) =>
       candidateIndex !== index &&
       candidate.side !== brush.side &&
       Math.min(candidate.end, brush.end) > Math.max(candidate.start, brush.start) + 0.001
     ));
-    const brushes = hasSharedOppositeChannel ? collapseSharedOppositeChannels(normalizedBrushes) : normalizedBrushes;
+    const brushes = hasSharedOppositeChannel ? collapseSharedOppositeChannels(wipeBrushes) : wipeBrushes;
     const centerTackTwoSided = fullWrap;
     const simultaneousOppositeWipe = hasSharedOppositeChannel;
     // A long center-tack neck label has two loose halves. Each half must be
@@ -147,7 +161,7 @@
 
     const issues = [];
     if (!brushes.length) {
-      return { labelDeg, overWipeDeg, totalRotation, process: [], final: [], issues: [{ level: "bad", code: "cold-glue-no-brushes", message: "No brush windows are assigned to this Cold Glue station." }] };
+      return { labelDeg, overWipeDeg, totalRotation, process: [], final: [], holds, issues: holds.length ? [] : [{ level: "bad", code: "cold-glue-no-brushes", message: "No brush windows are assigned to this Cold Glue station." }] };
     }
 
     let finalBrushes = brushes.filter((brush) => brush.role === "final");
@@ -195,6 +209,7 @@
       finalRequired,
       process: processPlan.allocations,
       final: finalPlan.allocations,
+      holds,
       issues
     };
   }

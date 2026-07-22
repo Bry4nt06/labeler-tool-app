@@ -69,9 +69,9 @@ function inferredMapObjectStation(item) {
 }
 
 function normalizeBuilderObject(item, mode, stationCount = 6) {
-  const kindOptions = ["pad", "brush", "roller", "gripper", "coding", "sensor"];
+  const kindOptions = ["pad", "brush", "brush-channel", "roller", "gripper", "coding", "sensor"];
   const kind = kindOptions.includes(item?.kind) ? item.kind : kindOptions[0];
-  const application = item?.application === "cold-glue" || kind === "brush" || kind === "gripper" ? "cold-glue" : "apl";
+  const application = item?.application === "cold-glue" || kind === "brush" || kind === "brush-channel" || kind === "gripper" ? "cold-glue" : "apl";
   const aplRoller = application === "apl" && kind === "roller";
   const singlePoint = kind === "gripper" || kind === "sensor" || (application === "cold-glue" && kind === "roller");
   const start = num(singlePoint ? item?.angle : item?.start, 0);
@@ -82,6 +82,13 @@ function normalizeBuilderObject(item, mode, stationCount = 6) {
     ? Math.max(0.1, num(item?.wipeSpanDeg, Math.abs(originalEnd - start) || 10))
     : 0;
   const end = kind === "coding" ? start + 5 : kind === "sensor" ? start + 3 : aplRoller ? start + wipeSpanDeg : originalEnd;
+  const outerStart = num(item?.outerStart, start);
+  const outerEnd = Math.max(outerStart, num(item?.outerEnd, originalEnd));
+  const innerStart = num(item?.innerStart, start);
+  const innerEnd = Math.max(innerStart, num(item?.innerEnd, originalEnd));
+  const holdWindowStart = kind === "brush-channel" ? Math.min(outerStart, innerStart) : start;
+  const holdWindowEnd = kind === "brush-channel" ? Math.max(outerEnd, innerEnd) : end;
+  const bottleHoldStartDeg = Math.min(holdWindowEnd, Math.max(holdWindowStart, num(item?.bottleHoldStartDeg, holdWindowStart)));
   return {
     ...item,
     id: String(item?.id || uniqueMapId(mode)),
@@ -93,8 +100,16 @@ function normalizeBuilderObject(item, mode, stationCount = 6) {
     coveragePercent: application === "cold-glue" && kind === "brush" ? Math.max(0, Math.min(100, num(item?.coveragePercent, 0))) : 0,
     start,
     end,
+    outerStart,
+    outerEnd,
+    innerStart,
+    innerEnd,
     wipeSpanDeg,
     angle: singlePoint ? start : item?.angle,
+    holdBottleAngle: application === "cold-glue" && (kind === "brush" || kind === "brush-channel") && Boolean(item?.holdBottleAngle),
+    holdCurrentBottleAngle: application === "cold-glue" && (kind === "brush" || kind === "brush-channel") && Boolean(item?.holdCurrentBottleAngle),
+    bottleHoldAngleDeg: application === "cold-glue" && (kind === "brush" || kind === "brush-channel") ? num(item?.bottleHoldAngleDeg, 90) : 90,
+    bottleHoldStartDeg,
     servoAssist: kind === "sensor" && Boolean(item?.servoAssist),
     requiredVisibilityPercent: kind === "sensor" ? Math.min(100, Math.max(1, num(item?.requiredVisibilityPercent, 50))) : 50,
     extension: Math.max(4, num(item?.extension, 20)),
@@ -103,7 +118,7 @@ function normalizeBuilderObject(item, mode, stationCount = 6) {
 }
 
 function itemApplicationMode(item) {
-  return item?.application === "cold-glue" || item?.kind === "brush" || item?.kind === "gripper" ? "cold-glue" : "apl";
+  return item?.application === "cold-glue" || item?.kind === "brush" || item?.kind === "brush-channel" || item?.kind === "gripper" ? "cold-glue" : "apl";
 }
 
 
@@ -647,7 +662,7 @@ function syncApplicationMapToLegacyState() {
 
 function builderTypeOptions() {
   return state.applicationMode === "cold-glue"
-    ? [["brush", "Cold Glue Brush"], ["roller", "Roller"]]
+    ? [["brush-channel", "Brush Channel (Inside + Outside)"], ["brush-outer", "Outside Brush"], ["brush-inner", "Inside Brush"], ["gripper", "Gripper / Spender Plate"], ["roller", "Roller"]]
     : [["pad", "Wipe-Down Pad"], ["roller", "Roller"], ["coding", "Coding"], ["sensor", "Label Sensor"]];
 }
 
@@ -680,12 +695,14 @@ function updateBuilderTypeControls() {
     stationSelect.innerHTML = stations.map((station) => `<option value="${station}">Station ${station}</option>`).join("");
     if (stations.includes(Number(previousStation))) stationSelect.value = previousStation;
   }
-  if (extensionLabel) extensionLabel.hidden = select.value !== "brush";
+  const selectedBrush = select.value === "brush-outer" || select.value === "brush-inner";
+  if (extensionLabel) extensionLabel.hidden = !selectedBrush && select.value !== "brush-channel";
   if (sensorAssistLabel) sensorAssistLabel.hidden = select.value !== "sensor";
   if (sensorVisibilityLabel) sensorVisibilityLabel.hidden = select.value !== "sensor";
   if (stationLabel) stationLabel.hidden = select.value === "coding";
   if (stationSelect) stationSelect.disabled = select.value === "coding";
-  if (sideSelect?.parentElement) sideSelect.parentElement.hidden = select.value === "sensor";
+  if (sideSelect) sideSelect.value = select.value === "brush-inner" ? "inner" : "outer";
+  if (sideSelect?.parentElement) sideSelect.parentElement.hidden = select.value === "sensor" || select.value === "gripper" || select.value === "brush-channel" || selectedBrush;
   const isAplRoller = state.applicationMode === "apl" && select.value === "roller";
   const startLabel = document.querySelector("#builderObjectStartLabel");
   const endLabel = document.querySelector("#builderObjectEndLabel");
@@ -911,9 +928,12 @@ function renderWipeDownBuilder() {
     const isGripper = item.kind === "gripper";
     const isCoding = item.kind === "coding";
     const isSensor = item.kind === "sensor";
+    const isBrushChannel = item.kind === "brush-channel";
     const sensorStatus = isSensor && typeof labelSensorMapStatus === "function" ? labelSensorMapStatus(item) : null;
     const isAplRoller = mode === "apl" && item.kind === "roller";
     const stationSection = mode === "apl" ? (machineMap.stationSections?.[String(item.station)] || "auto") : null;
+    const holdWindowStart = isBrushChannel ? Math.min(item.outerStart, item.innerStart) : item.start;
+    const holdWindowEnd = isBrushChannel ? Math.max(item.outerEnd, item.innerEnd) : item.end;
     const row = document.createElement("details");
     row.className = "wipe-builder-row";
     row.dataset.builderObjectId = item.id;
@@ -931,12 +951,13 @@ function renderWipeDownBuilder() {
       <div class="builder-row-grid">
         ${isCoding ? "" : `<label>Station<select data-builder-field="station">${activeSlotNumbers(machineMap.enabledStations).map((station) => `<option value="${station}" ${Number(item.station) === station ? "selected" : ""}>Station ${station}</option>`).join("")}</select></label>`}
         ${mode === "apl" && !isCoding ? `<label>Label use<select data-station-section><option value="auto" ${stationSection === "auto" ? "selected" : ""}>Auto</option><option value="neck" ${stationSection === "neck" ? "selected" : ""}>Neck</option><option value="body" ${stationSection === "body" ? "selected" : ""}>Body</option><option value="back" ${stationSection === "back" ? "selected" : ""}>Back</option><option value="none" ${stationSection === "none" ? "selected" : ""}>None</option></select><small>Applies to every object assigned to this station.</small></label>` : ""}
-        ${!isGripper && !isSensor ? `<label>Position<select data-builder-field="side"><option value="outer" ${item.side === "outer" ? "selected" : ""}>Outside</option><option value="inner" ${item.side === "inner" ? "selected" : ""}>Inside</option></select></label>` : ""}
-        <label>${isGripper ? "Table angle" : isSensor ? "Placement" : isAplRoller ? "Roller center" : "Start / point 1"}<input data-builder-field="${isGripper || isSensor ? "angle" : "start"}" type="number" step="0.1" value="${fmt(isGripper || isSensor ? item.angle : item.start, 1)}"></label>
-        ${!isGripper && !isCoding && !isSensor ? isAplRoller
+        ${!isGripper && !isSensor && !isBrushChannel ? `<label>Position<select data-builder-field="side"><option value="outer" ${item.side === "outer" ? "selected" : ""}>Outside</option><option value="inner" ${item.side === "inner" ? "selected" : ""}>Inside</option></select></label>` : ""}
+        ${isBrushChannel ? `<label>Outside start<input data-builder-field="outerStart" type="number" step="0.1" value="${fmt(item.outerStart, 1)}"></label><label>Outside stop<input data-builder-field="outerEnd" type="number" step="0.1" value="${fmt(item.outerEnd, 1)}"></label><label>Inside start<input data-builder-field="innerStart" type="number" step="0.1" value="${fmt(item.innerStart, 1)}"></label><label>Inside stop<input data-builder-field="innerEnd" type="number" step="0.1" value="${fmt(item.innerEnd, 1)}"></label>` : `<label>${isGripper ? "Table angle" : isSensor ? "Placement" : isAplRoller ? "Roller center" : "Start / point 1"}<input data-builder-field="${isGripper || isSensor ? "angle" : "start"}" type="number" step="0.1" value="${fmt(isGripper || isSensor ? item.angle : item.start, 1)}"></label>`}
+        ${!isBrushChannel && !isGripper && !isCoding && !isSensor ? isAplRoller
           ? `<label>Roller surface coverage (table deg)<input data-builder-field="wipeSpanDeg" type="number" min="0.1" step="0.1" value="${fmt(item.wipeSpanDeg, 1)}"><small>Contact footprint used by the servo wipe calculation; this is not another roller point.</small></label>`
           : `<label>Stop / point 2<input data-builder-field="end" type="number" step="0.1" value="${fmt(item.end, 1)}"></label>` : ""}
-        ${mode === "cold-glue" && item.kind === "brush" ? `<label>Brush role<select data-builder-field="role"><option value="process" ${item.role === "process" ? "selected" : ""}>Partial wipe</option><option value="final" ${item.role === "final" ? "selected" : ""}>Final wipe</option><option value="hold" ${item.role === "hold" ? "selected" : ""}>Hold only</option></select></label><label>Coverage %<input data-builder-field="coveragePercent" type="number" min="0" max="100" step="1" value="${fmt(item.coveragePercent, 0)}"></label><label>Brush extension<input data-builder-field="extension" type="number" min="4" step="1" value="${fmt(item.extension, 1)}"></label>` : ""}
+        ${mode === "cold-glue" && item.kind === "brush" ? `<label>Brush role<select data-builder-field="role"><option value="process" ${item.role === "process" ? "selected" : ""}>Partial wipe</option><option value="final" ${item.role === "final" ? "selected" : ""}>Final wipe</option><option value="hold" ${item.role === "hold" ? "selected" : ""}>Hold only</option></select></label><label>Coverage %<input data-builder-field="coveragePercent" type="number" min="0" max="100" step="1" value="${fmt(item.coveragePercent, 0)}"></label><label>Brush extension<input data-builder-field="extension" type="number" min="4" step="1" value="${fmt(item.extension, 1)}"></label><div class="brush-hold-inline"><div class="hold-check-row"><label class="inline-check"><input data-builder-field="holdBottleAngle" type="checkbox" ${item.holdBottleAngle ? "checked" : ""}> Hold angle</label><span class="info-tip" role="img" tabindex="0" title="Wipes to the Hold from table angle, then holds either the current bottle angle or the entered angle through the brush end." aria-label="Hold bottle angle information">i</span><label class="inline-check" ${item.holdBottleAngle ? "" : "hidden"}><input data-builder-field="holdCurrentBottleAngle" type="checkbox" ${item.holdCurrentBottleAngle ? "checked" : ""}> Hold Current Deg</label></div><div class="hold-input-row" ${item.holdBottleAngle ? "" : "hidden"}><label class="inline-field" ${!item.holdCurrentBottleAngle ? "" : "hidden"}>Angle<input data-builder-field="bottleHoldAngleDeg" type="number" step="0.1" value="${fmt(item.bottleHoldAngleDeg, 1)}"></label><label class="inline-field">Hold from<input data-builder-field="bottleHoldStartDeg" type="number" min="${fmt(item.start, 1)}" max="${fmt(item.end, 1)}" step="0.1" value="${fmt(item.bottleHoldStartDeg, 1)}" title="Allowed range ${fmt(item.start, 1)}°–${fmt(item.end, 1)}°"></label></div></div>` : ""}
+        ${mode === "cold-glue" && isBrushChannel ? `<label>Brush extension<input data-builder-field="extension" type="number" min="4" step="1" value="${fmt(item.extension, 1)}"></label><div class="brush-hold-inline"><div class="hold-check-row"><label class="inline-check"><input data-builder-field="holdBottleAngle" type="checkbox" ${item.holdBottleAngle ? "checked" : ""}> Hold angle</label><span class="info-tip" role="img" tabindex="0" title="Wipes to the Hold from table angle, then holds either the current bottle angle or the entered angle through the channel end." aria-label="Hold bottle angle information">i</span><label class="inline-check" ${item.holdBottleAngle ? "" : "hidden"}><input data-builder-field="holdCurrentBottleAngle" type="checkbox" ${item.holdCurrentBottleAngle ? "checked" : ""}> Hold Current Deg</label></div><div class="hold-input-row" ${item.holdBottleAngle ? "" : "hidden"}><label class="inline-field" ${!item.holdCurrentBottleAngle ? "" : "hidden"}>Angle<input data-builder-field="bottleHoldAngleDeg" type="number" step="0.1" value="${fmt(item.bottleHoldAngleDeg, 1)}"></label><label class="inline-field">Hold from<input data-builder-field="bottleHoldStartDeg" type="number" min="${fmt(holdWindowStart, 1)}" max="${fmt(holdWindowEnd, 1)}" step="0.1" value="${fmt(item.bottleHoldStartDeg, 1)}"></label></div></div>` : ""}
         ${isSensor ? `<label class="builder-checkbox-label"><input data-builder-field="servoAssist" type="checkbox" ${item.servoAssist ? "checked" : ""}> Orient bottle for sensor<small>Creates the shortest turn needed to meet the configured label view.</small></label><label>Required label view (%)<input data-builder-field="requiredVisibilityPercent" type="number" min="1" max="100" step="1" value="${fmt(item.requiredVisibilityPercent, 0)}"><small>1% allows an edge view; 100% aligns the label centerline directly with the sensor.</small></label><div class="sensor-inline-status ${sensorStatus?.passes ? "sensor-status-pass" : "sensor-status-fail"}"><strong>${fmt(sensorStatus?.percent, 1)}% visible</strong><span>Required: ${fmt(sensorStatus?.required, 0)}%</span></div>` : ""}
       </div>
       ${coreColdGlue ? `<small class="builder-core-note">Core Cold Glue machine point</small>` : ""}
@@ -962,7 +983,7 @@ function renderWipeDownBuilder() {
       control.addEventListener("focus", () => recordBuilderHistory(`Edit ${item.name}`), { once: true });
       const applyControlValue = (persist = false) => {
         const field = control.dataset.builderField;
-        const booleanField = field === "servoAssist";
+        const booleanField = field === "servoAssist" || field === "holdBottleAngle" || field === "holdCurrentBottleAngle";
         const numericField = !booleanField && !["name", "side", "role"].includes(field);
         if (numericField && (control.value === "" || control.value === "-" || control.value === "." || control.value === "-.")) return;
         const editable = editableMachineMap();
@@ -977,7 +998,7 @@ function renderWipeDownBuilder() {
         // Rebuilding the list here destroys focus, closes the station details
         // box, and resets the user's scroll position. Only a station change
         // needs regrouping in the collapsible station list.
-        if (persist && field === "station") renderWipeDownBuilder();
+        if (persist && (field === "station" || field === "holdBottleAngle" || field === "holdCurrentBottleAngle")) renderWipeDownBuilder();
       };
       control.addEventListener("input", () => applyControlValue(false));
       control.addEventListener("change", () => applyControlValue(true));
@@ -1169,14 +1190,16 @@ function bindWipeDownBuilder() {
   els.addBuilderObject.addEventListener("click", () => {
     recordBuilderHistory("Add map object");
     const machineMap = editableMachineMap();
-    const type = document.querySelector("#builderObjectType")?.value || (state.applicationMode === "cold-glue" ? "brush" : "pad");
-    const side = document.querySelector("#builderObjectSide")?.value === "inner" ? "inner" : "outer";
+    const selectedType = document.querySelector("#builderObjectType")?.value || (state.applicationMode === "cold-glue" ? "brush-outer" : "pad");
+    const type = selectedType === "brush-outer" || selectedType === "brush-inner" ? "brush" : selectedType;
+    const side = selectedType === "brush-inner" ? "inner" : selectedType === "brush-outer" ? "outer" : document.querySelector("#builderObjectSide")?.value === "inner" ? "inner" : "outer";
     const station = Math.max(1, Math.min(6, Math.round(num(document.querySelector("#builderObjectStation")?.value, nextAplStation()))));
     const start = num(document.querySelector("#builderObjectStart")?.value, 0);
     const end = num(document.querySelector("#builderObjectEnd")?.value, start + 10);
-    const name = String(document.querySelector("#builderObjectName")?.value || "").trim() || (type === "coding" ? "Coding" : type === "sensor" ? "Label Sensor" : `${side === "inner" ? "Inside" : "Outside"} ${type === "pad" ? "wipe-down pad" : type}`);
+    const name = String(document.querySelector("#builderObjectName")?.value || "").trim() || (type === "coding" ? "Coding" : type === "sensor" ? "Label Sensor" : type === "brush-channel" ? "Inside + Outside Brush Channel" : `${side === "inner" ? "Inside" : "Outside"} ${type === "pad" ? "wipe-down pad" : type}`);
     const addedObject = normalizeBuilderObject({
       id: uniqueMapId(state.applicationMode), name, kind: type, application: state.applicationMode, side, start, end,
+      outerStart: start, outerEnd: end, innerStart: start, innerEnd: end,
       angle: type === "sensor" || (state.applicationMode === "cold-glue" && type === "roller") ? start : undefined,
       wipeSpanDeg: state.applicationMode === "apl" && type === "roller" ? Math.max(0.1, Math.abs(end - start)) : undefined,
       extension: num(document.querySelector("#builderObjectExtension")?.value, 20),

@@ -252,6 +252,12 @@ function bindSetup() {
         if (!item) return;
         const delta = signedAngleDifference(pointerTableAngle(event), drag.startAngle);
         const original = drag.original;
+        if (item.kind === "brush-channel") {
+          item.outerStart = norm(num(original.outerStart, original.start) + delta);
+          item.outerEnd = item.outerStart + (num(original.outerEnd, original.end) - num(original.outerStart, original.start));
+          item.innerStart = norm(num(original.innerStart, original.start) + delta);
+          item.innerEnd = item.innerStart + (num(original.innerEnd, original.end) - num(original.innerStart, original.start));
+        }
         if (Number.isFinite(Number(original.angle))) item.angle = norm(num(original.angle, original.start) + delta);
         item.start = norm(num(original.start, 0) + delta);
         if (item.kind === "sensor") item.end = item.start + 3;

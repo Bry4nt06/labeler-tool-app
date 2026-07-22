@@ -432,7 +432,7 @@ function buildProgramSummary() {
 
 function normalizeColdGlueMap(items) {
   return (Array.isArray(items) ? items : [])
-    .filter((item) => ["brush", "wipe", "roller"].includes(item?.kind))
+    .filter((item) => ["brush", "brush-channel", "wipe", "roller", "gripper"].includes(item?.kind))
     .map((item) => ({ ...item, kind: item.kind === "wipe" ? "brush" : item.kind }));
 }
 
@@ -447,6 +447,12 @@ function resetColdGlueMap() {
 
 function coldGlueMapRows() {
   return coldGlueMapObjects().flatMap((item) => {
+    if (item.kind === "brush-channel") return [
+      { name: `${item.name} Outside Start`, angle: Number(item.outerStart), station: null, fixedName: true, update: (value) => { item.outerStart = value; } },
+      { name: `${item.name} Outside Stop`, angle: Number(item.outerEnd), station: null, fixedName: true, update: (value) => { item.outerEnd = value; } },
+      { name: `${item.name} Inside Start`, angle: Number(item.innerStart), station: null, fixedName: true, update: (value) => { item.innerStart = value; } },
+      { name: `${item.name} Inside Stop`, angle: Number(item.innerEnd), station: null, fixedName: true, update: (value) => { item.innerEnd = value; } }
+    ];
     if (Number.isFinite(Number(item.angle))) {
       return [{
         name: item.name, angle: Number(item.angle), station: null, fixedName: true,
