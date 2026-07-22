@@ -3,13 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="application-version" content="0.7.48" />
+    <meta name="application-version" content="0.7.57" />
     <meta name="update-manifest-url" content="./update-manifest.json" />
     <meta name="theme-color" content="#173f35" />
     <title>ServoForge Labeler</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/labeler-tool-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=0.7.48" />
+    <link rel="stylesheet" href="styles.css?v=0.7.57" />
   </head>
   <body>
     <main class="app">
@@ -37,7 +37,7 @@
             </label>
             <button id="saveSettings" type="button">Save Settings</button>
             <button id="checkForUpdates" type="button">Check for Updates</button>
-            <output id="updateCheckStatus" class="update-check-status" aria-live="polite">Version 0.7.48 • Updates are checked automatically.</output>
+            <output id="updateCheckStatus" class="update-check-status" aria-live="polite">Version 0.7.57 • Updates are checked automatically.</output>
             <button id="exportSettings" type="button">Export Settings</button>
             <label class="file-action">Import Settings<input id="importSettings" type="file" accept="application/json,.json" /></label>
             <button id="exportJson" type="button">Export JSON</button>
@@ -65,10 +65,8 @@
           <div class="map-head">
             <div class="map-heading"><h2>Mechanical Map</h2><span id="activeMapName" class="active-map-name">—</span></div>
             <div class="map-toolbar">
-              <button id="fitMapView" type="button" class="secondary-button compact-map-button">Fit View</button>
               <button id="resetMapView" type="button" class="secondary-button compact-map-button">Reset View</button>
               <button id="undoMapEdit" type="button" class="secondary-button compact-map-button">Undo</button>
-              <button id="editMapButton" type="button" class="secondary-button compact-map-button">Edit Map</button>
               <button id="labelerMapButton" type="button" class="secondary-button compact-map-button">Labeler Map</button>
               <button id="wipeDownBuilderButton" type="button" class="compact-builder-button">Map Builder</button>
             </div>
@@ -78,12 +76,6 @@
               <svg id="mapSvg" viewBox="-340 -315 680 630" role="img" aria-label="Circular map of labeler heads and stations"></svg>
               <div id="mapFaultNotice" class="map-fault-notice" hidden></div>
               <button id="mapLockToggle" type="button" class="map-lock-toggle" aria-pressed="true">Locked</button>
-              <form id="tableAngleJumpForm" class="table-angle-jump" aria-label="Jump to table angle">
-                <label for="tableAngleJump">Table angle</label>
-                <input id="tableAngleJump" type="number" min="0" max="359.9" step="0.1" inputmode="decimal" />
-                <span>°</span>
-                <button type="submit">Go</button>
-              </form>
               <div class="map-overlay-control">
                 <label class="switch-setting" for="showMoveDistanceOverlay">
                   <span class="switch-copy"><strong>Show active move distance</strong><small>Display the current table and plate move.</small></span>
@@ -130,13 +122,13 @@
                   <label>Encoder counts / revolution<input id="mapEncoderCountsPerRev" type="number" min="1" step="1" /></label>
                   <label>Servo gear ratio<input id="mapServoGearRatio" type="number" min="0.001" step="0.001" /></label>
                   <label>Zero angle<input id="mapZeroAngle" type="number" min="0" max="359.999" step="0.1" /></label>
-                  <label>Plate/table fault ratio<input id="mapMaxMoveRatio" type="number" min="0.1" step="0.1" /></label>
+                  <label>Maximum turn speed threshold<input id="mapMaxMoveRatio" type="number" min="0.1" step="0.1" aria-describedby="mapMaxMoveRatioHelp" /><small id="mapMaxMoveRatioHelp">Maximum bottle degrees per 1° of table travel before a servo-speed fault is called out.</small></label>
                   <label class="switch-setting compact-switch"><span class="switch-copy"><strong>Scale from reference radius</strong></span><span class="switch-control"><input id="mapAutoScaleTableMap" type="checkbox" /><span class="switch-track" aria-hidden="true"></span></span></label>
                   <input id="mapAggregateCount" type="number" min="1" max="6" step="1" hidden />
                   <input id="mapStationCount" type="number" min="1" max="6" step="1" hidden />
                   </div>
                 </details>
-                <div class="map-library-actions"><button id="newMachineMap" type="button" class="secondary-button">New From Current</button><button id="saveMachineMap" type="button">Save Map</button><button id="deleteMachineMap" type="button" class="danger">Delete Map</button></div>
+                <div class="map-library-actions"><button id="newMachineMap" type="button" class="secondary-button">New From Current</button><button id="saveMachineMap" type="button">Save Map</button><button id="exportMachineMap" type="button" class="secondary-button">Export Selected Map</button><button id="deleteMachineMap" type="button" class="danger">Delete Map</button></div>
                 <div id="applicationModeDescription" class="mode-description"></div>
                 </div>
               </details>
@@ -194,7 +186,7 @@
             </aside>
 
           <section class="panel validation">
-            <div class="validation-head"><h2>Validation</h2><button id="showWipeDownData" type="button" class="secondary-button compact-builder-button" aria-controls="wipeDownDataPanel" aria-expanded="false">Wipe Data</button></div>
+            <div class="validation-head"><h2>Validation</h2><div class="validation-head-actions"><button id="toggleAggregateSpacing" type="button" class="secondary-button compact-builder-button" aria-pressed="false">Agg Travel Dist.</button><button id="showWipeDownData" type="button" class="secondary-button compact-builder-button" aria-controls="wipeDownDataPanel" aria-expanded="false">Wipe Data</button></div></div>
             <div id="validationDetails" class="validation-details"></div>
             <div id="validationList"></div>
           </section>
@@ -223,7 +215,10 @@
         <button class="tab" data-tab="program" type="button">Servo Program</button>
         <button class="tab" data-tab="simulation" type="button">Servo Simulation</button>
         <span class="simulation-actions-spacer" aria-hidden="true"></span>
-        <label class="bottle-angle-control">Bottle angle <input id="previewBottleAngle" type="number" step="0.1" placeholder="Generated" /><span>deg</span></label>
+        <form id="tableAngleJumpForm" class="angle-generator-control table-angle-control" aria-label="Set table angle">
+          <label for="tableAngleJump">Table angle</label><input id="tableAngleJump" type="number" min="0" max="359.9" step="0.1" inputmode="decimal" /><span>deg</span><button class="angle-control-submit" type="submit" aria-label="Set table angle">Set</button>
+        </form>
+        <label class="angle-generator-control bottle-angle-control">Bottle angle <input id="previewBottleAngle" type="number" step="0.1" placeholder="Generated" /><span>deg</span></label>
         <button id="loadGeneratedTurns" class="simulation-action" type="button" hidden>Load From Servo Program</button>
         <button id="clearCustomTurns" class="simulation-action" type="button" hidden>Clear Custom Turns</button>
       </section>
@@ -249,22 +244,22 @@
     <script src="drivers/geometry/label-geometry-driver.js"></script>
     <script src="drivers/application/application-mode-driver.js"></script>
     <script src="drivers/mechanical/mechanical-motion-driver.js"></script>
-    <script src="drivers/mechanical/cold-glue-motion-driver.js?v=0.7.48"></script>
+    <script src="drivers/mechanical/cold-glue-motion-driver.js?v=0.7.57"></script>
     <script src="drivers/servo/servo-command-driver.js"></script>
     <script src="drivers/validation/motion-validation-driver.js"></script>
     <script src="drivers/profile/apl-profile-driver.js"></script>
-    <script src="app/defaults.js?v=0.7.48"></script>
-    <script src="app/persistence.js?v=0.7.48"></script>
+    <script src="app/defaults.js?v=0.7.57"></script>
+    <script src="app/persistence.js?v=0.7.57"></script>
     <script src="app/geometry-and-planning.js"></script>
     <script src="app/profile-generation.js"></script>
-    <script src="app/simulation-engine.js?v=0.7.48"></script>
+    <script src="app/simulation-engine.js?v=0.7.57"></script>
     <script src="app/assemblies.js"></script>
     <script src="app/wipe-down-builder.js"></script>
     <script src="app/validation.js"></script>
     <script src="app/setup-bindings.js"></script>
     <script src="app/map-rendering.js"></script>
-    <script src="app/table-rendering.js?v=0.7.48"></script>
-    <script src="app/bootstrap.js?v=0.7.48"></script>
+    <script src="app/table-rendering.js?v=0.7.57"></script>
+    <script src="app/bootstrap.js?v=0.7.57"></script>
     <script src="app.js"></script>
   </body>
 </html>

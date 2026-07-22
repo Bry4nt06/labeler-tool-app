@@ -56,8 +56,7 @@ function bindSetup() {
       state.isPlaying = false;
       if (els.playPause) els.playPause.textContent = "Play";
     });
-    els.tableAngleJumpForm?.addEventListener("submit", (event) => {
-      event.preventDefault();
+    const applyTableAngleJump = () => {
       const requestedAngle = num(els.tableAngleJump.value, state.previewAngle);
       state.previewAngle = norm(requestedAngle);
       state.isPlaying = false;
@@ -65,6 +64,11 @@ function bindSetup() {
       els.previewAngle.value = state.previewAngle;
       saveCurrentSettings();
       renderAnimationFrame();
+    };
+    els.tableAngleJump.addEventListener("change", applyTableAngleJump);
+    els.tableAngleJumpForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      applyTableAngleJump();
     });
   }
   if (els.previewBottleAngle) {
@@ -156,11 +160,6 @@ function bindSetup() {
     updateMapLockUi();
     saveCurrentSettings();
   });
-  els.editMapButton?.addEventListener("click", () => {
-    state.mapLocked = false;
-    updateMapLockUi();
-    setBuilderOpen(true);
-  });
   els.undoMapEdit?.addEventListener("click", () => {
     if (state.builderHistory?.undo?.length) restoreBuilderHistory("undo");
   });
@@ -170,7 +169,6 @@ function bindSetup() {
     state.mapPanX = 0;
     state.mapPanY = 0;
   };
-  els.fitMapView?.addEventListener("click", () => { centerMapView(); applyMapView(); saveCurrentSettings(); });
   els.resetMapView?.addEventListener("click", () => {
     centerMapView();
     applyMapView();

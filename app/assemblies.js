@@ -434,6 +434,29 @@ function activeAggregateDefinitions() {
     .filter(Boolean);
 }
 
+const AGGREGATE_CENTERLINE_MIN_GAP_DEG = 6;
+
+function aggregateCenterlineGaps() {
+  const aggregates = activeAggregateDefinitions()
+    .map((aggregate) => ({ ...aggregate, angle: norm(aggregate.angle) }))
+    .sort((a, b) => a.angle - b.angle || a.number - b.number);
+  if (aggregates.length < 2) return [];
+  return aggregates.map((aggregate, index) => {
+    const next = aggregates[(index + 1) % aggregates.length];
+    const endAngle = index === aggregates.length - 1 ? next.angle + 360 : next.angle;
+    const gapDeg = endAngle - aggregate.angle;
+    return {
+      from: aggregate.number,
+      to: next.number,
+      startAngle: aggregate.angle,
+      endAngle,
+      gapDeg,
+      wrapsToFirst: index === aggregates.length - 1,
+      violatesMinimum: gapDeg < AGGREGATE_CENTERLINE_MIN_GAP_DEG
+    };
+  });
+}
+
 function drawIndependentAggregates(add, layer) {
   const machineSign = state.direction === "cw" ? 1 : -1;
   activeAggregateDefinitions().forEach((aggregate) => {

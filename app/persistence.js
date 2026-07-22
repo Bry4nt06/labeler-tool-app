@@ -27,7 +27,7 @@ function loadSavedSettings() {
   if (!raw) return;
   try {
     const saved = JSON.parse(raw);
-    ["headCount", "radius", "zeroAngle", "direction", "previewAngle", "previewBottleAngle", "animationSpeed", "maxMoveRatio", "tablePitchRadiusMm", "referencePitchRadiusMm", "autoScaleTableMap", "encoderCountsPerRev", "servoGearRatio", "padClearanceMm", "showMoveDistanceOverlay", "showQuadrantReferences", "wipeBuilderOpen", "activeMapId", "mapZoom", "mapPanX", "mapPanY", "mapLocked", "selectedBrand", "selectedBottle", "themePreset"].forEach((key) => {
+    ["headCount", "radius", "zeroAngle", "direction", "previewAngle", "previewBottleAngle", "animationSpeed", "maxMoveRatio", "tablePitchRadiusMm", "referencePitchRadiusMm", "autoScaleTableMap", "encoderCountsPerRev", "servoGearRatio", "padClearanceMm", "showMoveDistanceOverlay", "showQuadrantReferences", "showAggregateSpacingOverlay", "wipeBuilderOpen", "activeMapId", "mapZoom", "mapPanX", "mapPanY", "mapLocked", "selectedBrand", "selectedBottle", "themePreset"].forEach((key) => {
       if (saved[key] !== undefined) state[key] = saved[key];
     });
     // Older builds stored degrees per 0.1-second tick. Preserve the perceived
@@ -141,6 +141,7 @@ function settingsSnapshot() {
     padClearanceMm: state.padClearanceMm,
     showMoveDistanceOverlay: state.showMoveDistanceOverlay,
     showQuadrantReferences: state.showQuadrantReferences,
+    showAggregateSpacingOverlay: state.showAggregateSpacingOverlay,
     wipeBuilderOpen: state.wipeBuilderOpen,
     mapLibrary: state.mapLibrary,
     servoProfileLibrary: state.servoProfileLibrary,
@@ -248,7 +249,7 @@ async function registerToolUpdateService() {
 async function checkForToolUpdates() {
   const button = els.checkForUpdates;
   const status = els.updateCheckStatus;
-  const currentVersion = document.querySelector('meta[name="application-version"]')?.content || "0.7.48";
+  const currentVersion = document.querySelector('meta[name="application-version"]')?.content || "0.7.57";
   const manifestUrl = document.querySelector('meta[name="update-manifest-url"]')?.content?.trim();
   if (pendingServiceWorker) {
     if (button) button.disabled = true;

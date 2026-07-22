@@ -1073,6 +1073,26 @@ function saveMapDefinitionFromControls(event) {
   renderWipeDownBuilder();
 }
 
+function exportSelectedMachineMap() {
+  const map = activeMachineMap();
+  if (!map) {
+    window.alert("Select a map before exporting.");
+    return;
+  }
+  const safeName = String(map.name || "machine-map")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "") || "machine-map";
+  const payload = {
+    format: "servoforge-machine-map",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    map: deepClone(map)
+  };
+  download(`${safeName}.servoforge-map.json`, "application/json", JSON.stringify(payload, null, 2));
+}
+
 function bindWipeDownBuilder() {
   if (!els.addBuilderObject) return;
   document.querySelector("#undoBuilderEdit")?.addEventListener("click", () => restoreBuilderHistory("undo"));
@@ -1123,6 +1143,7 @@ function bindWipeDownBuilder() {
     state.mapLibrary.push(copy); loadMachineMapIntoRuntime(copy, true); saveCurrentSettings(); renderWipeDownBuilder();
   });
   els.saveMachineMap?.addEventListener("click", saveMapDefinitionFromControls);
+  els.exportMachineMap?.addEventListener("click", exportSelectedMachineMap);
   els.mapMachineType?.addEventListener("change", saveMapDefinitionFromControls);
   els.addMachineType?.addEventListener("click", () => {
     const entered = String(window.prompt("Enter the new machine type name:", "") || "").trim();

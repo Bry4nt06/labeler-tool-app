@@ -30,6 +30,15 @@ function roundedServoExportRow(row) {
 }
 
 function bindGlobalActions() {
+  if (els.toggleAggregateSpacing) {
+    els.toggleAggregateSpacing.setAttribute("aria-pressed", String(Boolean(state.showAggregateSpacingOverlay)));
+    els.toggleAggregateSpacing.addEventListener("click", () => {
+      state.showAggregateSpacingOverlay = !state.showAggregateSpacingOverlay;
+      els.toggleAggregateSpacing.setAttribute("aria-pressed", String(state.showAggregateSpacingOverlay));
+      saveCurrentSettings();
+      renderMap();
+    });
+  }
   const setWipeDownPopupOpen = (open) => {
     if (!els.wipeDownDataPanel) return;
     els.wipeDownDataPanel.hidden = !open;

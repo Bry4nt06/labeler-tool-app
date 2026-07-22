@@ -146,7 +146,18 @@ function validate() {
 
   const speedRows = segments.filter((row) => Number.isFinite(row.absSpeed));
   const maxSpeed = speedRows.reduce((best, row) => row.absSpeed > (best?.absSpeed ?? -Infinity) ? row : best, null);
-  if (maxSpeed) notes.push(["ok", `Max turn speed is ${fmt(maxSpeed.absSpeed, 1)} deg bottle / 1 deg table at HMI ${maxSpeed.hmi}.`]);
+  if (maxSpeed) {
+    const threshold = Math.max(0.1, num(state.maxMoveRatio, 21));
+    const speed = maxSpeed.absSpeed;
+    const level = speed >= threshold ? "bad" : speed >= threshold * 0.85 ? "warn" : "ok";
+    const callout = level === "bad" ? "EXCEEDS THRESHOLD" : level === "warn" ? "NEAR THRESHOLD" : "WITHIN THRESHOLD";
+    notes.push([level, `Maximum turn speed: ${fmt(speed, 1)} deg bottle / 1 deg table at HMI ${maxSpeed.hmi} — ${callout} (${fmt(threshold, 1)}:1 limit).`]);
+  }
+  if (typeof aggregateCenterlineGaps === "function") {
+    aggregateCenterlineGaps()
+      .filter((gap) => gap.violatesMinimum)
+      .forEach((gap) => notes.push(["bad", `Aggregate centerline spacing A${gap.from} → A${gap.to} is ${fmt(gap.gapDeg, 1)}°, below the 6.0° minimum.`]));
+  }
   if (!notes.length) notes.push(["ok", "No geometry or servo profile warnings at the current settings."]);
   return notes;
 }

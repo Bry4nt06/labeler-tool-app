@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.48",
+  "version": "0.7.57",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Moves saved profiles to Custom Simulation and stores simulation settings."
+  "notes": "Colors aggregate degree values green and adds spacing within curved travel labels."
 }
