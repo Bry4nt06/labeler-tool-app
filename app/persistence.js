@@ -27,7 +27,7 @@ function loadSavedSettings() {
   if (!raw) return;
   try {
     const saved = JSON.parse(raw);
-    ["headCount", "radius", "zeroAngle", "direction", "previewAngle", "previewBottleAngle", "animationSpeed", "maxMoveRatio", "tablePitchRadiusMm", "referencePitchRadiusMm", "autoScaleTableMap", "encoderCountsPerRev", "servoGearRatio", "padClearanceMm", "showMoveDistanceOverlay", "showQuadrantReferences", "showAggregateSpacingOverlay", "wipeBuilderOpen", "activeMapId", "mapZoom", "mapPanX", "mapPanY", "mapLocked", "selectedBrand", "selectedBottle", "themePreset"].forEach((key) => {
+    ["headCount", "radius", "zeroAngle", "direction", "previewAngle", "previewBottleAngle", "animationSpeed", "maxMoveRatio", "tablePitchRadiusMm", "referencePitchRadiusMm", "autoScaleTableMap", "encoderCountsPerRev", "servoGearRatio", "padClearanceMm", "showMoveDistanceOverlay", "showQuadrantReferences", "showAggregateSpacingOverlay", "workspaceView", "wipeBuilderOpen", "activeMapId", "mapZoom", "mapPanX", "mapPanY", "mapLocked", "selectedBrand", "selectedBottle", "themePreset"].forEach((key) => {
       if (saved[key] !== undefined) state[key] = saved[key];
     });
     // Older builds stored degrees per 0.1-second tick. Preserve the perceived
@@ -142,6 +142,7 @@ function settingsSnapshot() {
     showMoveDistanceOverlay: state.showMoveDistanceOverlay,
     showQuadrantReferences: state.showQuadrantReferences,
     showAggregateSpacingOverlay: state.showAggregateSpacingOverlay,
+    workspaceView: state.workspaceView,
     wipeBuilderOpen: state.wipeBuilderOpen,
     mapLibrary: state.mapLibrary,
     servoProfileLibrary: state.servoProfileLibrary,
@@ -348,4 +349,25 @@ function setThemePreset(value) {
   document.body.dataset.theme = state.themePreset;
   if (els.themePreset) els.themePreset.value = state.themePreset;
   writeStorage("labelerThemePreset", state.themePreset);
+}
+
+function setWorkspaceView(value) {
+  state.workspaceView = value === "direct" ? "direct" : "standard";
+  const app = document.querySelector(".app");
+  const layout = app?.querySelector(":scope > .layout");
+  const preview = layout?.querySelector(":scope > .preview-panel") || app?.querySelector("#mapRightRail > .preview-panel");
+  const mapArea = layout?.querySelector(":scope > .map-area");
+  const validation = app?.querySelector("#mapRightRail > .validation");
+  const angleControls = app?.querySelector("#previewAngleControls");
+  const tabs = app?.querySelector(":scope > .tabs");
+  const loadGeneratedTurns = app?.querySelector("#loadGeneratedTurns");
+  app?.classList.toggle("workspace-view-direct", state.workspaceView === "direct");
+  if (state.workspaceView === "direct" && preview && validation) {
+    validation.insertAdjacentElement("afterend", preview);
+    if (angleControls) preview.insertAdjacentElement("afterend", angleControls);
+  } else {
+    if (preview && layout && mapArea) layout.insertBefore(preview, mapArea);
+    if (angleControls && tabs) tabs.insertBefore(angleControls, loadGeneratedTurns || null);
+  }
+  if (els.workspaceView) els.workspaceView.value = state.workspaceView;
 }

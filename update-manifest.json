@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.60",
+  "version": "0.7.65",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Seeds company maps and libraries on updates without overwriting existing user inputs or matching entries."
+  "notes": "Moves the table-angle and bottle-angle inputs beneath Preview & Animation in Direct view."
 }

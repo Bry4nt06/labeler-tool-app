@@ -5,6 +5,12 @@ function bindSetup() {
   els.themePreset.addEventListener("change", () => {
     setThemePreset(els.themePreset.value);
   });
+  setWorkspaceView(state.workspaceView);
+  els.workspaceView?.addEventListener("change", () => {
+    setWorkspaceView(els.workspaceView.value);
+    saveCurrentSettings();
+    renderMap();
+  });
   for (const key of ["headCount", "radius", "zeroAngle"]) {
     if (!els[key]) continue;
     els[key].value = state[key];
