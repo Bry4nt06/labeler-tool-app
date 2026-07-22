@@ -252,8 +252,8 @@ function currentServoProfileContext() {
 }
 
 function saveServoProfileFromLibraryControls() {
-  const nameInput = els.program.querySelector("#servoProfileName");
-  const descriptionInput = els.program.querySelector("#servoProfileDescription");
+  const nameInput = els.simulation.querySelector("#servoProfileName");
+  const descriptionInput = els.simulation.querySelector("#servoProfileDescription");
   const name = String(nameInput?.value || "").trim();
   if (!name) {
     window.alert("Enter a profile name before saving.");
@@ -261,15 +261,13 @@ function saveServoProfileFromLibraryControls() {
     return;
   }
   const context = currentServoProfileContext();
-  const profileKey = servoOverrideProfileKey();
   const profile = {
     id: `servo-profile-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name,
     description: String(descriptionInput?.value || "").trim(),
     savedAt: new Date().toISOString(),
     ...context,
-    buildInputs: deepClone(state.buildInputs),
-    overrides: deepClone(state.servoOverrides?.[profileKey] || {})
+    simulation: deepClone(state.simulation)
   };
   if (!Array.isArray(state.servoProfileLibrary)) state.servoProfileLibrary = [];
   state.servoProfileLibrary.push(profile);
@@ -281,19 +279,21 @@ function saveServoProfileFromLibraryControls() {
 function loadServoProfileFromLibrary(profileId) {
   const profile = state.servoProfileLibrary.find((entry) => entry.id === profileId);
   if (!profile) return;
+  if (!profile.simulation || typeof profile.simulation !== "object") {
+    window.alert("This older profile does not contain custom simulation settings.");
+    return;
+  }
   const map = state.mapLibrary.find((entry) => entry.id === profile.mapId);
   if (!map) {
     window.alert(`The saved map “${profile.mapName || "Unknown"}” is no longer available.`);
     return;
   }
   loadMachineMapIntoRuntime(map, false);
+  if (profile.applicationMode) state.applicationMode = profile.applicationMode;
   if (state.labelSpecs.some((entry) => entry.brand === profile.brand)) state.selectedBrand = profile.brand;
   if (state.bottleSpecs.some((entry) => entry.bottleType === profile.bottleType)) state.selectedBottle = profile.bottleType;
-  if (profile.buildInputs && typeof profile.buildInputs === "object") state.buildInputs = { ...state.buildInputs, ...deepClone(profile.buildInputs) };
-  const profileKey = servoOverrideProfileKey();
-  if (!state.servoOverrides || typeof state.servoOverrides !== "object") state.servoOverrides = {};
-  if (profile.overrides && Object.keys(profile.overrides).length) state.servoOverrides[profileKey] = deepClone(profile.overrides);
-  else delete state.servoOverrides[profileKey];
+  state.simulation = deepClone(profile.simulation);
+  ensureSimulationRows();
   state.activeServoProfileId = profile.id;
   saveCurrentSettings();
   render();
@@ -320,13 +320,13 @@ function servoProfileLibraryMarkup() {
     : '<option value="">No saved profiles</option>';
   const details = selected
     ? `<div class="servo-profile-details"><strong>${escapeServoProfileHtml(selected.name)}</strong><span>${escapeServoProfileHtml(selected.brand)} • ${escapeServoProfileHtml(selected.bottleType)} • ${escapeServoProfileHtml(selected.mapName)}</span>${selected.description ? `<small>${escapeServoProfileHtml(selected.description)}</small>` : ""}<time datetime="${escapeServoProfileHtml(selected.savedAt)}">Saved ${escapeServoProfileHtml(servoProfileSavedDate(selected.savedAt))}</time></div>`
-    : '<div class="servo-profile-details empty"><span>Save the current custom angles and build settings for reuse.</span></div>';
+    : '<div class="servo-profile-details empty"><span>Save the current custom simulation lines and angles for reuse.</span></div>';
   return `<section class="servo-profile-library" aria-labelledby="servoProfileLibraryTitle">
-    <div class="servo-profile-library-head"><div><h2 id="servoProfileLibraryTitle">Servo Profile Library</h2><p>Save and restore custom servo settings by brand, bottle, and map.</p></div><span>${profiles.length} saved</span></div>
+    <div class="servo-profile-library-head"><div><h2 id="servoProfileLibraryTitle">Custom Simulation Library</h2><p>Save and restore custom simulation settings by brand, bottle, and map.</p></div><span>${profiles.length} saved</span></div>
     <div class="servo-profile-save-grid">
       <label>Profile name<input id="servoProfileName" type="text" maxlength="80" placeholder="Example: Bud Light Lime production"></label>
       <label>Description<input id="servoProfileDescription" type="text" maxlength="180" placeholder="Optional notes about this setup"></label>
-      <button id="saveServoProfile" type="button">Save Current Profile</button>
+      <button id="saveServoProfile" type="button">Save Simulation Settings</button>
     </div>
     <div class="servo-profile-context"><span>Brand <strong>${escapeServoProfileHtml(context.brand)}</strong></span><span>Bottle <strong>${escapeServoProfileHtml(context.bottleType)}</strong></span><span>Map <strong>${escapeServoProfileHtml(context.mapName)}</strong></span></div>
     <div class="servo-profile-library-grid"><label>Saved profile<select id="servoProfileLibrarySelect"${profiles.length ? "" : " disabled"}>${options}</select></label><div class="servo-profile-actions"><button id="loadServoProfile" class="secondary-button" type="button"${selected ? "" : " disabled"}>Load</button><button id="deleteServoProfile" class="danger" type="button"${selected ? "" : " disabled"}>Delete</button></div>${details}</div>
@@ -334,20 +334,19 @@ function servoProfileLibraryMarkup() {
 }
 
 function bindServoProfileLibraryControls() {
-  const select = els.program.querySelector("#servoProfileLibrarySelect");
-  els.program.querySelector("#saveServoProfile")?.addEventListener("click", saveServoProfileFromLibraryControls);
+  const select = els.simulation.querySelector("#servoProfileLibrarySelect");
+  els.simulation.querySelector("#saveServoProfile")?.addEventListener("click", saveServoProfileFromLibraryControls);
   select?.addEventListener("change", () => {
     state.activeServoProfileId = select.value;
-    renderProgram();
+    renderSimulation();
   });
-  els.program.querySelector("#loadServoProfile")?.addEventListener("click", () => loadServoProfileFromLibrary(select?.value));
-  els.program.querySelector("#deleteServoProfile")?.addEventListener("click", () => deleteServoProfileFromLibrary(select?.value));
+  els.simulation.querySelector("#loadServoProfile")?.addEventListener("click", () => loadServoProfileFromLibrary(select?.value));
+  els.simulation.querySelector("#deleteServoProfile")?.addEventListener("click", () => deleteServoProfileFromLibrary(select?.value));
 }
 
 function renderProgram() {
   const commandHeading = activeMachineUsesAutocolCommands() ? "Travel command" : "CMD";
-  els.program.innerHTML = `${servoProfileLibraryMarkup()}<table><thead><tr><th>HMI</th><th>PLC</th><th>${commandHeading}</th><th class="num">Table angle</th><th class="num override-heading">Table override</th><th class="num">Bottle angle</th><th class="num override-heading">Bottle override</th><th class="num">Table travel</th><th class="num">Bottle travel</th><th class="num">Encoder travel</th><th>Status</th><th class="num">Turn speed</th><th>Action</th></tr></thead><tbody></tbody></table>`;
-  bindServoProfileLibraryControls();
+  els.program.innerHTML = `<table><thead><tr><th>HMI</th><th>PLC</th><th>${commandHeading}</th><th class="num">Table angle</th><th class="num override-heading">Table override</th><th class="num">Bottle angle</th><th class="num override-heading">Bottle override</th><th class="num">Table travel</th><th class="num">Bottle travel</th><th class="num">Encoder travel</th><th>Status</th><th class="num">Turn speed</th><th>Action</th></tr></thead><tbody></tbody></table>`;
   const body = els.program.querySelector("tbody");
   const segments = programSegments(state.program);
   const maxSpeed = segments.reduce((best, seg) => Number.isFinite(seg.absSpeed) && seg.absSpeed > (best?.absSpeed ?? -Infinity) ? seg : best, null);
@@ -421,12 +420,13 @@ function renderSimulation() {
   const simProgram = simulationProgram();
   const segments = programSegments(simProgram);
   const maxSpeed = segments.reduce((best, seg) => Number.isFinite(seg.absSpeed) && seg.absSpeed > (best?.absSpeed ?? -Infinity) ? seg : best, null);
-  els.simulation.innerHTML = `
+  els.simulation.innerHTML = `${servoProfileLibraryMarkup()}
     <div class="sim-tools">
       <div class="sim-summary">${maxSpeed ? `Max custom speed: ${fmt(finishAngle(maxSpeed.absSpeed), 1)} deg bottle / 1 deg table at HMI ${maxSpeed.hmi}` : "Enter custom turns to calculate speed."}</div>
     </div>
     <table><thead><tr><th>HMI</th><th>PLC</th><th>${activeMachineUsesAutocolCommands() ? "Travel command" : "CMD"}</th><th class="num">Table angle</th><th class="num">Plate angle</th><th class="num">Table travel</th><th class="num">Plate travel</th><th class="num">Encoder travel</th><th>Status</th><th class="num">Turn speed</th><th>Action</th><th>Line</th></tr></thead><tbody></tbody></table>
     `;
+  bindServoProfileLibraryControls();
 
   const body = els.simulation.querySelector("tbody");
   segments.forEach((row, index) => {

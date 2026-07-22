@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.47",
+  "version": "0.7.48",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Adds the persistent custom Servo Profile Library."
+  "notes": "Moves saved profiles to Custom Simulation and stores simulation settings."
 }
