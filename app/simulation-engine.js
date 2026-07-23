@@ -264,7 +264,7 @@ function drawFaultOverlay(add, parent, program = currentProgram()) {
 }
 
 function drawMoveDistanceOverlay(add, parent, program = currentProgram()) {
-  if (!state.showMoveDistanceOverlay) return;
+  if (!state.showMoveDistanceOverlay || state.showAllProgramMovesOverlay) return;
   const move = activeSegmentForProgram(program, state.previewAngle);
   if (!move || !Number.isFinite(move.tableTravel) || move.tableTravel === 0) return;
 
@@ -305,6 +305,76 @@ function drawMoveDistanceOverlay(add, parent, program = currentProgram()) {
   add("text", { x: 0, y: -30, fill: "#334b5d", "font-size": 11, "font-weight": 700, "text-anchor": "end" }, readout).textContent = `HMI ${move.hmi}`;
   add("text", { x: 0, y: -14, fill: "#425d70", "font-size": 10, "font-weight": 600, "text-anchor": "end" }, readout).textContent = `Table move: ${tableValue}`;
   add("text", { x: 0, y: 1, fill: "#425d70", "font-size": 10, "font-weight": 600, "text-anchor": "end" }, readout).textContent = `Plate move: ${plateValue}`;
+}
+
+function drawAllProgramMovesOverlay(add, parent, program = currentProgram()) {
+  if (!state.showAllProgramMovesOverlay) return;
+  const moves = programSegments(program).filter((row) =>
+    row.isMotionCommand
+    && Number.isFinite(row.tableAngle)
+    && Number.isFinite(row.tableTravel)
+    && row.tableTravel !== 0
+  );
+  const innerRadius = Math.max(52, state.radius - 145);
+  const outerRadius = Math.max(innerRadius + 30, state.radius - 22);
+  const sweep = state.direction === "cw" ? 0 : 1;
+  const reverseSweep = sweep ? 0 : 1;
+
+  moves.forEach((move, index) => {
+    const startAngle = move.tableAngle;
+    const endAngle = move.tableAngle + move.tableTravel;
+    const span = Math.min(359.9, Math.abs(move.tableTravel));
+    const largeArc = span > 180 ? 1 : 0;
+    const startOuter = angleToXY(startAngle, outerRadius);
+    const endOuter = angleToXY(endAngle, outerRadius);
+    const startInner = angleToXY(startAngle, innerRadius);
+    const endInner = angleToXY(endAngle, innerRadius);
+    const positiveTurn = Number(move.plateTravel) > 0;
+    const negativeTurn = Number(move.plateTravel) < 0;
+    const color = move.moveFault ? "#d71920" : positiveTurn ? "#22b980" : negativeTurn ? "#e59a36" : "#5b8eae";
+    const fullDescription = String(move.action || "Servo move").trim();
+
+    const moveShape = add("path", {
+      d: `M ${startOuter.x} ${startOuter.y} A ${outerRadius} ${outerRadius} 0 ${largeArc} ${sweep} ${endOuter.x} ${endOuter.y} L ${endInner.x} ${endInner.y} A ${innerRadius} ${innerRadius} 0 ${largeArc} ${reverseSweep} ${startInner.x} ${startInner.y} Z`,
+      fill: color,
+      "fill-opacity": index % 2 ? 0.23 : 0.32,
+      stroke: "none",
+      "data-program-move-hmi": move.hmi
+    }, parent);
+    add("title", {}, moveShape).textContent = `HMI ${move.hmi}: ${fullDescription}`;
+
+    const labelRadius = (innerRadius + outerRadius) / 2;
+    const labelAngle = startAngle + move.tableTravel / 2;
+    const labelVisualAngle = angleToSvgRotation(labelAngle);
+    const label = angleToXY(labelAngle, labelRadius);
+    let labelRotation = norm(labelVisualAngle);
+    if (labelRotation > 90 && labelRotation < 270) labelRotation = norm(labelRotation + 180);
+    add("text", {
+      x: label.x,
+      y: label.y + 2,
+      fill: "#eefcff",
+      "font-size": 6,
+      "font-weight": 650,
+      "text-anchor": "middle",
+      transform: `rotate(${labelRotation} ${label.x} ${label.y})`,
+      "pointer-events": "none"
+    }, parent).textContent = fullDescription;
+
+    const markerAngle = startAngle;
+    const marker = angleToXY(markerAngle, innerRadius + 7);
+    add("text", {
+      x: marker.x,
+      y: marker.y + 1.5,
+      fill: color,
+      "font-size": 4.5,
+      "font-weight": 800,
+      "text-anchor": "middle",
+      stroke: "#07151d",
+      "stroke-width": 0.7,
+      "paint-order": "stroke",
+      "aria-label": `HMI ${move.hmi}`
+    }, parent).textContent = String(move.hmi);
+  });
 }
 
 function activeSegment(tableAngle = state.previewAngle) {

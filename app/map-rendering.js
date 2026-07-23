@@ -249,6 +249,8 @@ function renderMap() {
 
   const moveDistanceLayer = add("g", { "aria-label": "Active servo move distance overlay" });
   drawMoveDistanceOverlay(add, moveDistanceLayer, currentProgram());
+  const allMovesLayer = add("g", { "aria-label": "All servo program moves overlay" });
+  drawAllProgramMovesOverlay(add, allMovesLayer, currentProgram());
 
   const aggregateLayer = add("g", { "aria-label": "Enabled machine aggregates" });
   drawIndependentAggregates(add, aggregateLayer);
@@ -360,6 +362,8 @@ function renderSimulationMap(program = simulationProgram()) {
   const rotator = angleToXY(state.previewAngle, state.radius + MAP_ROTATOR_HANDLE_OFFSET);
   add("circle", { cx: rotator.x, cy: rotator.y, r: 5.5, fill: "#ffffff", stroke: "#d71920", "stroke-width": 2.5, class: "map-rotator-handle", "data-map-rotator-handle": "true", "aria-label": "Drag primary head around labeler" });
   drawMoveDistanceOverlay(add, moveDistanceLayer, program);
+  const allMovesLayer = add("g", { "aria-label": "All servo program moves overlay" });
+  drawAllProgramMovesOverlay(add, allMovesLayer, program);
 
   const aggregateLayer = add("g", { "aria-label": "Enabled machine aggregates" });
   drawIndependentAggregates(add, aggregateLayer);

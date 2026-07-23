@@ -314,6 +314,24 @@ function bindSetup() {
     els.showMoveDistanceOverlay.checked = Boolean(state.showMoveDistanceOverlay);
     els.showMoveDistanceOverlay.addEventListener("change", () => {
       state.showMoveDistanceOverlay = els.showMoveDistanceOverlay.checked;
+      if (state.showMoveDistanceOverlay) {
+        state.showAllProgramMovesOverlay = false;
+        if (els.showAllProgramMovesOverlay) els.showAllProgramMovesOverlay.checked = false;
+      }
+      saveCurrentSettings();
+      renderMap();
+      renderSimulationMap();
+    });
+  }
+  if (els.showAllProgramMovesOverlay) {
+    els.showAllProgramMovesOverlay.checked = Boolean(state.showAllProgramMovesOverlay);
+    els.showAllProgramMovesOverlay.addEventListener("change", () => {
+      state.showAllProgramMovesOverlay = els.showAllProgramMovesOverlay.checked;
+      if (state.showAllProgramMovesOverlay) {
+        state.showMoveDistanceOverlay = false;
+        if (els.showMoveDistanceOverlay) els.showMoveDistanceOverlay.checked = false;
+      }
+      saveCurrentSettings();
       renderMap();
       renderSimulationMap();
     });

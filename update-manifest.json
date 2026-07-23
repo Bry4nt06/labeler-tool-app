@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.66",
+  "version": "0.7.72",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Adds a Settings feedback button that opens a pre-addressed ServoForge email."
+  "notes": "Moves the active and all-program overlay toggles from the map canvas into the right control rail."
 }
