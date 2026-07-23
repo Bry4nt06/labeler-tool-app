@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.65",
+  "version": "0.7.66",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Moves the table-angle and bottle-angle inputs beneath Preview & Animation in Direct view."
+  "notes": "Adds a Settings feedback button that opens a pre-addressed ServoForge email."
 }
