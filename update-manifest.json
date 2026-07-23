@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.72",
+  "version": "0.7.74",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Moves the active and all-program overlay toggles from the map canvas into the right control rail."
+  "notes": "Resets completed wipe-down telemetry when the station advances to its next correction."
 }

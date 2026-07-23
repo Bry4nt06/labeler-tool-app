@@ -239,8 +239,8 @@ function renderMap() {
       const rollerRadius = /\(Op Side\)/i.test(point.name) ? state.radius + state.depths.opRoller : state.radius + state.depths.nonOpRoller;
       const xy = angleToXY(point.angle, rollerRadius);
       const group = add("g", { transform: `translate(${xy.x} ${xy.y})` }, equipmentLayer);
-      add("circle", { cx: 0, cy: 0, r: 12, fill: "#0d9b57", stroke: "#066b3b", "stroke-width": 2 }, group);
-      add("circle", { cx: -4, cy: -4, r: 4, fill: "#78d9a8", "fill-opacity": 0.75 }, group);
+      add("circle", { cx: 0, cy: 0, r: 10, fill: "#477664", "fill-opacity": 0.78, stroke: "none" }, group);
+      add("circle", { cx: -3, cy: -3, r: 3, fill: "#789b8d", "fill-opacity": 0.55 }, group);
       return;
     }
 

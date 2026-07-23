@@ -493,8 +493,7 @@ function labelSensorMapColor(item) {
 function drawConfiguredAssemblies(add, layer) {
   ensurePersistentApplicationMaps();
   if (state.applicationMode === "cold-glue") {
-    const brushFill = "#8b6fc1";
-    const brushStroke = "#554176";
+    const brushFill = "#6f6688";
     const gripperHalfLength = 9;
     coldGlueMapObjects().forEach((raw) => {
       const item = { ...raw, kind: raw.kind === "wipe" ? "brush" : raw.kind };
@@ -502,13 +501,13 @@ function drawConfiguredAssemblies(add, layer) {
       if (item.kind === "sensor") {
         const placement = num(item.angle, item.start);
         const centerRadius = state.radius + state.depths.opRoller + 7;
-        add("path", { d: arcPath(placement - 1.5, placement + 1.5, centerRadius - 8, centerRadius + 8), fill: labelSensorMapColor(item), "fill-opacity": 0.9, stroke: "#8a7b08", "stroke-width": 2, "data-label-sensor": item.id, "data-sensor-station": item.station }, objectLayer);
+        add("path", { d: arcPath(placement - 1.5, placement + 1.5, centerRadius - 8, centerRadius + 8), fill: labelSensorMapColor(item), "fill-opacity": 0.62, stroke: "none", "data-label-sensor": item.id, "data-sensor-station": item.station }, objectLayer);
         drawMapObjectLabel(add, objectLayer, item, placement, centerRadius, 20);
         return;
       }
       if (item.kind === "coding") {
         const centerRadius = state.radius + state.depths.opRoller;
-        add("path", { d: arcPath(num(item.start), num(item.end), centerRadius - 7, centerRadius + 7), fill: "#d7a72c", "fill-opacity": 0.82, stroke: "#8a6410", "stroke-width": 2, "data-coding-object": item.id }, objectLayer);
+        add("path", { d: arcPath(num(item.start), num(item.end), centerRadius - 7, centerRadius + 7), fill: "#8f7a48", "fill-opacity": 0.62, stroke: "none", "data-coding-object": item.id }, objectLayer);
         drawMapObjectLabel(add, objectLayer, item, (num(item.start) + num(item.end)) / 2, centerRadius, 18);
         return;
       }
@@ -520,7 +519,7 @@ function drawConfiguredAssemblies(add, layer) {
         const xy = angleToXY(angle, state.radius + state.depths.spender);
         const rotation = angleToSvgRotation(angle) + 90;
         const group = add("g", { transform: `translate(${xy.x} ${xy.y}) rotate(${rotation})` }, objectLayer);
-        add("line", { x1: -gripperHalfLength, y1: 0, x2: gripperHalfLength, y2: 0, stroke: "#d71920", "stroke-width": 3, "stroke-linecap": "round", "data-cold-glue-gripper": item.id }, group);
+        add("line", { x1: -gripperHalfLength, y1: 0, x2: gripperHalfLength, y2: 0, stroke: "#9b5558", "stroke-width": 2.5, "stroke-linecap": "round", "data-cold-glue-gripper": item.id }, group);
         drawMapObjectLabel(add, objectLayer, item, angle, state.radius + state.depths.spender, 18);
         return;
       }
@@ -529,7 +528,7 @@ function drawConfiguredAssemblies(add, layer) {
         if (!Number.isFinite(angle)) return;
         const depth = item.side === "inner" ? state.depths.nonOpRoller : state.depths.opRoller;
         const xy = angleToXY(angle, state.radius + depth);
-        add("circle", { cx: xy.x, cy: xy.y, r: 11, fill: "#0d9b57", stroke: "#066b3b", "stroke-width": 2 }, objectLayer);
+        add("circle", { cx: xy.x, cy: xy.y, r: 10, fill: "#477664", "fill-opacity": 0.78, stroke: "none" }, objectLayer);
         drawMapObjectLabel(add, objectLayer, item, angle, state.radius + depth, 17);
         return;
       }
@@ -537,8 +536,8 @@ function drawConfiguredAssemblies(add, layer) {
         const brushHalfWidth = Math.max(4, Math.min(7, num(item.extension, 20) / 4));
         const outerRadius = state.radius + state.depths.wipeOuter;
         const innerRadius = state.radius + state.depths.wipeInner;
-        add("path", { d: arcPath(num(item.outerStart, item.start), num(item.outerEnd, item.end), outerRadius - brushHalfWidth, outerRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.58, stroke: brushStroke, "stroke-width": 2, "stroke-dasharray": "3 2", "data-cold-glue-brush-channel": item.id, "data-channel-side": "outer" }, objectLayer);
-        add("path", { d: arcPath(num(item.innerStart, item.start), num(item.innerEnd, item.end), innerRadius - brushHalfWidth, innerRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.58, stroke: brushStroke, "stroke-width": 2, "stroke-dasharray": "3 2", "data-cold-glue-brush-channel": item.id, "data-channel-side": "inner" }, objectLayer);
+        add("path", { d: arcPath(num(item.outerStart, item.start), num(item.outerEnd, item.end), outerRadius - brushHalfWidth, outerRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.46, stroke: "none", "data-cold-glue-brush-channel": item.id, "data-channel-side": "outer" }, objectLayer);
+        add("path", { d: arcPath(num(item.innerStart, item.start), num(item.innerEnd, item.end), innerRadius - brushHalfWidth, innerRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.46, stroke: "none", "data-cold-glue-brush-channel": item.id, "data-channel-side": "inner" }, objectLayer);
         const labelAngle = (Math.min(num(item.outerStart, item.start), num(item.innerStart, item.start)) + Math.max(num(item.outerEnd, item.end), num(item.innerEnd, item.end))) / 2;
         drawMapObjectLabel(add, objectLayer, item, labelAngle, (outerRadius + innerRadius) / 2, brushHalfWidth + 13);
         return;
@@ -550,7 +549,7 @@ function drawConfiguredAssemblies(add, layer) {
       // thickness. Scale and cap the drawing so inside/outside brush channels
       // remain separate and bottles stay visible between them.
       const brushHalfWidth = Math.max(4, Math.min(7, num(item.extension, 20) / 4));
-      add("path", { d: arcPath(num(item.start), num(item.end), brushCenterRadius - brushHalfWidth, brushCenterRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.58, stroke: brushStroke, "stroke-width": 2, "stroke-dasharray": "3 2", "data-cold-glue-brush": item.id }, objectLayer);
+      add("path", { d: arcPath(num(item.start), num(item.end), brushCenterRadius - brushHalfWidth, brushCenterRadius + brushHalfWidth), fill: brushFill, "fill-opacity": 0.46, stroke: "none", "data-cold-glue-brush": item.id }, objectLayer);
       drawMapObjectLabel(add, objectLayer, item, (num(item.start) + num(item.end)) / 2, brushCenterRadius, brushHalfWidth + 13);
     });
     return;
@@ -565,7 +564,7 @@ function drawConfiguredAssemblies(add, layer) {
       const placement = num(item.angle, item.start);
       add("path", {
         d: arcPath(placement - 1.5, placement + 1.5, centerRadius - 8, centerRadius + 8),
-        fill: labelSensorMapColor(item), "fill-opacity": 0.9, stroke: "#8a7b08", "stroke-width": 2,
+        fill: labelSensorMapColor(item), "fill-opacity": 0.62, stroke: "none",
         "data-label-sensor": item.id, "data-sensor-station": item.station
       }, objectLayer);
       drawMapObjectLabel(add, objectLayer, item, placement, centerRadius, 20);
@@ -573,7 +572,7 @@ function drawConfiguredAssemblies(add, layer) {
     }
     if (item.kind === "coding") {
       const centerRadius = state.radius + state.depths.opRoller;
-      add("path", { d: arcPath(num(item.start), num(item.end), centerRadius - 7, centerRadius + 7), fill: "#d7a72c", "fill-opacity": 0.82, stroke: "#8a6410", "stroke-width": 2, "data-coding-object": item.id }, objectLayer);
+      add("path", { d: arcPath(num(item.start), num(item.end), centerRadius - 7, centerRadius + 7), fill: "#8f7a48", "fill-opacity": 0.62, stroke: "none", "data-coding-object": item.id }, objectLayer);
       drawMapObjectLabel(add, objectLayer, item, (num(item.start) + num(item.end)) / 2, centerRadius, 18);
       return;
     }
@@ -581,7 +580,7 @@ function drawConfiguredAssemblies(add, layer) {
       const depth = isInner ? state.depths.nonOpRoller : state.depths.opRoller;
       const xy = angleToXY(item.start, state.radius + depth);
       add("circle", {
-        cx: xy.x, cy: xy.y, r: 12, fill: "#0d9b57", stroke: "#066b3b", "stroke-width": 2,
+        cx: xy.x, cy: xy.y, r: 10, fill: "#477664", "fill-opacity": 0.78, stroke: "none",
         "data-apl-roller": item.id, "data-wipe-span": item.wipeSpanDeg
       }, objectLayer);
       drawMapObjectLabel(add, objectLayer, item, item.start, state.radius + depth, 19);
@@ -589,7 +588,7 @@ function drawConfiguredAssemblies(add, layer) {
     }
     const centerRadius = state.radius + (isInner ? state.depths.wipeInner : state.depths.wipeOuter);
     const halfExtension = Math.max(5, num(item.extension, 20) / 2);
-    add("path", { d: arcPath(item.start, item.end, centerRadius - halfExtension, centerRadius + halfExtension), fill: "#2a91aa", "fill-opacity": 0.74, stroke: "#0f6074", "stroke-width": 2 }, objectLayer);
+    add("path", { d: arcPath(item.start, item.end, centerRadius - halfExtension, centerRadius + halfExtension), fill: "#557d86", "fill-opacity": 0.58, stroke: "none" }, objectLayer);
     drawMapObjectLabel(add, objectLayer, item, (item.start + item.end) / 2, centerRadius, halfExtension + 13);
   });
 }

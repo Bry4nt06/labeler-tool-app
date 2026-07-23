@@ -714,8 +714,18 @@ function wipeDownTelemetry(program = currentProgram(), tableAngle = state.previe
   const active = activeSegmentForProgram(program, tableAngle);
   const activePhysical = wipeStationContextAtAngle(tableAngle);
   const activeExplicitSection = /wipe|brush/i.test(String(active?.action || "")) ? wipeSectionFromRow(active) : null;
+  const activeWipeContext = Number(active?.cmd) === 7 ? wipeContextForSegment(active) : null;
+  // Keep the completed wipe visible through its following hold. Once the head
+  // starts a new correction that does not belong to a wipe station, the prior
+  // bottle has left that station and its wipe telemetry must start over.
+  const resetForNextCorrection = Number(active?.cmd) === 7
+    && !activePhysical
+    && !activeExplicitSection
+    && !activeWipeContext?.section;
   const wipeRows = segments.map((row) => ({ row, context: wipeContextForSegment(row) })).filter(({ row, context }) => Number(row.cmd) === 7 && context?.section);
-  let context = activePhysical || (activeExplicitSection ? { section: activeExplicitSection, station: Number(active?.station) || null } : null);
+  let context = activePhysical
+    || activeWipeContext
+    || (activeExplicitSection ? { section: activeExplicitSection, station: Number(active?.station) || null } : null);
   if (!context?.section) {
     const nearby = [...wipeRows].reverse().find(({ row }) => Number(row.tableAngle) <= tableAngle) || wipeRows.find(({ row }) => Number(row.tableAngle) > tableAngle);
     context = nearby?.context || null;
@@ -724,7 +734,10 @@ function wipeDownTelemetry(program = currentProgram(), tableAngle = state.previe
   const station = Number.isFinite(Number(context?.station)) ? Number(context.station) : null;
   const labelLengthMm = wipeLabelLengthMm(section);
   const visual = wipeVisualApplication(section, labelLengthMm);
-  const coverage = section ? contactedLabelCoverage(program, section, station, tableAngle, visual) : { percentage: 0, leftPercent: 0, rightPercent: 0 };
+  const emptyCoverage = { percentage: 0, leftPercent: 0, rightPercent: 0, backspinFillPercent: 0, mainWipePercent: 0 };
+  const coverage = section && !resetForNextCorrection
+    ? contactedLabelCoverage(program, section, station, tableAngle, visual)
+    : emptyCoverage;
   const sectionLabel = section ? `${section[0].toUpperCase()}${section.slice(1)} label${station ? ` • Station ${station}` : ""}` : "Waiting for label";
   return {
     section,
