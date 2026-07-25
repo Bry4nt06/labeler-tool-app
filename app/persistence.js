@@ -27,7 +27,7 @@ function loadSavedSettings() {
   if (!raw) return;
   try {
     const saved = JSON.parse(raw);
-    ["headCount", "radius", "zeroAngle", "direction", "previewAngle", "previewBottleAngle", "animationSpeed", "maxMoveRatio", "tablePitchRadiusMm", "referencePitchRadiusMm", "autoScaleTableMap", "encoderCountsPerRev", "servoGearRatio", "padClearanceMm", "showMoveDistanceOverlay", "showAllProgramMovesOverlay", "showQuadrantReferences", "showAggregateSpacingOverlay", "workspaceView", "wipeBuilderOpen", "activeMapId", "mapZoom", "mapPanX", "mapPanY", "mapLocked", "selectedBrand", "selectedBottle", "themePreset"].forEach((key) => {
+    ["headCount", "radius", "zeroAngle", "direction", "previewAngle", "previewBottleAngle", "animationSpeed", "maxMoveRatio", "tablePitchRadiusMm", "referencePitchRadiusMm", "autoScaleTableMap", "encoderCountsPerRev", "servoGearRatio", "padClearanceMm", "showMoveDistanceOverlay", "showAllProgramMovesOverlay", "showQuadrantReferences", "showAggregateSpacingOverlay", "workspaceView", "wipeBuilderOpen", "activeMapId", "mapZoom", "mapPanX", "mapPanY", "mapLocked", "selectedBrand", "selectedBottle", "selectedZone", "selectedSite", "mapLibraryZone", "mapLibrarySite", "themePreset"].forEach((key) => {
       if (saved[key] !== undefined) state[key] = saved[key];
     });
     // Older builds stored degrees per 0.1-second tick. Preserve the perceived
@@ -37,6 +37,8 @@ function loadSavedSettings() {
       : Math.min(50, Math.max(1, num(state.animationSpeed, 1) * 10));
     state.animationSpeedUnit = "deg-per-second";
     if (saved.depths) state.depths = { ...state.depths, ...saved.depths };
+    if (saved.zoneSiteConfiguration) state.zoneSiteConfiguration = normalizeZoneSiteConfiguration(saved.zoneSiteConfiguration);
+    ensureSelectedZoneAndSite();
     if (saved.buildInputs) state.buildInputs = { ...state.buildInputs, ...saved.buildInputs };
     const legacyBuildInputs = saved.buildInputs || {};
     if (Array.isArray(saved.bottleSpecs)) state.bottleSpecs = saved.bottleSpecs;
@@ -157,6 +159,11 @@ function settingsSnapshot() {
     depths: state.depths,
     selectedBrand: state.selectedBrand,
     selectedBottle: state.selectedBottle,
+    selectedZone: state.selectedZone,
+    selectedSite: state.selectedSite,
+    mapLibraryZone: state.mapLibraryZone,
+    mapLibrarySite: state.mapLibrarySite,
+    zoneSiteConfiguration: state.zoneSiteConfiguration,
     buildInputs: state.buildInputs,
     bottleSpecs: state.bottleSpecs,
     labelSpecs: state.labelSpecs,

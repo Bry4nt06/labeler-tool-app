@@ -73,6 +73,7 @@ function bindGlobalActions() {
     download("labeler-tool-settings.json", "application/json", JSON.stringify(portable, null, 2));
   });
   els.importSettings?.addEventListener("change", () => importPortableSettingsFile(els.importSettings.files?.[0]));
+  bindZoneSiteDeveloperMenu();
 
   document.querySelector("#exportCsv").addEventListener("click", () => {
     const autocol = activeMachineUsesAutocolCommands();

@@ -885,12 +885,18 @@ function generatedAplMapDrivenProfile(machineMap) {
       }
       if (outside) moves.push(applyTurn(outside.start, outside.end, longNeckPlan?.outsideRotation ?? required, `Wipe Turn 1 ${sectionLabel(section)} - Agg ${station}`, { station, section, stage: "outer" }));
       if (inside) {
-        // Finish the neck reversal while the bottle is physically touching the
-        // inside roller. The following station iteration creates a separate
-        // orientation move for the next label; merging that target here would
-        // spread part of the neck wipe into the open gap after this roller.
-        const secondRotation = -(longNeckPlan?.insideRotation ?? required);
-        moves.push(applyTurn(inside.start, inside.end, secondRotation, `Wipe Turn 2 ${sectionLabel(section)} - Agg ${station}`, { station, section, stage: "inner" }));
+        // At the neck-to-body boundary, finish the neck wipe at the body's
+        // required bottle angle. The terminal CMD 3 is a Rest, so the next
+        // body wipe starts directly from that orientation without a setup row.
+        const neckToBody = section === "neck" && sectionBoundary?.section === "body";
+        const nextWipeStart = neckToBody
+          ? Math.min(...(nextEntry?.[1] || []).filter((item) => item.kind === "roller" || item.kind === "pad").map((item) => num(item.start, Infinity)))
+          : NaN;
+        const transitionEnd = Number.isFinite(nextWipeStart) ? nextWipeStart - 1.5 : inside.end;
+        const secondRotation = neckToBody ? sectionBoundary.plateAngle - plate : -(longNeckPlan?.insideRotation ?? required);
+        moves.push(applyTurn(inside.start, transitionEnd, secondRotation, `Wipe Turn 2 ${sectionLabel(section)} - Agg ${station}`, {
+          station, section, stage: "inner", endAction: neckToBody ? "Rest" : undefined, phaseTransition: neckToBody ? "neck-to-body" : undefined
+        }));
       }
     } else {
       const outsidePad = contactRange(preferredObjects.filter((item) => item.side !== "inner"));

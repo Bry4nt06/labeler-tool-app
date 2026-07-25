@@ -153,22 +153,47 @@ function renderLabelSpecs() {
 }
 
 function renderBuildInputs() {
+  ensureSelectedZoneAndSite();
   const availableLabels = labelSpecsForApplication();
   const brandOptions = availableLabels.map((spec) => spec.brand).filter(Boolean);
   const bottleOptions = state.bottleSpecs.map((spec) => spec.bottleType).filter(Boolean);
   const summary = buildProgramSummary();
-  els.buildInputs.innerHTML = `
-    <div class="build-grid">
-      <div class="build-card">
-        <h2>Build Program Inputs</h2>
-        <div class="application-filter-note">Showing ${state.applicationMode === "cold-glue" ? "Cold Glue" : "APL"} brand profiles only.</div>
-        <label>Brand <select id="brandSelect"${brandOptions.length ? "" : " disabled"}>${brandOptions.length ? optionList(brandOptions, state.selectedBrand) : `<option value="">No ${state.applicationMode === "cold-glue" ? "Cold Glue" : "APL"} brands assigned</option>`}</select></label>
-        <label>Bottle Type <select id="bottleSelect">${optionList(bottleOptions, state.selectedBottle)}</select></label>
+  const label = summary.label;
+  const bottle = summary.bottle;
+  const isColdGlue = state.applicationMode === "cold-glue";
+  const bodyCirc = bodyCircumference(bottle);
+  const neckCirc = num(label?.neckBottomCircumferenceMm, NaN);
+  const neckLabelDeg = degFromMm(label?.neckBottomCurveMm, neckCirc);
+  const bodyLabelDeg = degFromMm(label?.bodyLengthMm, bodyCirc);
+  const backLabelDeg = degFromMm(label?.backLengthMm, bodyCirc);
+  const neckContactDeg = degFromMm(state.buildInputs.neckContactMm, neckCirc);
+  const bodyContactDeg = degFromMm(state.buildInputs.bodyContactMm, bodyCirc);
+  const backContactDeg = degFromMm(state.buildInputs.backContactMm, bodyCirc);
+  const centerLineFront = state.buildInputs.neckApplication === "Leading Edge"
+    ? Number.isFinite(neckLabelDeg) ? state.buildInputs.plateStartPositionDeg + neckLabelDeg / 2 : 0
+    : -(90 - state.buildInputs.neckSpenderPlateDeg) + state.buildInputs.plateStartPositionDeg;
+  const centerLineBack = centerLineFront + 180;
+  const modeSpecificInputs = isColdGlue
+    ? `
+        <h3>Cold Glue Program Parameters</h3>
+        <p class="application-filter-note">Cold Glue uses center-tack application and map-defined brush channels.</p>
+        <label>Starting Servo Position (deg) <input id="plateStartPositionDeg" type="number" step="0.1" value="${state.buildInputs.plateStartPositionDeg}"></label>
+        <label>Neck Contact Parameter (deg) <input id="programNeckContactDeg" type="number" min="0" step="0.001" value="${fmt(neckContactDeg, 3)}"></label>
+        <label>Body Contact Parameter (deg) <input id="programBodyContactDeg" type="number" min="0" step="0.001" value="${fmt(bodyContactDeg, 3)}"></label>
+        <label>Back Contact Parameter (deg) <input id="programBackContactDeg" type="number" min="0" step="0.001" value="${fmt(backContactDeg, 3)}"></label>
+        <label>Neck Over-Wipe (deg) <input id="neckOverWipeDeg" type="number" min="0" step="0.1" value="${state.buildInputs.neckOverWipeDeg}"></label>
+        <label>Body Over-Wipe (deg) <input id="bodyOverWipeDeg" type="number" min="0" step="0.1" value="${state.buildInputs.bodyOverWipeDeg}"></label>
+        <label>Back Over-Wipe (deg) <input id="backOverWipeDeg" type="number" min="0" step="0.1" value="${state.buildInputs.backOverWipeDeg}"></label>
+        <label>Maximum Turn Speed Threshold <input id="programMaxMoveRatio" type="number" min="0.1" step="0.1" value="${state.maxMoveRatio}"></label>`
+    : `
+        <h3>APL Program Parameters</h3>
         <label>Neck Spender Plate Angle <input id="neckSpenderPlateDeg" type="number" step="0.1" value="${state.buildInputs.neckSpenderPlateDeg}"></label>
         <label>Neck Application <select id="neckApplication"><option${state.buildInputs.neckApplication === "Center" ? " selected" : ""}>Center</option><option${state.buildInputs.neckApplication === "Leading Edge" ? " selected" : ""}>Leading Edge</option></select></label>
-        <label>Neck Contact Parameter (mm) <input id="neckContactMm" type="number" step="0.1" value="${state.buildInputs.neckContactMm}"></label>
-        <label>Body Contact Parameter (mm) <input id="bodyContactMm" type="number" step="0.1" value="${state.buildInputs.bodyContactMm}"></label>
-        <label>Back Contact Parameter (mm) <input id="backContactMm" type="number" step="0.1" value="${state.buildInputs.backContactMm}"></label>
+        <label>Center Line Front (deg) <input id="programCenterLineFrontDeg" type="number" step="0.1" value="${fmt(centerLineFront, 3)}"></label>
+        <label>Center Line Back (deg) <input id="programCenterLineBackDeg" type="number" step="0.1" value="${fmt(centerLineBack, 3)}"></label>
+        <label>Neck Contact Parameter (deg) <input id="programNeckContactDeg" type="number" min="0" step="0.001" value="${fmt(neckContactDeg, 3)}"></label>
+        <label>Body Contact Parameter (deg) <input id="programBodyContactDeg" type="number" min="0" step="0.001" value="${fmt(bodyContactDeg, 3)}"></label>
+        <label>Back Contact Parameter (deg) <input id="programBackContactDeg" type="number" min="0" step="0.001" value="${fmt(backContactDeg, 3)}"></label>
         <label>Neck Over-Wipe (deg) <input id="neckOverWipeDeg" type="number" min="0" step="0.1" value="${state.buildInputs.neckOverWipeDeg}"></label>
         <label>Body Over-Wipe (deg) <input id="bodyOverWipeDeg" type="number" min="0" step="0.1" value="${state.buildInputs.bodyOverWipeDeg}"></label>
         <label>Back Over-Wipe (deg) <input id="backOverWipeDeg" type="number" min="0" step="0.1" value="${state.buildInputs.backOverWipeDeg}"></label>
@@ -177,6 +202,32 @@ function renderBuildInputs() {
         <label>Body Label Offset (mm) <input id="bodyOffsetMm" type="number" step="0.1" value="${state.buildInputs.bodyOffsetMm}"></label>
         <label>Back Label Offset (mm) <input id="backOffsetMm" type="number" step="0.1" value="${state.buildInputs.backOffsetMm}"></label>
         <label>Back Inspection Offset (mm) <input id="backInspectionOffsetMm" type="number" step="0.1" value="${state.buildInputs.backInspectionOffsetMm}"></label>
+        <label>Code Box Center From Left Label Edge (deg) <input id="programCodeBoxCenterDeg" type="number" min="0" step="0.001" value="${fmt(degFromMm(label?.codeBoxCenterMm, bodyCirc), 3)}"></label>`;
+  els.buildInputs.innerHTML = `
+    <div class="build-grid">
+      <div class="build-card">
+        <h2>Build Program Inputs</h2>
+        <div class="application-filter-note">Showing ${state.applicationMode === "cold-glue" ? "Cold Glue" : "APL"} brand profiles only.</div>
+        <div class="zone-site-selection">
+          <label>Zone <select id="zoneSelect">${optionList(zoneNames(), state.selectedZone)}</select></label>
+          <label>Site <select id="siteSelect"${sitesForZone(state.selectedZone).length ? "" : " disabled"}>${sitesForZone(state.selectedZone).length ? optionList(sitesForZone(state.selectedZone), state.selectedSite) : '<option value="">No sites configured</option>'}</select></label>
+        </div>
+        <label>Brand <select id="brandSelect"${brandOptions.length ? "" : " disabled"}>${brandOptions.length ? optionList(brandOptions, state.selectedBrand) : `<option value="">No ${state.applicationMode === "cold-glue" ? "Cold Glue" : "APL"} brands assigned</option>`}</select></label>
+        <label>Bottle Type <select id="bottleSelect">${optionList(bottleOptions, state.selectedBottle)}</select></label>
+        <h3>Label &amp; Bottle Geometry</h3>
+        <label>Neck Label Bottom Curvature (mm) <input id="programNeckCurveMm" type="number" min="0" step="0.001" value="${label?.neckBottomCurveMm ?? 0}"></label>
+        <label>Body Label Length (mm) <input id="programBodyLengthMm" type="number" min="0" step="0.001" value="${label?.bodyLengthMm ?? 0}"></label>
+        <label>Back Label Length (mm) <input id="programBackLengthMm" type="number" min="0" step="0.001" value="${label?.backLengthMm ?? 0}"></label>
+        <label>Bottle Circ @ Neck Label Bottom (mm) <input id="programNeckCircMm" type="number" min="0.001" step="0.001" value="${label?.neckBottomCircumferenceMm ?? 0}"></label>
+        <label>Bottle Body/Back Circumference (mm) <input id="programBodyCircMm" type="number" min="0.001" step="0.001" value="${fmt(bodyCirc, 3)}"></label>
+        <label>Neck Label Length (deg) <input id="programNeckLabelDeg" type="number" min="0" step="0.001" value="${fmt(neckLabelDeg, 3)}"></label>
+        <label>Body Label Length (deg) <input id="programBodyLabelDeg" type="number" min="0" step="0.001" value="${fmt(bodyLabelDeg, 3)}"></label>
+        <label>Back Label Length (deg) <input id="programBackLabelDeg" type="number" min="0" step="0.001" value="${fmt(backLabelDeg, 3)}"></label>
+        ${modeSpecificInputs}
+        <h3>Machine Feed Parameters</h3>
+        <label>Current Head Pitch (deg) <input id="programHeadPitchDeg" type="number" min="0.1" step="0.001" value="${fmt(360 / state.headCount, 3)}"></label>
+        <label>Table Map Scale <input id="programTableMapScale" type="number" min="0.001" step="0.001" value="${fmt(state.autoScaleTableMap ? state.referencePitchRadiusMm / state.tablePitchRadiusMm : 1, 3)}"></label>
+        <label>Encoder Counts / Plate Rev <input id="programEncoderCountsPlateRev" type="number" min="1" step="1" value="${fmt(state.encoderCountsPerRev * state.servoGearRatio, 3)}"></label>
       </div>
       <div class="build-card">
         <h2>Workbook Feed Check</h2>
@@ -186,6 +237,18 @@ function renderBuildInputs() {
 
   const brandSelect = els.buildInputs.querySelector("#brandSelect");
   const bottleSelect = els.buildInputs.querySelector("#bottleSelect");
+  const zoneSelect = els.buildInputs.querySelector("#zoneSelect");
+  const siteSelect = els.buildInputs.querySelector("#siteSelect");
+  zoneSelect?.addEventListener("change", () => {
+    state.selectedZone = zoneSelect.value;
+    ensureSelectedZoneAndSite();
+    saveCurrentSettings();
+    render();
+  });
+  siteSelect?.addEventListener("change", () => {
+    state.selectedSite = siteSelect.value;
+    saveCurrentSettings();
+  });
   brandSelect.addEventListener("change", () => {
     state.selectedBrand = brandSelect.value;
     const label = selectedLabelSpec();
@@ -193,12 +256,50 @@ function renderBuildInputs() {
     render();
   });
   bottleSelect.addEventListener("change", () => { state.selectedBottle = bottleSelect.value; render(); });
-  ["neckSpenderPlateDeg", "neckContactMm", "bodyContactMm", "backContactMm", "neckOverWipeDeg", "bodyOverWipeDeg", "backOverWipeDeg", "plateStartPositionDeg", "neckOffsetMm", "bodyOffsetMm", "backOffsetMm", "backInspectionOffsetMm"].forEach((key) => {
+  ["neckSpenderPlateDeg", "neckOverWipeDeg", "bodyOverWipeDeg", "backOverWipeDeg", "plateStartPositionDeg", "neckOffsetMm", "bodyOffsetMm", "backOffsetMm", "backInspectionOffsetMm"].forEach((key) => {
     const input = els.buildInputs.querySelector(`#${key}`);
-    input.addEventListener("change", () => { state.buildInputs[key] = num(input.value, state.buildInputs[key]); render(); });
+    input?.addEventListener("change", () => { state.buildInputs[key] = num(input.value, state.buildInputs[key]); saveCurrentSettings(); render(); });
   });
   const neckApplication = els.buildInputs.querySelector("#neckApplication");
-  neckApplication.addEventListener("change", () => { state.buildInputs.neckApplication = neckApplication.value; render(); });
+  neckApplication?.addEventListener("change", () => { state.buildInputs.neckApplication = neckApplication.value; saveCurrentSettings(); render(); });
+
+  const commitBuildChange = (id, update) => {
+    els.buildInputs.querySelector(`#${id}`)?.addEventListener("change", (event) => {
+      update(num(event.currentTarget.value, 0));
+      syncApplicationMapToLegacyState();
+      saveCurrentSettings();
+      render();
+    });
+  };
+  commitBuildChange("programNeckCurveMm", (value) => { if (label) label.neckBottomCurveMm = Math.max(0, value); });
+  commitBuildChange("programBodyLengthMm", (value) => { if (label) label.bodyLengthMm = Math.max(0, value); });
+  commitBuildChange("programBackLengthMm", (value) => { if (label) label.backLengthMm = Math.max(0, value); });
+  commitBuildChange("programNeckCircMm", (value) => { if (label) label.neckBottomCircumferenceMm = Math.max(0.001, value); });
+  commitBuildChange("programBodyCircMm", (value) => {
+    if (bottle) bottle.diameterTargetMm = Math.max(0.001, value) / Math.PI + 2 * num(bottle.radiusReductionMm, 0);
+  });
+  commitBuildChange("programNeckLabelDeg", (value) => { if (label) label.neckBottomCurveMm = Math.max(0, value) / 360 * Math.max(0.001, neckCirc); });
+  commitBuildChange("programBodyLabelDeg", (value) => { if (label) label.bodyLengthMm = Math.max(0, value) / 360 * Math.max(0.001, bodyCirc); });
+  commitBuildChange("programBackLabelDeg", (value) => { if (label) label.backLengthMm = Math.max(0, value) / 360 * Math.max(0.001, bodyCirc); });
+  commitBuildChange("programNeckContactDeg", (value) => { state.buildInputs.neckContactMm = Math.max(0, value) / 360 * Math.max(0.001, neckCirc); });
+  commitBuildChange("programBodyContactDeg", (value) => { state.buildInputs.bodyContactMm = Math.max(0, value) / 360 * Math.max(0.001, bodyCirc); });
+  commitBuildChange("programBackContactDeg", (value) => { state.buildInputs.backContactMm = Math.max(0, value) / 360 * Math.max(0.001, bodyCirc); });
+  const setCenterLineFront = (value) => {
+    if (state.buildInputs.neckApplication === "Leading Edge") state.buildInputs.plateStartPositionDeg = value - num(neckLabelDeg, 0) / 2;
+    else state.buildInputs.neckSpenderPlateDeg = value - state.buildInputs.plateStartPositionDeg + 90;
+  };
+  commitBuildChange("programCenterLineFrontDeg", setCenterLineFront);
+  commitBuildChange("programCenterLineBackDeg", (value) => setCenterLineFront(value - 180));
+  commitBuildChange("programCodeBoxCenterDeg", (value) => { if (label) label.codeBoxCenterMm = Math.max(0, value) / 360 * Math.max(0.001, bodyCirc); });
+  commitBuildChange("programHeadPitchDeg", (value) => { state.headCount = Math.max(1, Math.min(120, Math.round(360 / Math.max(0.1, value)))); });
+  commitBuildChange("programTableMapScale", (value) => {
+    state.autoScaleTableMap = true;
+    state.referencePitchRadiusMm = Math.max(0.001, value) * state.tablePitchRadiusMm;
+  });
+  commitBuildChange("programEncoderCountsPlateRev", (value) => {
+    state.encoderCountsPerRev = Math.max(1, value) / Math.max(0.001, state.servoGearRatio);
+  });
+  commitBuildChange("programMaxMoveRatio", (value) => { state.maxMoveRatio = Math.max(0.1, value); });
 }
 
 function activeMachineUsesAutocolCommands() {
@@ -362,7 +463,7 @@ function renderProgram() {
     if (row.moveFault) tr.classList.add("move-fault-row");
     const tableOverride = Number.isFinite(row.tableAngleOverride) ? fmt(row.tableAngleOverride, 1) : "";
     const plateOverride = Number.isFinite(row.plateAngleOverride) ? fmt(row.plateAngleOverride, 1) : "";
-    tr.innerHTML = `<td>${row.hmi}</td><td>${row.plc}</td><td>${servoCommandControl(row)}</td><td><input class="num compact-input generated-angle" type="number" value="${fmt(row.generatedTableAngle, 1)}" readonly title="Generated table angle"></td><td><input class="num compact-input angle-override${tableOverride !== "" ? " active-override" : ""}" type="number" step="0.1" placeholder="Override" value="${tableOverride}" aria-label="Override table angle for HMI ${row.hmi}"></td><td><input class="num compact-input generated-angle" type="number" value="${Number.isFinite(row.generatedPlateAngle) ? fmt(row.generatedPlateAngle, 1) : ""}" readonly title="Generated bottle angle"></td><td><input class="num compact-input angle-override${plateOverride !== "" ? " active-override" : ""}" type="number" step="0.1" placeholder="Override" value="${plateOverride}" aria-label="Override bottle angle for HMI ${row.hmi}"></td><td class="num">${fmt(row.tableTravel, 1)}</td><td class="num">${fmt(row.plateTravel, 1)}</td><td class="num">${Number.isFinite(row.plateTravel) ? fmt(finishAngle(window.LabelerGeometryDriver?.encoderCountsFromPlateDegrees(row.plateTravel, state.encoderCountsPerRev, state.servoGearRatio)), 1) : ""}</td><td class="${status[0]}">${status[1]}</td><td class="num ${speedClass}">${Number.isFinite(row.absSpeed) ? fmt(finishAngle(row.absSpeed), 1) : ""}</td><td><input value="${row.action}"></td>`;
+    tr.innerHTML = `<td>${row.hmi}</td><td>${row.plc}</td><td>${servoCommandControl(row)}</td><td><input class="num compact-input generated-angle" type="number" value="${fmt(row.generatedTableAngle, 1)}" readonly title="Generated table angle"></td><td><input class="num compact-input angle-override${tableOverride !== "" ? " active-override" : ""}" type="number" step="0.5" placeholder="Override" value="${tableOverride}" aria-label="Override table angle for HMI ${row.hmi}"></td><td><input class="num compact-input generated-angle" type="number" value="${Number.isFinite(row.generatedPlateAngle) ? fmt(row.generatedPlateAngle, 1) : ""}" readonly title="Generated bottle angle"></td><td><input class="num compact-input angle-override${plateOverride !== "" ? " active-override" : ""}" type="number" step="0.1" placeholder="Override" value="${plateOverride}" aria-label="Override bottle angle for HMI ${row.hmi}"></td><td class="num">${fmt(row.tableTravel, 1)}</td><td class="num">${fmt(row.plateTravel, 1)}</td><td class="num">${Number.isFinite(row.plateTravel) ? fmt(finishAngle(window.LabelerGeometryDriver?.encoderCountsFromPlateDegrees(row.plateTravel, state.encoderCountsPerRev, state.servoGearRatio)), 1) : ""}</td><td class="${status[0]}">${status[1]}</td><td class="num ${speedClass}">${Number.isFinite(row.absSpeed) ? fmt(finishAngle(row.absSpeed), 1) : ""}</td><td><input value="${row.action}"></td>`;
     const inputs = tr.querySelectorAll("input, select");
     inputs[0].addEventListener("change", () => { state.program[row.hmi - 1].cmd = num(inputs[0].value, row.cmd); render(); });
     inputs[2].addEventListener("change", () => { setServoAngleOverride(row, "tableAngle", inputs[2].value); render(); });

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.74",
+  "version": "0.7.92",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Resets completed wipe-down telemetry when the station advances to its next correction."
+  "notes": "Promotes the tested Zone/Site map workflow, MultiModul application selection, and neck-to-body servo transition improvements."
 }
