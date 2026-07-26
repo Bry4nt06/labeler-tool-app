@@ -68,10 +68,6 @@
       { pair: "back", label: "Back", station: 6 }
     ];
 
-    // The 20-row two-label workbook reference deliberately folds the neck-to-
-    // body transfer into its established command layout. The generic 32-row
-    // mechanical profile has a separate pair-exit transition and remains
-    // subject to this structural rule.
     const usesNonGenericProfile = options.plan?.profileKind === "apl-compact-two-label"
       || options.plan?.profileKind === "apl-map-driven";
     if (!usesNonGenericProfile) pairExitRules.forEach((rule) => {
@@ -136,4 +132,18 @@
   }
 
   global.LabelerMotionValidationDriver = { analyze };
+
+  function loadServoPipelineValidator() {
+    if (global.LabelerServoPipelineValidator) return;
+    const validatorScript = document.createElement("script");
+    validatorScript.src = "drivers/validation/servo-pipeline-validator-driver.js?v=0.7.98";
+    validatorScript.addEventListener("load", () => {
+      const integrationScript = document.createElement("script");
+      integrationScript.src = "app/servo-pipeline-validator-integration.js?v=0.7.98";
+      document.head.appendChild(integrationScript);
+    });
+    document.head.appendChild(validatorScript);
+  }
+
+  loadServoPipelineValidator();
 })(window);

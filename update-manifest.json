@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.7.92",
+  "version": "0.9.1",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Promotes the tested Zone/Site map workflow, MultiModul application selection, and neck-to-body servo transition improvements."
+  "notes": "ServoForge 0.9.1 promotes the complete verified testing platform to production."
 }
