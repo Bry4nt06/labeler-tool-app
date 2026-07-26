@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "environment": "production",
+  "currentVersion": "0.9.1",
+  "generatedAt": "2026-07-26T00:00:00Z",
+  "releases": [
+    {
+      "version": "0.9.1",
+      "milestone": 11,
+      "title": "Production Hardening, Release Readiness, and Incremental Profile Generation",
+      "summary": "Adds operator-run release checks and a constrained Incremental Rotations profile generator that can distribute equivalent bottle orientation across multiple safe TopModul CMD 7 stages.",
+      "changes": [
+        "Run Release Check from Settings and export the complete JSON report.",
+        "Validate application version metadata, loaded asset versions, update manifest destination, and critical published assets.",
+        "Validate saved maps, blank templates, bottle specs, label specs, settings JSON round-trip, browser storage, and CSV export shape.",
+        "Run built-in TopModul, Autocol, replay determinism, and non-destructive optimizer regressions.",
+        "Prepare and verify a complete offline application cache without changing operator data.",
+        "Keep current-setup servo faults visible as configuration review items rather than hiding them from release checks.",
+        "Generate Incremental Rotations across multiple CMD 7 stages instead of forcing an equivalent orientation into one short table window.",
+        "Require inside wipe-down support on both enabled members of an aggregate pair before continuing rotation out of the wipe-down.",
+        "Convert only eligible wipe-complete CMD 3 references into continued correction stages; application, sensor, coding, terminal, Autocol, and manually overridden references remain protected.",
+        "Borrow only verified downstream table travel before the next protected mechanical boundary and insert additional setpoints when a single correction stage would be too large.",
+        "Reject the complete candidate unless table angles remain increasing, every CMD 7 moves the bottle below the configured speed limit, the final orientation remains physically equivalent, TopModul grammar passes, and the program still closes at CMD 3 Rest."
+      ]
+    },
+    {
+      "version": "0.9.0",
+      "milestone": 10,
+      "title": "Program Diagnostics and Optimization",
+      "summary": "Adds diagnostics for correction speed, short motion windows, duplicate actions, redundant references, wipe contact, and uneven correction-chain timing.",
+      "changes": [
+        "Show current program metrics and recommendations in Servo Program.",
+        "Generate only validated timing candidates that stay inside mechanical contact windows.",
+        "Load optimization candidates into custom Servo Simulation without modifying generated production rows.",
+        "Restore the previous custom simulation after comparison."
+      ]
+    },
+    {
+      "version": "0.8.9",
+      "milestone": 8,
+      "title": "Authoritative TopModul Chain Validation",
+      "summary": "Makes the selected machine type authoritative at the final validation boundary.",
+      "changes": [
+        "Accept TopModul CMD 3 to one-or-more CMD 7 to CMD 3 correction chains.",
+        "Remove obsolete immediate 3-7-3 errors from the final Validation panel.",
+        "Preserve speed, motion, planner, translation, table-order, and terminal safety checks."
+      ]
+    },
+    {
+      "version": "0.8.8",
+      "milestone": 8,
+      "title": "TopModul Double Corrections",
+      "summary": "Allows safe consecutive TopModul correction moves for label backspin and reverse-wipe stages.",
+      "changes": [
+        "Keep Autocol referenced-pair rules separate.",
+        "Require every TopModul correction to produce bottle movement and eventually close at CMD 3."
+      ]
+    },
+    {
+      "version": "0.8.7",
+      "milestone": 9,
+      "title": "Machine-Specific Terminal Policy",
+      "summary": "Separates TopModul final Rest behavior from the Autocol End of curve boundary.",
+      "changes": [
+        "Finish TopModul at the final CMD 3 Rest reference, including Hold for Coding.",
+        "Keep Autocol End of curve at 359 degrees."
+      ]
+    },
+    {
+      "version": "0.8.6",
+      "milestone": 9,
+      "title": "Servo Replay and Diagnostics",
+      "summary": "Adds deterministic HMI/event replay, correction-chain highlighting, cumulative bottle rotation, and generated-versus-custom comparison.",
+      "changes": [
+        "Step by HMI or mechanical event.",
+        "Pause at reference rows.",
+        "Explain why each command was generated.",
+        "Detect program/map mismatches during replay."
+      ]
+    },
+    {
+      "version": "0.8.5",
+      "milestone": 8,
+      "title": "Machine-Family Grammar Profiles",
+      "summary": "Introduces independent grammar profiles for TopModul, Autocol, MultiModul, TopMatic, APL, and Cold Glue.",
+      "changes": [
+        "Annotate rows and mechanical events with correction-chain IDs.",
+        "Display active machine grammar in Validation and Mechanical Timeline."
+      ]
+    },
+    {
+      "version": "0.8.4",
+      "milestone": 5,
+      "title": "Unified Staging Application Shell",
+      "summary": "Establishes the recovered staging shell, same-window updater, aligned cache identifiers, and stable application loading.",
+      "changes": [
+        "Remove recursive version observer behavior.",
+        "Load published staging assets through one authoritative shell.",
+        "Preserve browser maps and specification libraries during recovery."
+      ]
+    }
+  ]
+}

@@ -2750,3 +2750,18 @@ body.builder-pane-open {
   min-width: 64px;
   padding: 6px;
 }
+
+
+.staging-environment-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10000;
+  padding: 7px 12px;
+  color: #fff;
+  background: #9a4f00;
+  border-bottom: 2px solid #ffbf66;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
