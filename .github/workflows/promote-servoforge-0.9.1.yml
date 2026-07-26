@@ -1,4 +1,4 @@
-name: Promote ServoForge 0.9.1 App
+name: Promote Full ServoForge Staging Build
 
 on:
   workflow_dispatch:
@@ -11,12 +11,13 @@ permissions:
   contents: write
 
 jobs:
-  build-release-branch:
+  promote-directly-to-main:
     runs-on: ubuntu-latest
     steps:
       - name: Check out production app
         uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Fetch verified staging build
@@ -26,37 +27,16 @@ jobs:
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
           git -C /tmp/labeler-tool-staging checkout 6b2bf02fefb0ee122736eb0be36d249684e3f025
 
-      - name: Preserve production maps and specifications
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/production-preserve/app /tmp/production-preserve/config
-          cp app/defaults.js /tmp/production-preserve/app/defaults.js
-          cp app/persistence.js /tmp/production-preserve/app/persistence.js
-          cp config/company-default-settings.json /tmp/production-preserve/config/company-default-settings.json
-          sha256sum app/defaults.js app/persistence.js config/company-default-settings.json > /tmp/production-preserve/checksums.txt
-
-      - name: Promote verified application files
+      - name: Copy complete staging platform into production
         shell: bash
         run: |
           set -euo pipefail
           rsync -a \
             --exclude='.git/' \
             --exclude='.github/' \
-            --exclude='tests/' \
-            --exclude='config/' \
-            --exclude='app/defaults.js' \
-            --exclude='app/persistence.js' \
             /tmp/labeler-tool-staging/ ./
 
-          cp /tmp/production-preserve/app/defaults.js app/defaults.js
-          cp /tmp/production-preserve/app/persistence.js app/persistence.js
-          mkdir -p config
-          cp /tmp/production-preserve/config/company-default-settings.json config/company-default-settings.json
-
-          sha256sum -c /tmp/production-preserve/checksums.txt
-
-      - name: Convert staging shell to production
+      - name: Convert staging deployment to production
         shell: bash
         run: |
           set -euo pipefail
@@ -71,13 +51,7 @@ jobs:
 
           index_path = root / 'index.html'
           index = index_path.read_text(encoding='utf-8')
-          index = re.sub(
-              r'<div class="staging-environment-banner"[^>]*>.*?</div>\s*',
-              '',
-              index,
-              count=1,
-              flags=re.IGNORECASE | re.DOTALL,
-          )
+          index = re.sub(r'<div class="staging-environment-banner"[^>]*>.*?</div>\s*', '', index, count=1, flags=re.I | re.S)
           index = index.replace('ServoForge Labeler — STAGING', 'ServoForge Labeler')
           index = index.replace('STAGING / TEST BUILD — NOT PRODUCTION', '')
           index = index.replace('#9a4f00', '#173f35')
@@ -89,7 +63,7 @@ jobs:
               'name': 'ServoForge Labeler',
               'short_name': 'ServoForge',
               'description': 'ServoForge mechanical map and servo profile builder for labeler bottle plate systems.',
-              'theme_color': '#173f35',
+              'theme_color': '#173f35'
           })
           manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
 
@@ -100,7 +74,7 @@ jobs:
               'version': version,
               'releaseUrl': production_url,
               'downloadUrl': production_url,
-              'notes': 'ServoForge 0.9.1 adds Diagnostics, release readiness, constrained Incremental Rotations, restored map interaction, and collapsible Servo Simulation panels while preserving production maps and specifications.'
+              'notes': 'ServoForge 0.9.1 promotes the complete verified testing platform to production.'
           })
           update_path.write_text(json.dumps(update, indent=2) + '\n', encoding='utf-8')
 
@@ -123,7 +97,7 @@ jobs:
               'Staging application': 'Production application',
               'staging application': 'production application',
               'Staging recovery': 'Production recovery',
-              'staging recovery': 'production recovery',
+              'staging recovery': 'production recovery'
           }
 
           for path in [
@@ -131,7 +105,7 @@ jobs:
               root / 'app' / 'update-manager.js',
               root / 'app' / 'release-readiness-integration.js',
               root / 'drivers' / 'quality' / 'release-readiness-driver.js',
-              root / 'recovery.html',
+              root / 'recovery.html'
           ]:
               if not path.exists():
                   continue
@@ -139,22 +113,12 @@ jobs:
               for old, new in replacements.items():
                   value = value.replace(old, new)
               path.write_text(value, encoding='utf-8')
-
-          readme = root / 'README.txt'
-          readme.write_text(
-              'ServoForge Labeler v0.9.1 - Production Build\n\n'
-              'Existing maps, bottle specifications, label specifications, and saved simulations '
-              'continue to use the labelerToolSettings browser storage key.\n',
-              encoding='utf-8',
-          )
           PY
 
-      - name: Validate production release
+      - name: Validate production build
         shell: bash
         run: |
           set -euo pipefail
-
-          grep -q 'const SETTINGS_KEY = "labelerToolSettings"' app/defaults.js
           grep -q 'content="0.9.1"' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
           ! grep -q 'staging-environment-banner' index.html
@@ -172,7 +136,6 @@ jobs:
           import json
           import pathlib
           import re
-
           root = pathlib.Path('.')
           expected = '0.9.1'
           index = (root / 'index.html').read_text(encoding='utf-8')
@@ -180,7 +143,6 @@ jobs:
           notes = json.loads((root / 'release-notes.json').read_text(encoding='utf-8'))
           worker = (root / 'service-worker.js').read_text(encoding='utf-8')
           updater = (root / 'app' / 'update-manager.js').read_text(encoding='utf-8')
-
           versions = re.findall(r'(?:src|href)="[^"]+\?v=([^"]+)"', index)
           assert versions and set(versions) == {expected}, versions
           assert update['version'] == expected
@@ -189,17 +151,15 @@ jobs:
           assert notes['environment'] == 'production'
           assert f'servoforge-labeler-v{expected}' in worker
           assert f'RELEASE_VERSION = "{expected}"' in updater
-          print('ServoForge production application 0.9.1 validated.')
+          print('Full ServoForge staging platform validated for production.')
           PY
 
-      - name: Create release branch
+      - name: Commit directly to production main
         shell: bash
         run: |
           set -euo pipefail
-          rm -f .github/workflows/promote-servoforge-0.9.1.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout -B release/servoforge-0.9.1
           git add -A
-          git commit -m 'Promote verified ServoForge 0.9.1 to production app'
-          git push --force origin release/servoforge-0.9.1
+          git commit -m 'Promote full verified ServoForge staging platform to production'
+          git push origin HEAD:main
