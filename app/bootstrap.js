@@ -3,6 +3,124 @@
 let lastAnimationTime = performance.now();
 let animationTimerId = null;
 
+const STAGING_RELEASE_VERSION = "0.8.3";
+const STAGING_CACHE_PREFIX = "servoforge-labeler-staging-";
+
+function currentApplicationVersion() {
+  return document.querySelector('meta[name="application-version"]')?.content || STAGING_RELEASE_VERSION;
+}
+
+function configuredUpdateManifestUrl() {
+  return document.querySelector('meta[name="update-manifest-url"]')?.content?.trim() || "./update-manifest.json";
+}
+
+function setToolUpdateUi(message, buttonText = "Check for Updates", disabled = false) {
+  if (els.updateCheckStatus) els.updateCheckStatus.textContent = message;
+  if (els.checkForUpdates) {
+    els.checkForUpdates.textContent = buttonText;
+    els.checkForUpdates.disabled = disabled;
+  }
+}
+
+function updateDestinationUrl(rawUrl, version) {
+  let destination;
+  try {
+    destination = new URL(rawUrl || "./", window.location.href);
+  } catch {
+    destination = new URL("./", window.location.href);
+  }
+  destination.searchParams.set("version", String(version || Date.now()));
+  destination.searchParams.set("updated", Date.now().toString());
+  return destination.toString();
+}
+
+async function clearStaleStagingRuntime() {
+  const appScope = new URL("./", window.location.href).href;
+  const tasks = [];
+
+  if ("serviceWorker" in navigator) {
+    tasks.push(
+      navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(
+        registrations
+          .filter((registration) => registration.scope.startsWith(appScope))
+          .map((registration) => registration.unregister())
+      ))
+    );
+  }
+
+  if ("caches" in window) {
+    tasks.push(
+      caches.keys().then((names) => Promise.all(
+        names
+          .filter((name) => name.startsWith(STAGING_CACHE_PREFIX))
+          .map((name) => caches.delete(name))
+      ))
+    );
+  }
+
+  await Promise.allSettled(tasks);
+}
+
+function navigateToUpdateInCurrentWindow(rawUrl, version) {
+  if (typeof saveCurrentSettings === "function") saveCurrentSettings();
+  window.location.replace(updateDestinationUrl(rawUrl, version));
+}
+
+function showPendingToolUpdate() {
+  setToolUpdateUi("A browser update is ready. Apply it in this window.", "Apply Update", false);
+}
+
+async function registerToolUpdateService() {
+  const meta = document.querySelector('meta[name="application-version"]');
+  if (meta) meta.content = STAGING_RELEASE_VERSION;
+  if (!("serviceWorker" in navigator) || window.location.protocol === "file:") return;
+
+  try {
+    updateServiceWorkerRegistration = await navigator.serviceWorker.register(
+      `./service-worker.js?v=${STAGING_RELEASE_VERSION}`,
+      { scope: "./", updateViaCache: "none" }
+    );
+  } catch (error) {
+    console.warn("Service worker registration is unavailable. Same-window updates remain enabled.", error);
+  }
+}
+
+async function checkForToolUpdates() {
+  const currentVersion = currentApplicationVersion();
+  const manifestUrl = configuredUpdateManifestUrl();
+  setToolUpdateUi("Checking for updates…", "Check for Updates", true);
+
+  try {
+    const response = await fetch(`${manifestUrl}${manifestUrl.includes("?") ? "&" : "?"}t=${Date.now()}`, {
+      cache: "no-store",
+      headers: { "Cache-Control": "no-cache" }
+    });
+    if (!response.ok) throw new Error(`Update server returned ${response.status}.`);
+
+    const manifest = await response.json();
+    const latestVersion = String(manifest?.version || "").trim();
+    if (!latestVersion) throw new Error("Update manifest has no version.");
+
+    if (compareApplicationVersions(latestVersion, currentVersion) <= 0) {
+      setToolUpdateUi(`Up to date • Version ${currentVersion}`, "Check for Updates", false);
+      return;
+    }
+
+    const destination = String(manifest.releaseUrl || manifest.downloadUrl || "./").trim();
+    setToolUpdateUi(`Applying version ${latestVersion} in this window…`, "Applying Update", true);
+    if (typeof saveCurrentSettings === "function") saveCurrentSettings();
+
+    // The updater no longer waits for an installing or waiting service worker.
+    // That wait was the source of the recurring Downloading timeout. Clear the
+    // stale worker/cache state and navigate directly in this same window.
+    await clearStaleStagingRuntime();
+    navigateToUpdateInCurrentWindow(destination, latestVersion);
+  } catch (error) {
+    console.error("Update check failed", error);
+    setToolUpdateUi("Unable to apply the update. Check the connection and try again.", "Check for Updates", false);
+  }
+}
+
 function download(name, type, content) {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -39,6 +157,7 @@ function bindGlobalActions() {
       renderMap();
     });
   }
+
   const setWipeDownPopupOpen = (open) => {
     if (!els.wipeDownDataPanel) return;
     els.wipeDownDataPanel.hidden = !open;
@@ -83,7 +202,7 @@ function bindGlobalActions() {
   });
 
   els.saveSettings.addEventListener("click", saveCurrentSettings);
-  els.checkForUpdates?.addEventListener("click", checkForToolUpdates);
+  els.checkForUpdates?.addEventListener("click", () => checkForToolUpdates());
   els.simulation?.addEventListener("click", (event) => {
     const insertButton = event.target.closest(".simulation-insert-pair");
     if (!insertButton) return;
@@ -126,8 +245,6 @@ function bindGlobalActions() {
 
 function animationFrame(now) {
   if (animationTimerId === null) return;
-  // Limit a single catch-up frame after a hidden/stalled tab, while retaining
-  // continuous time-based motion at normal requestAnimationFrame cadence.
   const elapsedSeconds = Math.min(0.05, Math.max(0, now - lastAnimationTime) / 1000);
   lastAnimationTime = now;
   if (state.isPlaying) {
@@ -159,9 +276,7 @@ function showStartupError(error) {
     notice.innerHTML = `<strong>Tool startup error</strong><span>${message}</span>`;
     mapPanel.appendChild(notice);
   }
-  if (validationList) {
-    validationList.innerHTML = `<div class="notice bad">Startup failed: ${message}</div>`;
-  }
+  if (validationList) validationList.innerHTML = `<div class="notice bad">Startup failed: ${message}</div>`;
 }
 
 async function initializeLabelerApp() {
@@ -180,3 +295,11 @@ async function initializeLabelerApp() {
     showStartupError(error);
   }
 }
+
+(function loadSimulatorMilestone() {
+  if (document.querySelector('script[data-servoforge-simulator="0.7.99"]')) return;
+  const script = document.createElement("script");
+  script.src = "app/simulator-milestone.js?v=0.7.99";
+  script.dataset.servoforgeSimulator = "0.7.99";
+  document.head.appendChild(script);
+})();

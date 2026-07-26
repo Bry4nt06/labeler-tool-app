@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>ServoForge Staging Recovery</title>
+    <style>
+      :root { color-scheme: dark; font-family: Arial, sans-serif; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #101713; color: #e8f2ec; }
+      main { width: min(520px, calc(100vw - 32px)); padding: 24px; border: 1px solid #355346; border-radius: 12px; background: #18231e; box-sizing: border-box; }
+      h1 { margin: 0 0 10px; font-size: 22px; }
+      p { margin: 0; color: #adc2b7; line-height: 1.5; }
+      progress { width: 100%; margin-top: 18px; }
+      #status { margin-top: 12px; color: #7fe0aa; font-weight: 700; }
+      #error { margin-top: 12px; color: #ff9b9b; white-space: pre-wrap; }
+      button { margin-top: 16px; padding: 10px 14px; border: 0; border-radius: 7px; background: #2b9a67; color: white; font-weight: 700; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Repairing ServoForge Staging</h1>
+      <p>This clears only the staging app's service workers and caches, reloads the current application files from GitHub Pages, and then returns to the app in this same window.</p>
+      <progress id="progress" max="4" value="0"></progress>
+      <div id="status" aria-live="polite">Starting recovery…</div>
+      <div id="error" role="alert"></div>
+      <button id="retry" type="button" hidden>Retry Recovery</button>
+    </main>
+    <script>
+      "use strict";
+
+      const CACHE_PREFIX = "servoforge-labeler-";
+      const statusNode = document.querySelector("#status");
+      const errorNode = document.querySelector("#error");
+      const progressNode = document.querySelector("#progress");
+      const retryButton = document.querySelector("#retry");
+
+      function status(message, step) {
+        statusNode.textContent = message;
+        progressNode.value = step;
+      }
+
+      async function clearWorkers() {
+        if (!("serviceWorker" in navigator)) return;
+        const scope = new URL("./", window.location.href).href;
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(registrations
+          .filter((registration) => registration.scope.startsWith(scope))
+          .map((registration) => registration.unregister()));
+      }
+
+      async function clearAppCaches() {
+        if (!("caches" in window)) return;
+        const names = await caches.keys();
+        await Promise.all(names
+          .filter((name) => name.startsWith(CACHE_PREFIX))
+          .map((name) => caches.delete(name)));
+      }
+
+      async function reloadPublishedAssets() {
+        const shellUrl = new URL(`./index.html?recovery=${Date.now()}`, window.location.href);
+        const response = await fetch(shellUrl, { cache: "reload" });
+        if (!response.ok) throw new Error(`The production application shell returned HTTP ${response.status}.`);
+        const html = await response.text();
+        const documentCopy = new DOMParser().parseFromString(html, "text/html");
+        const assetUrls = [
+          ...documentCopy.querySelectorAll('script[src],link[rel="stylesheet"][href]')
+        ].map((node) => node.getAttribute("src") || node.getAttribute("href"))
+          .filter(Boolean)
+          .map((path) => new URL(path, shellUrl).href);
+
+        const results = await Promise.allSettled(assetUrls.map(async (url) => {
+          const asset = await fetch(url, { cache: "reload" });
+          if (!asset.ok) throw new Error(`${url} returned HTTP ${asset.status}.`);
+        }));
+        const failures = results.filter((result) => result.status === "rejected");
+        if (failures.length) throw failures[0].reason;
+      }
+
+      async function recover() {
+        retryButton.hidden = true;
+        errorNode.textContent = "";
+        try {
+          status("Removing the old staging service worker…", 1);
+          await clearWorkers();
+          status("Deleting stale staging caches…", 2);
+          await clearAppCaches();
+          status("Reloading the published application files…", 3);
+          await reloadPublishedAssets();
+          status("Recovery complete. Opening ServoForge…", 4);
+          const destination = new URL("./", window.location.href);
+          destination.searchParams.set("recovered", Date.now().toString());
+          window.location.replace(destination.toString());
+        } catch (error) {
+          statusNode.textContent = "Recovery stopped.";
+          errorNode.textContent = error?.message || String(error);
+          retryButton.hidden = false;
+        }
+      }
+
+      retryButton.addEventListener("click", recover);
+      recover();
+    </script>
+  </body>
+</html>
