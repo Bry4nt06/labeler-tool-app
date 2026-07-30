@@ -2,17 +2,9 @@
 
 (function loadSimulationAndMapAccessIntegrations() {
   const modules = [
+    "app/workspace-developer-integration.js?v=0.9.2-production",
     "app/simulation-collapsible-core.js?v=0.9.2-production",
     "app/multi-map-lock-import-integration-v2.js?v=0.9.2-production",
-    "app/map-object-wipe-definition-integration.js?v=0.9.2-production",
-    "app/apl-single-cycle-transition-guard.js?v=0.9.2-production",
-    "app/cold-glue-label-geometry-fallback-integration.js?v=0.9.2-production",
-    "app/cold-glue-center-out-brush-integration.js?v=0.9.2-production",
-    "app/cold-glue-gripper-channel-integration.js?v=0.9.2-production",
-    "app/cold-glue-parameter-editor-integration.js?v=0.9.2-production",
-    "app/cold-glue-neck-left-right-integration.js?v=0.9.2-production",
-    "app/cold-glue-gripper-sequence-integration-v2.js?v=0.9.2-production",
-    "app/optimizer-map-contact-integration.js?v=0.9.2-production",
     "app/optimizer-brush-channel-expansion-integration.js?v=0.9.2-production"
   ];
 
