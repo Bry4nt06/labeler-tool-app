@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.9.1",
+  "version": "0.9.2",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.1 promotes the complete verified testing platform to production."
+  "notes": "ServoForge 0.9.2 adds multi-map locking, reliable map JSON import, object-level wipe definitions, dual-pad handling, and parameter-driven Cold Glue mapping."
 }
