@@ -1,4 +1,4 @@
-name: Promote Full ServoForge Staging Build
+name: Promote ServoForge 0.9.2 Tested Modules
 
 on:
   workflow_dispatch:
@@ -10,8 +10,12 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: promote-servoforge-production
+  cancel-in-progress: false
+
 jobs:
-  promote-directly-to-main:
+  promote-tested-modules-to-main:
     runs-on: ubuntu-latest
     steps:
       - name: Check out production app
@@ -20,52 +24,105 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Fetch verified staging build
+      - name: Fetch approved staging commit
         shell: bash
         run: |
           set -euo pipefail
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
-          git -C /tmp/labeler-tool-staging checkout 6b2bf02fefb0ee122736eb0be36d249684e3f025
+          git -C /tmp/labeler-tool-staging checkout cc1d51e47ac7c5c76d6d18d876b947a3fbcea354
 
-      - name: Copy complete staging platform into production
+      - name: Copy tested staging modules
         shell: bash
         run: |
           set -euo pipefail
-          rsync -a \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            /tmp/labeler-tool-staging/ ./
+          files=(
+            app/workspace-developer-integration.js
+            app/simulation-collapsible-integration.js
+            app/simulation-collapsible-core.js
+            app/multi-map-lock-import-integration-v2.js
+            app/map-object-wipe-definition-integration.js
+            app/apl-single-cycle-transition-guard.js
+            app/cold-glue-label-geometry-fallback-integration.js
+            app/cold-glue-center-out-brush-integration.js
+            app/cold-glue-gripper-channel-integration.js
+            app/cold-glue-parameter-editor-integration.js
+            app/cold-glue-neck-left-right-integration.js
+            app/cold-glue-gripper-sequence-integration.js
+            app/optimizer-map-contact-integration.js
+            app/optimizer-brush-channel-expansion-integration.js
+          )
+          for file in "${files[@]}"; do
+            test -f "/tmp/labeler-tool-staging/$file"
+            install -D "/tmp/labeler-tool-staging/$file" "$file"
+          done
 
-      - name: Convert staging deployment to production
+      - name: Convert tested modules into production release 0.9.2
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          import datetime
           import json
           import pathlib
           import re
 
           root = pathlib.Path('.')
-          version = '0.9.1'
+          version = '0.9.2'
           production_url = 'https://bry4nt06.github.io/labeler-tool-app/'
+          module_paths = [
+              'app/workspace-developer-integration.js',
+              'app/simulation-collapsible-core.js',
+              'app/multi-map-lock-import-integration-v2.js',
+              'app/map-object-wipe-definition-integration.js',
+              'app/apl-single-cycle-transition-guard.js',
+              'app/cold-glue-label-geometry-fallback-integration.js',
+              'app/cold-glue-center-out-brush-integration.js',
+              'app/cold-glue-gripper-channel-integration.js',
+              'app/cold-glue-parameter-editor-integration.js',
+              'app/cold-glue-neck-left-right-integration.js',
+              'app/cold-glue-gripper-sequence-integration.js',
+              'app/optimizer-map-contact-integration.js',
+              'app/optimizer-brush-channel-expansion-integration.js'
+          ]
 
           index_path = root / 'index.html'
           index = index_path.read_text(encoding='utf-8')
+          index = re.sub(r'(<meta name="application-version" content=")[^"]+(" />)', rf'\g<1>{version}\2', index)
+          index = re.sub(r'\?v=\d+\.\d+\.\d+', f'?v={version}', index)
+          index = re.sub(r'Version\s+\d+\.\d+\.\d+\s+•\s+Updates are checked automatically\.', f'Version {version} • Updates are checked automatically.', index)
           index = re.sub(r'<div class="staging-environment-banner"[^>]*>.*?</div>\s*', '', index, count=1, flags=re.I | re.S)
           index = index.replace('ServoForge Labeler — STAGING', 'ServoForge Labeler')
-          index = index.replace('STAGING / TEST BUILD — NOT PRODUCTION', '')
-          index = index.replace('#9a4f00', '#173f35')
           index_path.write_text(index, encoding='utf-8')
 
-          manifest_path = root / 'manifest.webmanifest'
-          manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-          manifest.update({
-              'name': 'ServoForge Labeler',
-              'short_name': 'ServoForge',
-              'description': 'ServoForge mechanical map and servo profile builder for labeler bottle plate systems.',
-              'theme_color': '#173f35'
-          })
-          manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+          updater_path = root / 'app' / 'update-manager.js'
+          updater = updater_path.read_text(encoding='utf-8')
+          updater = re.sub(r'const RELEASE_VERSION = "\d+\.\d+\.\d+";', f'const RELEASE_VERSION = "{version}";', updater)
+          if '"app/workspace-developer-integration.js"' not in updater:
+              updater = updater.replace(
+                  '    "app/diagnostics-workspace-integration.js",\n',
+                  '    "app/diagnostics-workspace-integration.js",\n    "app/workspace-developer-integration.js",\n',
+                  1
+              )
+          updater = updater.replace('loadStagingFeatureModules', 'loadReleaseFeatureModules')
+          updater = updater.replace('Staging feature module load failed', 'Release feature module load failed')
+          marker = '    "app/update-manager.js",'
+          for path in module_paths:
+              entry = f'    "{path}",'
+              if entry not in updater:
+                  updater = updater.replace(marker, f'{entry}\n{marker}', 1)
+          updater_path.write_text(updater, encoding='utf-8')
+
+          worker_path = root / 'service-worker.js'
+          worker = worker_path.read_text(encoding='utf-8')
+          worker = re.sub(r'const RELEASE_VERSION = "\d+\.\d+\.\d+";', f'const RELEASE_VERSION = "{version}";', worker)
+          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-map-access-cold-glue";', worker)
+          worker = worker.replace('const CACHE_PREFIX = "servoforge-labeler-staging-";', 'const CACHE_PREFIX = "servoforge-labeler-";')
+          marker = '  "./app/update-manager.js",'
+          for path in module_paths:
+              entry = f'  "./{path}",'
+              if entry not in worker:
+                  worker = worker.replace(marker, f'{entry}\n{marker}', 1)
+          worker_path.write_text(worker, encoding='utf-8')
 
           update_path = root / 'update-manifest.json'
           update = json.loads(update_path.read_text(encoding='utf-8'))
@@ -74,7 +131,7 @@ jobs:
               'version': version,
               'releaseUrl': production_url,
               'downloadUrl': production_url,
-              'notes': 'ServoForge 0.9.1 promotes the complete verified testing platform to production.'
+              'notes': 'ServoForge 0.9.2 adds multi-map locking, reliable map JSON import, object-level wipe definitions, dual-pad handling, and parameter-driven three-gripper Cold Glue mapping.'
           })
           update_path.write_text(json.dumps(update, indent=2) + '\n', encoding='utf-8')
 
@@ -82,84 +139,97 @@ jobs:
           notes = json.loads(notes_path.read_text(encoding='utf-8'))
           notes['environment'] = 'production'
           notes['currentVersion'] = version
-          notes_path.write_text(json.dumps(notes, indent=2) + '\n', encoding='utf-8')
-
-          replacements = {
-              'servoforge-labeler-staging-v': 'servoforge-labeler-v',
-              'servoforge-labeler-staging-': 'servoforge-labeler-',
-              'servoforge-staging-readiness-': 'servoforge-production-readiness-',
-              'https://bry4nt06.github.io/labeler-tool-staging/': production_url,
-              'environment: "staging"': 'environment: "production"',
-              '"environment": "staging"': '"environment": "production"',
-              'STAGING TEST BUILD': 'PRODUCTION BUILD',
-              'Staging release check': 'Production release check',
-              'staging release check': 'production release check',
-              'Staging application': 'Production application',
-              'staging application': 'production application',
-              'Staging recovery': 'Production recovery',
-              'staging recovery': 'production recovery'
+          notes['generatedAt'] = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+          release = {
+              'version': version,
+              'milestone': 12,
+              'title': 'Map Access, JSON Import, and Cold Glue Mapping',
+              'summary': 'Promotes the tested map-access controls, map-object wipe definitions, and parameter-driven Cold Glue application sequencing to production.',
+              'changes': [
+                  'Keep Map Builder visible for locked maps while enforcing read-only editing until the map is unlocked in Settings.',
+                  'Lock or unlock multiple maps from Map Access & Workspace and show lock symbols beside protected maps.',
+                  'Import exported map JSON through either Import Map JSON or Import Settings without routing the file through fault-limit validation.',
+                  'Add quick object deletion with Undo support and object-level Neck, Body, Back, Auto, or None wipe definitions.',
+                  'Split dual APL wipe-down surfaces into ordered physical correction stages without adding artificial table revolutions.',
+                  'Add explicit Cold Glue gripper, brush-side, press-overlap, entry-angle, wipe-order, and millimeter over-wipe parameters.',
+                  'Generate the Cold Glue neck sequence from gripper centerline through opposed press, left wipe, right wipe, and no-contact holds.',
+                  'Assign three physical Cold Glue grippers to Neck, Body, and Back while preserving sparse station numbers and existing production map assignments.',
+                  'Align optimizer contact diagnostics with expanded inside and outside brush-channel geometry.'
+              ]
           }
-
-          for path in [
-              root / 'service-worker.js',
-              root / 'app' / 'update-manager.js',
-              root / 'app' / 'release-readiness-integration.js',
-              root / 'drivers' / 'quality' / 'release-readiness-driver.js',
-              root / 'recovery.html'
-          ]:
-              if not path.exists():
-                  continue
-              value = path.read_text(encoding='utf-8')
-              for old, new in replacements.items():
-                  value = value.replace(old, new)
-              path.write_text(value, encoding='utf-8')
+          notes['releases'] = [release] + [item for item in notes.get('releases', []) if str(item.get('version')) != version]
+          notes_path.write_text(json.dumps(notes, indent=2) + '\n', encoding='utf-8')
           PY
 
       - name: Validate production build
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'content="0.9.1"' index.html
+          grep -q 'content="0.9.2"' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
           ! grep -q 'staging-environment-banner' index.html
           ! grep -q 'labeler-tool-staging' index.html service-worker.js update-manifest.json app/update-manager.js
 
-          while IFS= read -r -d '' file; do
-            node --check "$file"
-          done < <(find app drivers -type f -name '*.js' -print0; printf '%s\0' app.js service-worker.js)
+          # Guard production-only work from being overwritten by the selective promotion.
+          grep -q 'MOTION_PROFILE_STORAGE_KEY' app/zone-site-configuration.js
 
-          while IFS= read -r -d '' file; do
-            python3 -m json.tool "$file" >/dev/null
-          done < <(find . -maxdepth 3 -type f -name '*.json' -not -path './.git/*' -print0)
+          required=(
+            app/workspace-developer-integration.js
+            app/simulation-collapsible-integration.js
+            app/simulation-collapsible-core.js
+            app/multi-map-lock-import-integration-v2.js
+            app/map-object-wipe-definition-integration.js
+            app/apl-single-cycle-transition-guard.js
+            app/cold-glue-label-geometry-fallback-integration.js
+            app/cold-glue-center-out-brush-integration.js
+            app/cold-glue-gripper-channel-integration.js
+            app/cold-glue-parameter-editor-integration.js
+            app/cold-glue-neck-left-right-integration.js
+            app/cold-glue-gripper-sequence-integration.js
+            app/optimizer-map-contact-integration.js
+            app/optimizer-brush-channel-expansion-integration.js
+          )
+          for file in "${required[@]}"; do
+            test -s "$file"
+            node --check "$file"
+            grep -q "${file}" service-worker.js
+          done
+
+          node --check app/update-manager.js
+          node --check service-worker.js
+          python3 -m json.tool update-manifest.json >/dev/null
+          python3 -m json.tool release-notes.json >/dev/null
 
           python3 - <<'PY'
           import json
           import pathlib
-          import re
           root = pathlib.Path('.')
-          expected = '0.9.1'
-          index = (root / 'index.html').read_text(encoding='utf-8')
+          expected = '0.9.2'
           update = json.loads((root / 'update-manifest.json').read_text(encoding='utf-8'))
           notes = json.loads((root / 'release-notes.json').read_text(encoding='utf-8'))
           worker = (root / 'service-worker.js').read_text(encoding='utf-8')
           updater = (root / 'app' / 'update-manager.js').read_text(encoding='utf-8')
-          versions = re.findall(r'(?:src|href)="[^"]+\?v=([^"]+)"', index)
-          assert versions and set(versions) == {expected}, versions
           assert update['version'] == expected
           assert update['releaseUrl'] == 'https://bry4nt06.github.io/labeler-tool-app/'
           assert notes['currentVersion'] == expected
           assert notes['environment'] == 'production'
           assert f'servoforge-labeler-v{expected}' in worker
           assert f'RELEASE_VERSION = "{expected}"' in updater
-          print('Full ServoForge staging platform validated for production.')
+          assert 'app/workspace-developer-integration.js' in updater
+          assert 'app/cold-glue-gripper-sequence-integration.js' in worker
+          print('ServoForge 0.9.2 selective production promotion validated.')
           PY
 
       - name: Commit directly to production main
         shell: bash
         run: |
           set -euo pipefail
+          if git diff --quiet; then
+            echo 'Production already matches the approved staging modules.'
+            exit 0
+          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'Promote full verified ServoForge staging platform to production'
+          git commit -m 'Promote ServoForge 0.9.2 tested modules to production'
           git push origin HEAD:main
