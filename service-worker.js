@@ -1,7 +1,7 @@
 "use strict";
 
-const RELEASE_VERSION = "0.9.1";
-const CACHE_NAME = "servoforge-labeler-v0.9.1";
+const RELEASE_VERSION = "0.9.2";
+const CACHE_NAME = "servoforge-labeler-v0.9.2-map-access-cold-glue";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 const UPDATE_MANIFEST_URL = new URL("./update-manifest.json", self.registration.scope).href;
@@ -59,6 +59,12 @@ const CORE_ASSETS = Object.freeze([
   "./app/diagnostics-workspace-integration.js",
   "./app/incremental-rotation-integration.js",
   "./app/simulation-collapsible-integration.js",
+  "./app/workspace-developer-integration.js",
+  "./app/simulation-collapsible-core.js",
+  "./app/multi-map-lock-import-integration-v2.js",
+  "./app/map-object-wipe-definition-integration.js",
+  "./app/cold-glue-production-integration.js",
+  "./app/optimizer-brush-channel-expansion-integration.js",
   "./app/update-manager.js",
   "./app.js"
 ]);
