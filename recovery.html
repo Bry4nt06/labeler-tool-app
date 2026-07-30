@@ -29,7 +29,7 @@
     <script>
       "use strict";
 
-      const CACHE_PREFIX = "servoforge-labeler-";
+      const CACHE_PREFIX = "servoforge-labeler-staging-";
       const statusNode = document.querySelector("#status");
       const errorNode = document.querySelector("#error");
       const progressNode = document.querySelector("#progress");
@@ -60,7 +60,7 @@
       async function reloadPublishedAssets() {
         const shellUrl = new URL(`./index.html?recovery=${Date.now()}`, window.location.href);
         const response = await fetch(shellUrl, { cache: "reload" });
-        if (!response.ok) throw new Error(`The production application shell returned HTTP ${response.status}.`);
+        if (!response.ok) throw new Error(`The staging application shell returned HTTP ${response.status}.`);
         const html = await response.text();
         const documentCopy = new DOMParser().parseFromString(html, "text/html");
         const assetUrls = [

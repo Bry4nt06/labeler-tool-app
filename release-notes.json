@@ -2,23 +2,20 @@
   "schemaVersion": 1,
   "environment": "production",
   "currentVersion": "0.9.2",
-  "generatedAt": "2026-07-30T14:00:00Z",
+  "generatedAt": "2026-07-30T18:45:00Z",
   "releases": [
     {
       "version": "0.9.2",
       "milestone": 12,
-      "title": "Map Access, JSON Import, and Cold Glue Mapping",
-      "summary": "Adds tested map-access controls, map-object wipe definitions, and parameter-driven Cold Glue application sequencing to production.",
+      "title": "Workspace Navigation and Developer Controls",
+      "summary": "Moves Map Builder into the primary workspace tabs and adds locally authenticated developer controls for panel visibility and read-only map locking.",
       "changes": [
-        "Keep Map Builder visible for locked maps while enforcing read-only editing until the map is unlocked in Settings.",
-        "Lock or unlock multiple maps from Map Access & Workspace and show lock symbols beside protected maps.",
-        "Import exported map JSON through either Import Map JSON or Import Settings without routing the file through fault-limit validation.",
-        "Add quick object deletion with Undo support and object-level Neck, Body, Back, Auto, or None wipe definitions.",
-        "Split dual APL wipe-down surfaces into ordered physical correction stages without adding artificial table revolutions.",
-        "Add explicit Cold Glue gripper, brush-side, press-overlap, entry-angle, wipe-order, and millimeter over-wipe parameters.",
-        "Generate the Cold Glue neck sequence from gripper centerline through opposed press, left wipe, right wipe, and no-contact holds.",
-        "Assign three physical Cold Glue grippers to Neck, Body, and Back while preserving sparse station numbers and existing map assignments.",
-        "Expand combined brush channels into inside and outside contact ranges for optimizer coverage checks."
+        "Order the primary navigation as Map Builder, Specs, Build Inputs, Servo Program, Servo Simulation, and Diagnostics.",
+        "Close Settings, Map Builder, map-reference, wipe-data, and open builder detail panels when the user clicks outside them.",
+        "Create a first-use Developer Mode login with locally hashed credentials and session-only unlocking.",
+        "Allow Developer Mode to hide or restore operator panels without modifying saved map data.",
+        "Allow selected maps to be locked and loaded from a Locked Maps dropdown in read-only mode.",
+        "Hide Map Builder and disable specification, Build Input, Servo Program, and direct map editing while a locked map is active."
       ]
     },
     {

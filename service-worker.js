@@ -1,11 +1,9 @@
 "use strict";
 
 const RELEASE_VERSION = "0.9.2";
-const CACHE_NAME = "servoforge-labeler-v0.9.2-map-access-cold-glue";
+const CACHE_NAME = "servoforge-labeler-v0.9.2-exact-staging-cc1d51e";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
-const UPDATE_MANIFEST_URL = new URL("./update-manifest.json", self.registration.scope).href;
-const SERVICE_WORKER_URL = new URL("./service-worker.js", self.registration.scope).href;
 
 const CORE_ASSETS = Object.freeze([
   "./",
@@ -57,67 +55,64 @@ const CORE_ASSETS = Object.freeze([
   "./app/program-optimizer-integration.js",
   "./app/release-readiness-integration.js",
   "./app/diagnostics-workspace-integration.js",
+  "./app/workspace-developer-integration.js",
   "./app/incremental-rotation-integration.js",
   "./app/simulation-collapsible-integration.js",
-  "./app/workspace-developer-integration.js",
   "./app/simulation-collapsible-core.js",
   "./app/multi-map-lock-import-integration-v2.js",
   "./app/map-object-wipe-definition-integration.js",
-  "./app/cold-glue-production-integration.js",
+  "./app/apl-single-cycle-transition-guard.js",
+  "./app/cold-glue-label-geometry-fallback-integration.js",
+  "./app/cold-glue-center-out-brush-integration.js",
+  "./app/cold-glue-gripper-channel-integration.js",
+  "./app/cold-glue-parameter-editor-integration.js",
+  "./app/cold-glue-neck-left-right-integration.js",
+  "./app/cold-glue-gripper-sequence-integration-v2.js",
+  "./app/optimizer-map-contact-integration.js",
   "./app/optimizer-brush-channel-expansion-integration.js",
   "./app/update-manager.js",
   "./app.js"
 ]);
 
-function absoluteAsset(asset) {
-  return new URL(asset, self.registration.scope).href;
-}
-
-function normalizedRequest(requestOrUrl) {
-  const source = typeof requestOrUrl === "string" ? requestOrUrl : requestOrUrl.url;
-  const url = new URL(source, self.registration.scope);
+function normalizedRequest(source) {
+  const url = new URL(typeof source === "string" ? source : source.url, self.registration.scope);
   url.search = "";
   url.hash = "";
   return new Request(url.href, { method: "GET" });
+}
+
+async function cacheResponse(url, response) {
+  if (!response?.ok) return response;
+  const cache = await caches.open(CACHE_NAME);
+  await cache.put(normalizedRequest(url), response.clone());
+  return response;
+}
+
+async function cachedFallback(url, navigation = false) {
+  const cache = await caches.open(CACHE_NAME);
+  const direct = await cache.match(normalizedRequest(url), { ignoreSearch: true });
+  if (direct) return direct;
+  return navigation ? cache.match(normalizedRequest(APP_SHELL_URL), { ignoreSearch: true }) : null;
 }
 
 async function cacheStatus() {
   const cache = await caches.open(CACHE_NAME);
   const checks = await Promise.all(CORE_ASSETS.map(async (asset) => ({
     asset,
-    cached: Boolean(await cache.match(normalizedRequest(absoluteAsset(asset)), { ignoreSearch: true }))
+    cached: Boolean(await cache.match(normalizedRequest(new URL(asset, self.registration.scope).href), { ignoreSearch: true }))
   })));
   const cached = checks.filter((item) => item.cached).length;
-  return {
-    ok: true,
-    version: RELEASE_VERSION,
-    cacheName: CACHE_NAME,
-    total: checks.length,
-    cached,
-    complete: cached === checks.length,
-    missing: checks.filter((item) => !item.cached).map((item) => item.asset)
-  };
+  return { ok: true, version: RELEASE_VERSION, cacheName: CACHE_NAME, total: checks.length, cached, complete: cached === checks.length, missing: checks.filter((item) => !item.cached).map((item) => item.asset) };
 }
 
-async function prepareOffline(requestedAssets = [], requestedVersion = RELEASE_VERSION) {
-  if (String(requestedVersion || RELEASE_VERSION) !== RELEASE_VERSION) {
-    throw new Error(`Offline cache version ${requestedVersion} does not match service worker ${RELEASE_VERSION}.`);
-  }
-  const allowed = new Set(CORE_ASSETS);
-  const additions = (Array.isArray(requestedAssets) ? requestedAssets : []).filter((asset) => allowed.has(asset));
-  const assets = [...new Set([...CORE_ASSETS, ...additions])];
-  const cache = await caches.open(CACHE_NAME);
-
+async function prepareOffline(requestedAssets = []) {
+  const assets = [...new Set([...CORE_ASSETS, ...(Array.isArray(requestedAssets) ? requestedAssets : [])])];
   for (const asset of assets) {
-    const url = absoluteAsset(asset);
+    const url = new URL(asset, self.registration.scope).href;
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) throw new Error(`Unable to cache ${asset}: ${response.status}.`);
-    await cache.put(normalizedRequest(url), response.clone());
-    if (asset === "./" || asset === "./index.html") {
-      await cache.put(normalizedRequest(APP_SHELL_URL), response.clone());
-    }
+    await cacheResponse(url, response);
   }
-
   return cacheStatus();
 }
 
@@ -128,11 +123,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((names) => Promise.all(
-        names
-          .filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      ))
+      .then((names) => Promise.all(names.filter((name) => name.startsWith(CACHE_PREFIX) && name !== CACHE_NAME).map((name) => caches.delete(name))))
       .then(() => self.clients.claim())
   );
 });
@@ -140,79 +131,25 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("message", (event) => {
   const type = event.data?.type;
   const reply = (payload) => event.ports?.[0]?.postMessage(payload);
-
   if (type === "SKIP_WAITING") {
     self.skipWaiting();
     reply({ ok: true, version: RELEASE_VERSION });
-    return;
-  }
-
-  if (type === "GET_CACHE_STATUS") {
-    event.waitUntil(
-      cacheStatus()
-        .then(reply)
-        .catch((error) => reply({ ok: false, version: RELEASE_VERSION, message: error.message }))
-    );
-    return;
-  }
-
-  if (type === "PREPARE_OFFLINE") {
-    event.waitUntil(
-      prepareOffline(event.data?.assets, event.data?.version)
-        .then((status) => reply({ ...status, ok: true }))
-        .catch((error) => reply({ ok: false, version: RELEASE_VERSION, message: error.message }))
-    );
+  } else if (type === "GET_CACHE_STATUS") {
+    event.waitUntil(cacheStatus().then(reply).catch((error) => reply({ ok: false, version: RELEASE_VERSION, message: error.message })));
+  } else if (type === "PREPARE_OFFLINE") {
+    event.waitUntil(prepareOffline(event.data?.assets).then(reply).catch((error) => reply({ ok: false, version: RELEASE_VERSION, message: error.message })));
   }
 });
 
-function isReleaseControlRequest(requestUrl, request) {
-  return request.mode === "navigate"
-    || requestUrl.href.split("?")[0] === APP_SHELL_URL
-    || requestUrl.href.split("?")[0] === UPDATE_MANIFEST_URL
-    || requestUrl.href.split("?")[0] === SERVICE_WORKER_URL;
-}
-
-async function cacheSuccessfulResponse(requestUrl, response) {
-  if (!response.ok) return response;
-  const cache = await caches.open(CACHE_NAME);
-  await cache.put(normalizedRequest(requestUrl.href), response.clone());
-  return response;
-}
-
-async function cachedResponse(requestUrl, navigation = false) {
-  const cache = await caches.open(CACHE_NAME);
-  const direct = await cache.match(normalizedRequest(requestUrl.href), { ignoreSearch: true });
-  if (direct) return direct;
-  if (navigation) return cache.match(normalizedRequest(APP_SHELL_URL), { ignoreSearch: true });
-  return null;
-}
-
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  const requestUrl = new URL(event.request.url);
-  if (requestUrl.origin !== self.location.origin) return;
-
-  if (isReleaseControlRequest(requestUrl, event.request)) {
-    event.respondWith(
-      fetch(event.request, { cache: "no-store" })
-        .then((response) => cacheSuccessfulResponse(
-          event.request.mode === "navigate" ? new URL(APP_SHELL_URL) : requestUrl,
-          response
-        ))
-        .catch(async () => {
-          const cached = await cachedResponse(requestUrl, event.request.mode === "navigate");
-          if (cached) return cached;
-          throw new Error(`Release resource unavailable: ${event.request.url}`);
-        })
-    );
-    return;
-  }
-
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
   event.respondWith(
     fetch(event.request, { cache: "no-store" })
-      .then((response) => cacheSuccessfulResponse(requestUrl, response))
+      .then((response) => cacheResponse(event.request.mode === "navigate" ? APP_SHELL_URL : url.href, response))
       .catch(async () => {
-        const cached = await cachedResponse(requestUrl, false);
+        const cached = await cachedFallback(url.href, event.request.mode === "navigate");
         if (cached) return cached;
         throw new Error(`Offline resource unavailable: ${event.request.url}`);
       })
