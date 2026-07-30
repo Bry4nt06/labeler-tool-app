@@ -1,9 +1,26 @@
 {
   "schemaVersion": 1,
   "environment": "production",
-  "currentVersion": "0.9.1",
-  "generatedAt": "2026-07-26T00:00:00Z",
+  "currentVersion": "0.9.2",
+  "generatedAt": "2026-07-30T14:00:00Z",
   "releases": [
+    {
+      "version": "0.9.2",
+      "milestone": 12,
+      "title": "Map Access, JSON Import, and Cold Glue Mapping",
+      "summary": "Adds tested map-access controls, map-object wipe definitions, and parameter-driven Cold Glue application sequencing to production.",
+      "changes": [
+        "Keep Map Builder visible for locked maps while enforcing read-only editing until the map is unlocked in Settings.",
+        "Lock or unlock multiple maps from Map Access & Workspace and show lock symbols beside protected maps.",
+        "Import exported map JSON through either Import Map JSON or Import Settings without routing the file through fault-limit validation.",
+        "Add quick object deletion with Undo support and object-level Neck, Body, Back, Auto, or None wipe definitions.",
+        "Split dual APL wipe-down surfaces into ordered physical correction stages without adding artificial table revolutions.",
+        "Add explicit Cold Glue gripper, brush-side, press-overlap, entry-angle, wipe-order, and millimeter over-wipe parameters.",
+        "Generate the Cold Glue neck sequence from gripper centerline through opposed press, left wipe, right wipe, and no-contact holds.",
+        "Assign three physical Cold Glue grippers to Neck, Body, and Back while preserving sparse station numbers and existing map assignments.",
+        "Expand combined brush channels into inside and outside contact ranges for optimizer coverage checks."
+      ]
+    },
     {
       "version": "0.9.1",
       "milestone": 11,
