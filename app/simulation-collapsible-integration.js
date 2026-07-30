@@ -5,6 +5,8 @@
     "app/workspace-developer-integration.js?v=0.9.2-production",
     "app/simulation-collapsible-core.js?v=0.9.2-production",
     "app/multi-map-lock-import-integration-v2.js?v=0.9.2-production",
+    "app/map-object-wipe-definition-integration.js?v=0.9.2-production",
+    "app/cold-glue-production-integration.js?v=0.9.2-production",
     "app/optimizer-brush-channel-expansion-integration.js?v=0.9.2-production"
   ];
 
