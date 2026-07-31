@@ -29,7 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
-          git -C /tmp/labeler-tool-staging checkout cc1d51e47ac7c5c76d6d18d876b947a3fbcea354
+          git -C /tmp/labeler-tool-staging checkout f867efba3796a77eefccbaab533decd52feed22a
 
       - name: Replace production runtime with staging runtime
         shell: bash
@@ -45,6 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           cat > /tmp/normalize_servoforge.py <<'PY'
+          import datetime
           import json
           import pathlib
           import re
@@ -52,6 +53,7 @@ jobs:
 
           root = pathlib.Path(sys.argv[1])
           version = "0.9.2"
+          staging_commit = "f867efba3796a77eefccbaab533decd52feed22a"
           staging_url = "https://bry4nt06.github.io/labeler-tool-staging/"
           production_url = "https://bry4nt06.github.io/labeler-tool-app/"
 
@@ -69,14 +71,43 @@ jobs:
               if revised != text:
                   path.write_text(revised, encoding="utf-8")
 
+          # Production uses the native production readiness implementation.
+          # The staging-only alignment shim must not be shipped or loaded.
+          staging_alignment = root / "app" / "release-readiness-staging-alignment-integration.js"
+          if staging_alignment.exists():
+              staging_alignment.unlink()
+
+          for relative in [
+              "app/simulation-collapsible-integration.js",
+              "service-worker.js",
+              "app/update-manager.js"
+          ]:
+              path = root / relative
+              if not path.exists():
+                  continue
+              original = path.read_text(encoding="utf-8")
+              trailing_newline = original.endswith("\n")
+              lines = [
+                  line for line in original.splitlines()
+                  if "release-readiness-staging-alignment-integration.js" not in line
+              ]
+              revised = "\n".join(lines) + ("\n" if trailing_newline else "")
+              path.write_text(revised, encoding="utf-8")
+
           index_path = root / "index.html"
           index = index_path.read_text(encoding="utf-8")
           index = re.sub(r'<div class="staging-environment-banner"[^>]*>.*?</div>\s*', "", index, count=1, flags=re.I | re.S)
           index = index.replace("ServoForge Labeler — STAGING", "ServoForge Labeler")
+          index = index.replace("STAGING / TEST BUILD — NOT PRODUCTION", "")
           index = re.sub(r'(<meta name="application-version" content=")[^"]+(" />)', rf'\g<1>{version}\2', index)
           index = re.sub(r'\?v=\d+\.\d+\.\d+(?:[-a-zA-Z0-9.]*)?', f'?v={version}', index)
           index = re.sub(r'Version\s+\d+\.\d+\.\d+(?:[-a-zA-Z0-9.]*)?\s+•\s+Updates are checked automatically\.', f'Version {version} • Updates are checked automatically.', index)
           index_path.write_text(index, encoding="utf-8")
+
+          loader_path = root / "app" / "simulation-collapsible-integration.js"
+          loader = loader_path.read_text(encoding="utf-8")
+          loader = loader.replace("Staging integration load failed", "Production integration load failed")
+          loader_path.write_text(loader, encoding="utf-8")
 
           updater_path = root / "app" / "update-manager.js"
           updater = updater_path.read_text(encoding="utf-8")
@@ -88,7 +119,7 @@ jobs:
           worker_path = root / "service-worker.js"
           worker = worker_path.read_text(encoding="utf-8")
           worker = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', worker)
-          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-exact-staging-cc1d51e";', worker)
+          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-f867efb";', worker)
           worker = re.sub(r'const CACHE_PREFIX = "[^"]+";', 'const CACHE_PREFIX = "servoforge-labeler-";', worker)
           worker_path.write_text(worker, encoding="utf-8")
 
@@ -99,7 +130,7 @@ jobs:
               "version": version,
               "releaseUrl": production_url,
               "downloadUrl": production_url,
-              "notes": "ServoForge 0.9.2 production is an exact normalized copy of approved staging commit cc1d51e."
+              "notes": f"ServoForge {version} production is an exact normalized copy of approved staging commit {staging_commit[:7]}."
           })
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
@@ -107,7 +138,7 @@ jobs:
           notes = json.loads(notes_path.read_text(encoding="utf-8"))
           notes["environment"] = "production"
           notes["currentVersion"] = version
-          notes["generatedAt"] = "2026-07-30T18:45:00Z"
+          notes["generatedAt"] = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
           notes_path.write_text(json.dumps(notes, indent=2) + "\n", encoding="utf-8")
           PY
 
@@ -135,6 +166,12 @@ jobs:
           grep -q 'content="0.9.2"' index.html
           grep -q 'Version 0.9.2' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
+          grep -q 'apl-body-back-two-label-transition-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          grep -q 'apl-back-wipe-direction-correction-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          grep -q 'servo-replay-loop-controls-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          grep -q 'map-builder-station-authority-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          grep -q 'map-object-builder-selection-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          ! test -e app/release-readiness-staging-alignment-integration.js
           ! grep -R -n --exclude-dir=.git --exclude-dir=.github 'labeler-tool-staging\|STAGING / TEST BUILD' .
 
           find app drivers -type f -name '*.js' -print0 | xargs -0 -n1 node --check
@@ -155,5 +192,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'Synchronize production exactly with approved staging build'
+          git commit -m 'Promote approved staging f867efb to production'
           git push origin HEAD:main
+          git push origin HEAD:release/servoforge-0.9.2-2026-07-31
