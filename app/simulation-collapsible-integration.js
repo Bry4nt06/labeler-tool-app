@@ -3,15 +3,20 @@
 (function loadSimulationAndMapAccessIntegrations() {
   const modules = [
     "app/simulation-collapsible-core.js?v=0.9.3-direct",
+    "app/servo-replay-loop-controls-integration.js?v=0.9.3-replay-icons-loop",
     "app/multi-map-lock-import-integration-v2.js?v=0.9.3-map-import-router",
     "app/map-object-wipe-definition-integration.js?v=0.9.3-object-wipes",
     "app/apl-single-cycle-transition-guard.js?v=0.9.3-dual-neck-pad-cycle",
+    "app/apl-body-back-two-label-transition-integration.js?v=0.9.3-no-neck-body-back-v3",
+    "app/apl-back-wipe-direction-correction-integration.js?v=0.9.3-back-wipe-direction-v4",
     "app/cold-glue-label-geometry-fallback-integration.js?v=0.9.3-cold-glue-shared-geometry",
     "app/cold-glue-center-out-brush-integration.js?v=0.9.3-cold-glue-channel-90",
     "app/cold-glue-gripper-channel-integration.js?v=0.9.3-gripper-label-length",
     "app/cold-glue-parameter-editor-integration.js?v=0.9.3-cold-glue-parameters",
     "app/cold-glue-neck-left-right-integration.js?v=0.9.3-neck-parameter-driven-v2",
     "app/cold-glue-gripper-sequence-integration-v2.js?v=0.9.3-station-safe-grippers-v2",
+    "app/map-builder-station-authority-integration.js?v=0.9.3-station-authority",
+    "app/map-object-builder-selection-integration.js?v=0.9.3-map-object-builder-selection-v2",
     "app/optimizer-map-contact-integration.js?v=0.9.3-map-contact",
     "app/optimizer-brush-channel-expansion-integration.js?v=0.9.3-brush-channel-contact"
   ];
@@ -38,5 +43,5 @@
   }
 
   modules.reduce((promise, source) => promise.then(() => loadScript(source)), Promise.resolve())
-    .catch((error) => console.error("Staging integration load failed", error));
+    .catch((error) => console.error("Production integration load failed", error));
 })();

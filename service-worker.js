@@ -1,7 +1,7 @@
 "use strict";
 
 const RELEASE_VERSION = "0.9.2";
-const CACHE_NAME = "servoforge-labeler-v0.9.2-exact-staging-cc1d51e";
+const CACHE_NAME = "servoforge-labeler-v0.9.2-production-f867efb";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 
@@ -59,15 +59,20 @@ const CORE_ASSETS = Object.freeze([
   "./app/incremental-rotation-integration.js",
   "./app/simulation-collapsible-integration.js",
   "./app/simulation-collapsible-core.js",
+  "./app/servo-replay-loop-controls-integration.js",
   "./app/multi-map-lock-import-integration-v2.js",
   "./app/map-object-wipe-definition-integration.js",
   "./app/apl-single-cycle-transition-guard.js",
+  "./app/apl-body-back-two-label-transition-integration.js",
+  "./app/apl-back-wipe-direction-correction-integration.js",
   "./app/cold-glue-label-geometry-fallback-integration.js",
   "./app/cold-glue-center-out-brush-integration.js",
   "./app/cold-glue-gripper-channel-integration.js",
   "./app/cold-glue-parameter-editor-integration.js",
   "./app/cold-glue-neck-left-right-integration.js",
   "./app/cold-glue-gripper-sequence-integration-v2.js",
+  "./app/map-builder-station-authority-integration.js",
+  "./app/map-object-builder-selection-integration.js",
   "./app/optimizer-map-contact-integration.js",
   "./app/optimizer-brush-channel-expansion-integration.js",
   "./app/update-manager.js",
