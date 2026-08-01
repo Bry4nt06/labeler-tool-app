@@ -2,12 +2,12 @@
 
 (function installMapObjectBuilderSelection() {
   const RETRY_MS = 50;
-  const CLICK_DISTANCE_PX = 7;
   const REVEAL_RETRIES = 8;
+  const NATIVE_CLICK_SUPPRESSION_MS = 450;
   let installed = false;
-  let pendingPointer = null;
   let wrappedNativeSelector = false;
-  let lastNativeSelection = { objectId: "", at: 0 };
+  let mapPointer = null;
+  let suppressedSelection = { objectId: "", until: 0 };
 
   function activeMap() {
     try {
@@ -46,6 +46,13 @@
       node.classList.toggle("selected-map-object", selected);
       node.classList.toggle("map-object", true);
     });
+  }
+
+  function selectWithoutOpening(objectId) {
+    if (!objectFromId(objectId)) return false;
+    state.selectedMapObjectId = String(objectId);
+    updateMapSelectionClasses(objectId);
+    return true;
   }
 
   function setExpandedStation(item) {
@@ -113,8 +120,6 @@
     if (openBuilder) openBuilderWithoutToggle();
 
     if (openBuilder && builderIsOpen()) {
-      // When the drawer was already open, keep the mounted panel and current
-      // scroll surface. Only update the object rows that need to change.
       focusObjectEditor(objectId, 0, !wasOpen);
     } else if (scroll) {
       focusObjectEditor(objectId, 0, false);
@@ -123,16 +128,22 @@
     return true;
   }
 
+  function nativeMapSelectionIsSuppressed(objectId) {
+    const id = String(objectId || "");
+    if (mapPointer?.objectId === id) return true;
+    return suppressedSelection.objectId === id && performance.now() <= suppressedSelection.until;
+  }
+
   function wrapNativeSelector() {
     if (wrappedNativeSelector || typeof selectMapBuilderObject !== "function") return false;
-    selectMapBuilderObject = function selectMapBuilderObjectSmoothly(objectId, options = {}) {
-      lastNativeSelection = { objectId: String(objectId || ""), at: performance.now() };
+    selectMapBuilderObject = function selectMapBuilderObjectOnDoubleClick(objectId, options = {}) {
+      if (nativeMapSelectionIsSuppressed(objectId)) return selectWithoutOpening(objectId);
       return selectAndDrillToObject(objectId, {
         openBuilder: options.openBuilder !== false,
         scroll: options.scroll !== false
       });
     };
-    selectMapBuilderObject.smoothMapSelection = true;
+    selectMapBuilderObject.doubleClickMapSelection = true;
     wrappedNativeSelector = true;
     return true;
   }
@@ -157,7 +168,7 @@
     }, 0);
   }
 
-  function beginSelection(event) {
+  function beginMapPointer(event) {
     if (event.button !== 0) return;
     const node = mapObjectNode(event);
     if (!node) return;
@@ -165,40 +176,35 @@
     if (!objectId || !objectFromId(objectId)) return;
 
     suppressOutsideAutoCloseForThisPointer();
-    pendingPointer = {
-      pointerId: event.pointerId,
-      objectId,
-      startX: event.clientX,
-      startY: event.clientY,
-      moved: false
-    };
+    mapPointer = { pointerId: event.pointerId, objectId };
+    suppressedSelection = { objectId, until: Number.POSITIVE_INFINITY };
+    selectWithoutOpening(objectId);
   }
 
-  function trackSelection(event) {
-    if (!pendingPointer || event.pointerId !== pendingPointer.pointerId) return;
-    if (Math.hypot(event.clientX - pendingPointer.startX, event.clientY - pendingPointer.startY) >= CLICK_DISTANCE_PX) {
-      pendingPointer.moved = true;
-    }
+  function finishMapPointer(event) {
+    if (!mapPointer || event.pointerId !== mapPointer.pointerId) return;
+    const objectId = mapPointer.objectId;
+    mapPointer = null;
+    suppressedSelection = { objectId, until: performance.now() + NATIVE_CLICK_SUPPRESSION_MS };
   }
 
-  function finishSelection(event) {
-    if (!pendingPointer || event.pointerId !== pendingPointer.pointerId) return;
-    const completed = pendingPointer;
-    pendingPointer = null;
-    if (completed.moved) return;
-
-    // Unlocked objects are normally committed by setup-bindings on pointerup.
-    // Locked objects take the pan path, so use this fallback only when the
-    // native selector did not already handle the same object.
-    window.setTimeout(() => {
-      const nativeHandled = lastNativeSelection.objectId === completed.objectId
-        && performance.now() - lastNativeSelection.at < 120;
-      if (!nativeHandled) selectAndDrillToObject(completed.objectId, { openBuilder: true, scroll: true });
-    }, 0);
+  function cancelMapPointer(event) {
+    if (!mapPointer || event.pointerId !== mapPointer.pointerId) return;
+    const objectId = mapPointer.objectId;
+    mapPointer = null;
+    suppressedSelection = { objectId, until: performance.now() + NATIVE_CLICK_SUPPRESSION_MS };
   }
 
-  function cancelSelection(event) {
-    if (pendingPointer && event.pointerId === pendingPointer.pointerId) pendingPointer = null;
+  function openOnDoubleClick(event) {
+    if (event.button !== 0) return;
+    const node = mapObjectNode(event);
+    if (!node) return;
+    const objectId = String(node.dataset.mapObjectId || "");
+    if (!objectId || !objectFromId(objectId)) return;
+    event.preventDefault();
+    suppressOutsideAutoCloseForThisPointer();
+    suppressedSelection = { objectId, until: performance.now() + NATIVE_CLICK_SUPPRESSION_MS };
+    selectAndDrillToObject(objectId, { openBuilder: true, scroll: true });
   }
 
   function installStyles() {
@@ -206,7 +212,8 @@
     const style = document.createElement("style");
     style.id = "mapObjectBuilderSelectionStyles";
     style.textContent = `
-      #mapSvg [data-map-object-id]{cursor:pointer}
+      #mapSvg [data-map-object-id]{cursor:grab}
+      #mapSvg [data-map-object-id]:active{cursor:grabbing}
       #mapSvg.map-is-locked [data-map-object-id]{cursor:pointer}
       #applicationSetupDialog .wipe-builder-row.selected-builder-object{
         border-color:var(--green);
@@ -223,10 +230,10 @@
 
     installed = true;
     installStyles();
-    document.addEventListener("pointerdown", beginSelection, true);
-    document.addEventListener("pointermove", trackSelection, true);
-    document.addEventListener("pointerup", finishSelection, false);
-    document.addEventListener("pointercancel", cancelSelection, true);
+    document.addEventListener("pointerdown", beginMapPointer, true);
+    document.addEventListener("pointerup", finishMapPointer, true);
+    document.addEventListener("pointercancel", cancelMapPointer, true);
+    document.addEventListener("dblclick", openOnDoubleClick, true);
     return true;
   }
 

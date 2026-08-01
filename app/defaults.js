@@ -88,13 +88,6 @@ const applicationPresets = {
 
 const SPENDER_PLATE_ARM_ANGLE = 75;
 const SETTINGS_KEY = "labelerToolSettings";
-const defaultZoneSiteConfiguration = Object.freeze({
-  zones: Object.freeze({
-    NAZ: Object.freeze(["FCL", "WMB", "CVL", "COB", "JAX", "LA", "BVL", "HOB", "STL"]),
-    SAS: Object.freeze([]),
-    UKI: Object.freeze(["MAB"])
-  })
-});
 const profileTiming = {
   spenderArriveEarly: 1,
   neckRoller2Offset: -4.5,
@@ -185,11 +178,6 @@ const state = {
   },
   selectedBrand: "12oz Bud Light Lime (9F)",
   selectedBottle: "LNNR - 12 Oz",
-  selectedZone: "NAZ",
-  selectedSite: "FCL",
-  mapLibraryZone: "",
-  mapLibrarySite: "",
-  zoneSiteConfiguration: deepClone(defaultZoneSiteConfiguration),
   buildInputs: {
     neckSpenderPlateDeg: 75,
     neckApplication: "Center",
@@ -236,8 +224,6 @@ const els = {
   applicationMode: document.querySelector("#applicationMode"),
   mapLibrarySelect: document.querySelector("#mapLibrarySelect"),
   mapName: document.querySelector("#mapName"),
-  mapZone: document.querySelector("#mapZone"),
-  mapSite: document.querySelector("#mapSite"),
   mapHeadCount: document.querySelector("#mapHeadCount"),
   mapMachineType: document.querySelector("#mapMachineType"),
   addMachineType: document.querySelector("#addMachineType"),
@@ -282,9 +268,6 @@ const els = {
   exportSettings: document.querySelector("#exportSettings"),
   importSettings: document.querySelector("#importSettings"),
   developerMenu: document.querySelector("#developerMenu"),
-  developerZoneSiteEditor: document.querySelector("#developerZoneSiteEditor"),
-  exportZoneSiteConfig: document.querySelector("#exportZoneSiteConfig"),
-  importZoneSiteConfig: document.querySelector("#importZoneSiteConfig"),
   loadGeneratedTurns: document.querySelector("#loadGeneratedTurns"),
   clearCustomTurns: document.querySelector("#clearCustomTurns"),
   previewAngle: document.querySelector("#previewAngle"),
