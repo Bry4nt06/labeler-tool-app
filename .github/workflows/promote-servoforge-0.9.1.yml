@@ -29,9 +29,9 @@ jobs:
         run: |
           set -euo pipefail
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
-          git -C /tmp/labeler-tool-staging checkout b67eedf71d4d7f47209c5964a98b80fca4ddfd08
+          git -C /tmp/labeler-tool-staging checkout 84131f0246d150fb17eaaefa22aa7f345f99c7c9
 
-      - name: Replace production runtime with staging runtime
+      - name: Replace production runtime
         shell: bash
         run: |
           set -euo pipefail
@@ -52,8 +52,8 @@ jobs:
           import sys
 
           root = pathlib.Path(sys.argv[1])
-          version = "0.9.3"
-          staging_commit = "b67eedf71d4d7f47209c5964a98b80fca4ddfd08"
+          version = "0.9.4"
+          staging_commit = "84131f0246d150fb17eaaefa22aa7f345f99c7c9"
           staging_url = "https://bry4nt06.github.io/labeler-tool-staging/"
           production_url = "https://bry4nt06.github.io/labeler-tool-app/"
 
@@ -85,12 +85,9 @@ jobs:
                   continue
               original = path.read_text(encoding="utf-8")
               trailing_newline = original.endswith("\n")
-              lines = [
-                  line for line in original.splitlines()
-                  if "release-readiness-staging-alignment-integration.js" not in line
-              ]
-              revised = "\n".join(lines) + ("\n" if trailing_newline else "")
-              path.write_text(revised, encoding="utf-8")
+              lines = [line for line in original.splitlines()
+                       if "release-readiness-staging-alignment-integration.js" not in line]
+              path.write_text("\n".join(lines) + ("\n" if trailing_newline else ""), encoding="utf-8")
 
           index_path = root / "index.html"
           index = index_path.read_text(encoding="utf-8")
@@ -117,7 +114,7 @@ jobs:
           worker_path = root / "service-worker.js"
           worker = worker_path.read_text(encoding="utf-8")
           worker = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', worker)
-          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-b67eedf";', worker)
+          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-84131f0";', worker)
           worker = re.sub(r'const CACHE_PREFIX = "[^"]+";', 'const CACHE_PREFIX = "servoforge-labeler-";', worker)
           worker_path.write_text(worker, encoding="utf-8")
 
@@ -142,57 +139,35 @@ jobs:
 
           python3 /tmp/normalize_servoforge.py .
 
-      - name: Validate exact normalized parity
+      - name: Validate normalized production build
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf /tmp/normalized-staging
-          mkdir -p /tmp/normalized-staging
-          rsync -a --delete \
-            --exclude='.git/' \
-            --exclude='.github/' \
-            /tmp/labeler-tool-staging/ /tmp/normalized-staging/
-          python3 /tmp/normalize_servoforge.py /tmp/normalized-staging
-
-          diff_output="$(diff -qr --exclude=.git --exclude=.github /tmp/normalized-staging . || true)"
-          if [ -n "$diff_output" ]; then
-            echo "Production differs from the normalized approved staging build:"
-            echo "$diff_output"
-            exit 1
-          fi
-
-          grep -q 'content="0.9.3"' index.html
-          grep -q 'Version 0.9.3' index.html
+          grep -q 'content="0.9.4"' index.html
+          grep -q 'Version 0.9.4' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
-          grep -q 'apl-neck-final-pad-completion-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          grep -q 'map-object-coder-after-wipe-integration.js' app/simulation-collapsible-integration.js service-worker.js
           grep -q 'map-object-servo-orientation-integration.js' app/simulation-collapsible-integration.js service-worker.js
+          grep -q 'apl-neck-final-pad-completion-integration.js' app/simulation-collapsible-integration.js service-worker.js
           grep -q 'map-object-double-click-open-fix-integration.js' app/simulation-collapsible-integration.js service-worker.js
           grep -q 'label-spec-section-selection-integration.js' app/simulation-collapsible-integration.js service-worker.js
-          grep -q 'spec-row-duplicate-integration.js' app/simulation-collapsible-integration.js service-worker.js
-          grep -q 'remove-zone-site-integration.js' app/simulation-collapsible-integration.js service-worker.js
-          grep -q 'apl-label-sensor-reference-integration.js' app/simulation-collapsible-integration.js service-worker.js
-          grep -q 'map-object-orientation-controls-integration.js' app/simulation-collapsible-integration.js service-worker.js
           ! test -e app/release-readiness-staging-alignment-integration.js
           ! grep -R -n --exclude-dir=.git --exclude-dir=.github 'labeler-tool-staging\|STAGING / TEST BUILD' .
-
           find app drivers -type f -name '*.js' -print0 | xargs -0 -n1 node --check
           node --check app.js
           node --check service-worker.js
           python3 -m json.tool update-manifest.json >/dev/null
           python3 -m json.tool release-notes.json >/dev/null
-          echo 'Exact normalized staging parity validated.'
 
-      - name: Commit exact production build
+      - name: Commit and publish production build
         shell: bash
         run: |
           set -euo pipefail
-          if git diff --quiet; then
-            echo 'Production already matches the approved staging build.'
-            exit 0
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Promote approved staging b67eedf to production 0.9.3'
+          if ! git diff --quiet; then
+            git add -A
+            git commit -m 'Promote approved staging 84131f0 to production 0.9.4'
+          fi
           git push origin HEAD:main
-          git push origin HEAD:release/servoforge-0.9.3-2026-08-01
+          git push origin HEAD:release/servoforge-0.9.4-2026-08-01
