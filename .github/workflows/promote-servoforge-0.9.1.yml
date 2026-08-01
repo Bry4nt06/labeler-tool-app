@@ -71,8 +71,6 @@ jobs:
               if revised != text:
                   path.write_text(revised, encoding="utf-8")
 
-          # Production uses the native production readiness implementation.
-          # The staging-only alignment shim must not be shipped or loaded.
           staging_alignment = root / "app" / "release-readiness-staging-alignment-integration.js"
           if staging_alignment.exists():
               staging_alignment.unlink()
@@ -216,3 +214,5 @@ jobs:
           git commit -m 'Promote ServoForge 0.9.3 from staging c5e9b59'
           git push origin HEAD:main
           git push origin HEAD:release/servoforge-0.9.3-2026-08-01
+
+# Native merge trigger for the approved ServoForge 0.9.3 production promotion.
