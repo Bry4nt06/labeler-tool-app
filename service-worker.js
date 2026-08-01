@@ -1,7 +1,7 @@
 "use strict";
 
-const RELEASE_VERSION = "0.9.3";
-const CACHE_NAME = "servoforge-labeler-v0.9.3-production-b67eedf";
+const RELEASE_VERSION = "0.9.4";
+const CACHE_NAME = "servoforge-labeler-v0.9.4-production-84131f0";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 
@@ -71,6 +71,7 @@ const CORE_ASSETS = Object.freeze([
   "./app/apl-back-wipe-direction-correction-integration.js",
   "./app/apl-label-sensor-reference-integration.js",
   "./app/map-object-servo-orientation-integration.js",
+  "./app/map-object-coder-after-wipe-integration.js",
   "./app/map-object-orientation-controls-integration.js",
   "./app/cold-glue-label-geometry-fallback-integration.js",
   "./app/cold-glue-center-out-brush-integration.js",
