@@ -16,7 +16,9 @@
     "app/apl-label-sensor-reference-integration.js?v=0.9.3-active-sensor-reference",
     "app/map-object-servo-orientation-integration.js?v=0.9.3-map-object-servo-orientation-v3",
     "app/map-object-coder-after-wipe-integration.js?v=0.9.3-coder-after-wipe-v1",
-    "app/map-object-orientation-controls-integration.js?v=0.9.3-map-object-orientation-controls-v1",
+    "app/map-object-orientation-controls-integration.js?v=0.9.4-coder-orientation-off-v1",
+    "app/motion-profile-regeneration-integration.js?v=0.9.4-motion-profile-regeneration-v1",
+    "app/apl-continuous-motion-integration.js?v=0.9.4-apl-continuous-motion-v2",
     "app/cold-glue-label-geometry-fallback-integration.js?v=0.9.3-cold-glue-shared-geometry",
     "app/cold-glue-center-out-brush-integration.js?v=0.9.3-cold-glue-channel-90",
     "app/cold-glue-gripper-channel-integration.js?v=0.9.3-gripper-label-length",
@@ -27,6 +29,9 @@
     "app/map-object-builder-selection-integration.js?v=0.9.3-map-object-builder-selection-v3",
     "app/map-object-double-click-open-fix-integration.js?v=0.9.3-map-object-double-press-v4",
     "app/label-spec-section-selection-integration.js?v=0.9.3-label-section-checkboxes-v1",
+    "app/company-default-programs-integration.js?v=0.9.5-company-defaults-v2",
+    "app/workbook-reference-map-library-integration.js?v=0.9.4-workbook-map-library-v1",
+    "app/locked-map-brand-selector-integration.js?v=0.9.4-locked-map-brands-v1",
     "app/optimizer-map-contact-integration.js?v=0.9.3-map-contact",
     "app/optimizer-brush-channel-expansion-integration.js?v=0.9.3-brush-channel-contact"
   ];

@@ -18,21 +18,28 @@
       .map(([value, label]) => `<option value="${value}"${selected === value ? " selected" : ""}>${label}</option>`).join("");
   }
 
-  function enabled(item) {
-    return item.kind === "sensor" ? Boolean(item.orientBottle ?? item.servoAssist) : item.orientBottle !== false;
+  function normalizeCodingOrientationOff({ persist = false } = {}) {
+    const maps = [...new Set([mapNow(), editMap()].filter(Boolean))];
+    let changed = false;
+    maps.forEach((map) => {
+      (map.objects || []).forEach((item) => {
+        if (item?.kind !== "coding" || item.orientBottle === false) return;
+        item.orientBottle = false;
+        changed = true;
+      });
+    });
+    if (changed && persist && typeof saveCurrentSettings === "function") saveCurrentSettings();
+    return changed;
   }
 
   function controls(item) {
     const section = sectionValue(item.orientationLabelSection);
-    const orient = item.kind === "coding"
-      ? `<label class="builder-checkbox-label"><input data-object-orientation-field="orientBottle" type="checkbox"${enabled(item) ? " checked" : ""}> Orient bottle for coding<small>Creates a CMD 7 correction and holds CMD 3 through the coding window.</small></label>`
-      : "";
     const target = item.kind === "coding"
       ? `<label>Orientation target<select data-object-orientation-field="orientationTarget"><option value="code-box"${item.orientationTarget !== "label-center" ? " selected" : ""}>Code box center</option><option value="label-center"${item.orientationTarget === "label-center" ? " selected" : ""}>Label centerline</option></select></label>`
       : "";
     return `<div class="map-object-orientation-fields" data-orientation-object-id="${escapeHtml(item.id)}">
       <label>Target label<select data-object-orientation-field="orientationLabelSection">${sectionOptions(section)}</select><small>The servo profile uses this label instead of a brand- or machine-specific assumption.</small></label>
-      ${orient}${target}
+      ${target}
     </div>`;
   }
 
@@ -44,6 +51,7 @@
     if (field === "orientationLabelSection") item.orientationLabelSection = sectionValue(control.value);
     if (field === "orientationTarget") item.orientationTarget = control.value === "label-center" ? "label-center" : "code-box";
     if (field === "orientBottle") item.orientBottle = Boolean(control.checked);
+    if (item.kind === "coding") item.orientBottle = false;
     item.orientationConfigured = true;
     if (typeof refreshAfterBuilderEdit === "function") refreshAfterBuilderEdit({ persist: true });
     if (typeof renderWipeDownBuilder === "function") renderWipeDownBuilder();
@@ -55,6 +63,7 @@
     document.querySelectorAll(".wipe-builder-row[data-builder-object-id]").forEach((row) => {
       const item = map.objects?.find((entry) => String(entry.id) === String(row.dataset.builderObjectId));
       if (!item || !["sensor", "coding"].includes(item.kind)) return;
+      if (item.kind === "coding") item.orientBottle = false;
       const grid = row.querySelector(".builder-row-grid");
       if (!grid || grid.querySelector(".map-object-orientation-fields")) return;
       grid.insertAdjacentHTML("beforeend", controls(item));
@@ -71,7 +80,6 @@
     const holder = document.createElement("div");
     holder.className = "builder-orientation-create-fields";
     holder.innerHTML = `<label id="builderOrientationLabelWrap">Target label<select id="builderOrientationLabel">${sectionOptions("auto")}</select></label>
-      <label id="builderCodingOrientWrap" class="builder-checkbox-label"><input id="builderCodingOrient" type="checkbox" checked> Orient bottle for coding</label>
       <label id="builderCodingTargetWrap">Orientation target<select id="builderCodingTarget"><option value="code-box">Code box center</option><option value="label-center">Label centerline</option></select></label>`;
     grid.insertBefore(holder, button || null);
     updateCreateVisibility();
@@ -82,10 +90,8 @@
     const relevant = type === "sensor" || type === "coding";
     const coding = type === "coding";
     const label = document.querySelector("#builderOrientationLabelWrap");
-    const orient = document.querySelector("#builderCodingOrientWrap");
     const target = document.querySelector("#builderCodingTargetWrap");
     if (label) label.hidden = !relevant;
-    if (orient) orient.hidden = !coding;
     if (target) target.hidden = !coding;
   }
 
@@ -96,7 +102,7 @@
       ids: new Set((map?.objects || []).map((item) => String(item.id))),
       type: document.querySelector("#builderObjectType")?.value,
       section: sectionValue(document.querySelector("#builderOrientationLabel")?.value),
-      orient: Boolean(document.querySelector("#builderCodingOrient")?.checked),
+      orient: false,
       target: document.querySelector("#builderCodingTarget")?.value === "label-center" ? "label-center" : "code-box"
     };
   }
@@ -111,7 +117,7 @@
     if (!item) return;
     item.orientationLabelSection = snapshot.section;
     item.orientationTarget = snapshot.type === "coding" ? snapshot.target : "label-center";
-    item.orientBottle = snapshot.type === "sensor" ? Boolean(item.servoAssist) : snapshot.orient;
+    item.orientBottle = snapshot.type === "sensor" ? Boolean(item.servoAssist) : false;
     item.orientationConfigured = true;
     if (typeof refreshAfterBuilderEdit === "function") refreshAfterBuilderEdit({ persist: true });
     if (typeof renderWipeDownBuilder === "function") renderWipeDownBuilder();
@@ -121,19 +127,22 @@
     if (document.querySelector("#mapObjectOrientationControlStyles")) return;
     const style = document.createElement("style");
     style.id = "mapObjectOrientationControlStyles";
-    style.textContent = `.map-object-orientation-fields,.builder-orientation-create-fields{display:contents}.map-object-orientation-fields>label,.builder-orientation-create-fields>label{border-left:3px solid var(--blue);padding-left:7px}`;
+    style.textContent = `.map-object-orientation-fields,.builder-orientation-create-fields{display:contents}.map-object-orientation-fields>label,.builder-orientation-create-fields>label{border-left:3px solid var(--blue);padding-left:7px}#builderCodingOrientWrap,.map-object-orientation-fields label:has([data-object-orientation-field="orientBottle"]){display:none!important}`;
     document.head.appendChild(style);
   }
 
   function install() {
     if (installed) return true;
     if (typeof renderWipeDownBuilder !== "function") return false;
+    normalizeCodingOrientationOff({ persist: true });
     const base = renderWipeDownBuilder;
     renderWipeDownBuilder = function renderWipeDownBuilderWithOrientationControls(...args) {
+      const changed = normalizeCodingOrientationOff();
       const result = base.apply(this, args);
       addControls();
       decorateEditors();
       updateCreateVisibility();
+      if (changed && typeof saveCurrentSettings === "function") saveCurrentSettings();
       return result;
     };
     window.renderWipeDownBuilder = renderWipeDownBuilder;
@@ -143,6 +152,12 @@
     installStyles();
     installed = true;
     renderWipeDownBuilder();
+    try {
+      if (typeof applyGeneratedServoProfile === "function") applyGeneratedServoProfile();
+      if (typeof render === "function") render();
+    } catch (error) {
+      console.error("Unable to disable coding orientation.", error);
+    }
     return true;
   }
 

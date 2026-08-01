@@ -1,7 +1,7 @@
 "use strict";
 
 (function installServoForgeUpdateManager() {
-  const RELEASE_VERSION = "0.9.4";
+  const RELEASE_VERSION = "0.9.5";
   const APP_SCOPE = new URL("./", window.location.href).href;
   const CACHE_PREFIX = "servoforge-labeler-";
 
@@ -149,7 +149,7 @@
 })();
 
 (function loadProductionFeatureModules() {
-  const RELEASE_VERSION = "0.9.4";
+  const RELEASE_VERSION = "0.9.5";
   const modules = [
     "app/diagnostics-workspace-integration.js",
     "app/workspace-developer-integration.js",

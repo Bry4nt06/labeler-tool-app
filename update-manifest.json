@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.9.4",
+  "version": "0.9.5",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.4 production is an exact normalized copy of approved staging commit 84131f0."
+  "notes": "ServoForge 0.9.5 promotes the approved default-program package and exact normalized staging commit 7f08492."
 }
