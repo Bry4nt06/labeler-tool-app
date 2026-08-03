@@ -43,13 +43,18 @@
     return Number.isFinite(value) ? value : null;
   }
 
+  function duplicateIcon() {
+    if (typeof specificationActionIcon === "function") return specificationActionIcon("duplicate");
+    return '<svg class="spec-action-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="9" width="10" height="10" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+  }
+
   function duplicateButton(library, id, label) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "secondary-button small-button spec-duplicate-button";
+    button.className = "secondary-button small-button spec-icon-button spec-duplicate-button";
     button.dataset.specLibrary = library;
     button.dataset.specId = String(id);
-    button.textContent = "Duplicate";
+    button.innerHTML = duplicateIcon();
     button.title = `Duplicate ${label}`;
     button.setAttribute("aria-label", `Duplicate ${label}`);
     return button;
@@ -170,9 +175,41 @@
     const style = document.createElement("style");
     style.id = "specRowDuplicateStyles";
     style.textContent = `
-      .spec-row-actions { display:flex;align-items:center;justify-content:flex-start;gap:5px;white-space:nowrap; }
-      .spec-row-actions .spec-duplicate-button { min-width:68px; }
-      .spec-duplicate-created { outline:2px solid var(--green);outline-offset:-2px;background:color-mix(in srgb,var(--green) 12%,transparent); }
+      .spec-row-actions {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 5px;
+        min-width: 0;
+        white-space: nowrap;
+      }
+      .spec-row-actions .spec-icon-button {
+        display: inline-flex;
+        flex: 0 0 32px;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        min-width: 32px;
+        height: 30px;
+        min-height: 30px;
+        padding: 5px;
+      }
+      .spec-action-icon {
+        width: 16px;
+        height: 16px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        pointer-events: none;
+      }
+      .spec-duplicate-created {
+        outline: 2px solid var(--green);
+        outline-offset: -2px;
+        background: color-mix(in srgb, var(--green) 12%, transparent);
+      }
     `;
     document.head.appendChild(style);
   }

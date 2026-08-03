@@ -148,7 +148,7 @@ const state = {
   showAllProgramMovesOverlay: false,
   showQuadrantReferences: false,
   showAggregateSpacingOverlay: false,
-  workspaceView: "standard",
+  workspaceView: "direct",
   wipeBuilderOpen: false,
   mapLibrary: [],
   servoProfileLibrary: [],

@@ -1,7 +1,7 @@
 "use strict";
 
 (function installServoForgeUpdateManager() {
-  const RELEASE_VERSION = "0.9.5";
+  const RELEASE_VERSION = "0.9.9";
   const APP_SCOPE = new URL("./", window.location.href).href;
   const CACHE_PREFIX = "servoforge-labeler-";
 
@@ -148,8 +148,8 @@
   window.addEventListener("load", enforceReleaseVersion, { once: true });
 })();
 
-(function loadProductionFeatureModules() {
-  const RELEASE_VERSION = "0.9.5";
+(function loadStagingFeatureModules() {
+  const RELEASE_VERSION = "0.9.9";
   const modules = [
     "app/diagnostics-workspace-integration.js",
     "app/workspace-developer-integration.js",
@@ -185,7 +185,7 @@
   }
 
   modules.reduce((promise, path) => promise.then(() => loadScript(path)), Promise.resolve())
-    .catch((error) => console.error("Production feature module load failed", error));
+    .catch((error) => console.error("Staging feature module load failed", error));
 })();
 
 (function scopeReleaseReadinessAssetVersions() {

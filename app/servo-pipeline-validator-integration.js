@@ -1,7 +1,7 @@
 "use strict";
 
 (function installServoPipelineValidation() {
-  const VALIDATOR_RELEASE_VERSION = "0.8.9";
+  const VALIDATOR_RELEASE_VERSION = "0.9.9";
   const LEGACY_PAIR_CODES = new Set([
     "correction-missing-leading-reference",
     "correction-missing-trailing-reference",
@@ -131,10 +131,6 @@
       machineFamily: family
     });
 
-    // The machine-family grammar is authoritative. The original pipeline
-    // validator still contains the conservative one-CMD-7-at-a-time grammar;
-    // remove that grammar layer and retain all data, speed, motion, planner,
-    // translation, and terminal checks.
     const retained = (result.issues || []).filter((issue) => {
       if (issue?.category === "grammar") return false;
       if (family === "TOPMODUL" && LEGACY_PAIR_CODES.has(issue?.code)) return false;
@@ -194,10 +190,6 @@
       .pipeline-validation-summary[data-status="PASS"] strong { color:var(--green); }
       .pipeline-validation-summary[data-status="REVIEW"] strong { color:#ffc56b; }
       .pipeline-validation-summary[data-status="FAIL"] strong { color:#ff8181; }
-      .pipeline-validation-banner { margin-bottom:6px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel-hi);font-size:9px;line-height:1.25; }
-      .pipeline-validation-banner strong { color:var(--green); }
-      .pipeline-validation-banner[data-status="REVIEW"] strong { color:#ffc56b; }
-      .pipeline-validation-banner[data-status="FAIL"] strong { color:#ff8181; }
     `;
     document.head.appendChild(style);
   }
@@ -218,14 +210,6 @@
     els.validationDetails.appendChild(summary);
 
     els.validationList.querySelector(".pipeline-validation-banner")?.remove();
-    const banner = document.createElement("div");
-    banner.className = "pipeline-validation-banner";
-    banner.dataset.status = result.status;
-    const grammarLabel = result.machineGrammarName
-      ? `${result.machineFamily} • ${result.machineGrammarName}`
-      : `${result.machineProfile} • ${result.profileId}`;
-    banner.innerHTML = `<strong>${grammarLabel}</strong> — mechanical events, translated commands, machine-family references, speed envelope, terminal policy, and table-angle order validated.`;
-    els.validationList.prepend(banner);
   }
 
   function pipelineIssueNotes(result) {

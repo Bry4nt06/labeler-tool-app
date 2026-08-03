@@ -1,182 +1,33 @@
 "use strict";
 
-(function connectProfileTranslator() {
-  const TRANSLATOR_RELEASE_VERSION = "0.7.96";
-  const LEGACY_COMMANDS = new Set([3, 7]);
+(function connectProfileTranslatorUi() {
   let profileRenderPending = false;
   let workbenchRefreshPending = false;
+  let installed = false;
 
-  function selectedTranslatorProfile() {
-    const profiles = typeof allMotionProfiles === "function" ? allMotionProfiles() : [];
-    const selectedId = state.selectedMotionProfileId || state.defaultMotionProfileId || "automatic";
-    return profiles.find((profile) => profile.id === selectedId) || profiles[0] || {
-      id: "automatic",
-      name: "Automatic",
-      description: "Uses the active machine profile.",
-      machineProfile: "AUTO",
-      intents: [],
-      builtIn: true
-    };
-  }
-
-  function translatorMachineProfile(profile) {
-    return typeof resolveProfileMachine === "function" ? resolveProfileMachine(profile) : "DEFAULT";
-  }
-
-  function syncTranslatedRows(result, normalizedRows) {
-    result.rows = normalizedRows;
-    result.plan = {
-      ...(result.plan || {}),
-      steps: normalizedRows.map((row, index) => ({
-        ...(result.plan?.steps?.[index] || {}),
-        index,
-        eventId: row.motionEventId || `EV${String(index + 1).padStart(3, "0")}`,
-        eventType: row.motionEventType || "GENERAL",
-        hmi: row.hmi ?? index + 1,
-        tableAngle: Number(row.tableAngle),
-        plateAngle: Number(row.plateAngle),
-        action: String(row.action || ""),
-        baseCommand: Number(row.baseCmd ?? row.cmd),
-        requestedCommand: Number(row.plannerRequestedCommand ?? row.cmd),
-        recommendedCommand: Number(row.cmd),
-        recommendedCommandName: row.translatedCommandName || `CMD ${row.cmd}`,
-        intent: row.plannerIntent || (Number(row.cmd) === 7 ? "ROTATE" : "HOLD"),
-        reason: row.plannerReason || "",
-        fallbackUsed: Boolean(row.plannerFallbackUsed),
-        fallbackReason: String(row.plannerFallbackReason || "")
-      }))
-    };
-    return result;
-  }
-
-  function buildAndTranslateProgram() {
-    const planner = window.LabelerMotionPlannerDriver;
-    const translator = window.LabelerProfileTranslatorDriver;
-    if (!planner?.buildPlan || !translator?.translate || !Array.isArray(state.program)) return null;
-
-    const profile = selectedTranslatorProfile();
-    const requestedProfileId = profile.id || "automatic";
-    const machineProfile = translatorMachineProfile(profile);
-    const plan = planner.buildPlan(state.program, {
-      profileId: requestedProfileId,
-      machineProfile,
-      customIntents: profile.builtIn ? [] : profile.intents || []
-    });
-    const result = translator.translate(state.program, plan, {
-      requestedProfileId,
-      profileId: plan.profileId,
-      machineProfile
-    });
-
-    state.program = result.rows;
-    if (typeof normalizeServoProgramTableAngles === "function") {
-      const normalized = normalizeServoProgramTableAngles(state.program);
-      state.program = normalized.rows;
-      state.tableAngleSequence = {
-        valid: true,
-        minimumStep: normalized.minimumStep,
-        adjustedRows: normalized.adjustedRows,
-        adjustedCount: normalized.adjustedRows.length
-      };
-      syncTranslatedRows(result, state.program);
-    }
-
-    state.motionPlan = {
-      ...(state.motionPlan || {}),
-      planner: result.plan,
-      translation: {
-        requestedProfileId: result.requestedProfileId,
-        profileId: result.profileId,
-        machineProfile: result.machineProfile,
-        translated: result.translated,
-        translatedCount: result.translatedCount,
-        advancedCommandsApplied: result.advancedCommandsApplied,
-        advancedCount: result.advancedCount,
-        fallbackCount: result.fallbackCount,
-        commandSummary: result.commandSummary,
-        issues: result.issues
-      }
-    };
-    state.motionTranslation = result;
-    return result;
-  }
-
-  function installTranslatorAwareCommandValidation() {
-    const baseDriver = window.LabelerServoCommandDriver;
-    if (!baseDriver || baseDriver.translatorAwareValidation) return;
-
-    function validateTranslatedReferences(rows, tolerance = 0.001) {
-      const sourceRows = Array.isArray(rows) ? rows : [];
-      const usesAdvancedCommands = sourceRows.some((row) => !LEGACY_COMMANDS.has(Number(row?.cmd)));
-      if (!usesAdvancedCommands) return baseDriver.validateReferences(sourceRows, tolerance);
-
-      const issues = [];
-      sourceRows.forEach((row, index) => {
-        const command = Number(row?.cmd);
-        const definition = baseDriver.moveDefinition(command);
-        const machineProfile = String(row?.translatedMachineProfile || state.motionTranslation?.machineProfile || "DEFAULT").toUpperCase();
-        if (!definition) {
-          issues.push({
-            level: "bad",
-            code: "unknown-translated-command",
-            hmi: row?.hmi ?? index + 1,
-            message: `HMI ${row?.hmi ?? index + 1} uses unknown CMD ${row?.cmd}.`
-          });
-          return;
-        }
-        if (!baseDriver.profileSupportsMove(machineProfile, command)) {
-          issues.push({
-            level: "bad",
-            code: "unsupported-translated-command",
-            hmi: row?.hmi ?? index + 1,
-            message: `HMI ${row?.hmi ?? index + 1} uses ${definition.name} (CMD ${command}), which is not enabled for ${machineProfile}.`
-          });
-        }
-        if (index > 0 && Number(row.tableAngle) <= Number(sourceRows[index - 1].tableAngle) + tolerance) {
-          issues.push({
-            level: "bad",
-            code: "translated-table-order",
-            hmi: row?.hmi ?? index + 1,
-            message: `HMI ${row?.hmi ?? index + 1} must have a table angle greater than the preceding command.`
-          });
-        }
-      });
-
-      const finalRow = sourceRows[sourceRows.length - 1];
-      if (sourceRows.length && !(Number(finalRow?.cmd) === 3 && (finalRow?.terminalRest === true || /end\s*(?:of\s*)?curve|end curve.*rest/i.test(String(finalRow?.action || ""))))) {
-        issues.push({
-          level: "bad",
-          code: "translated-terminal-rest",
-          hmi: finalRow?.hmi,
-          message: "The translated servo curve must finish with Rest (CMD 3) at End Curve."
-        });
-      }
-      return issues;
-    }
-
-    window.LabelerServoCommandDriver = Object.freeze({
-      ...baseDriver,
-      validateGrammar: validateTranslatedReferences,
-      validateReferences: validateTranslatedReferences,
-      translatorAwareValidation: true
-    });
+  function translationService() {
+    return window.LabelerProfileTranslationService || null;
   }
 
   function persistMotionProfileSelection() {
-    if (typeof settingsSnapshot === "function") {
+    if (typeof settingsSnapshot === "function" && !settingsSnapshot.motionProfilePersistenceInstalled) {
       const settingsSnapshotBeforeProfiles = settingsSnapshot;
-      settingsSnapshot = function settingsSnapshotWithMotionProfiles(...args) {
+      const wrapped = function settingsSnapshotWithMotionProfiles(...args) {
         return {
           ...settingsSnapshotBeforeProfiles.apply(this, args),
           selectedMotionProfileId: state.selectedMotionProfileId || "automatic",
           defaultMotionProfileId: state.defaultMotionProfileId || "automatic"
         };
       };
+      wrapped.motionProfilePersistenceInstalled = true;
+      wrapped.previousSettingsSnapshot = settingsSnapshotBeforeProfiles;
+      settingsSnapshot = wrapped;
+      window.settingsSnapshot = wrapped;
     }
 
-    if (typeof loadSavedSettings === "function") {
+    if (typeof loadSavedSettings === "function" && !loadSavedSettings.motionProfilePersistenceInstalled) {
       const loadSavedSettingsBeforeProfiles = loadSavedSettings;
-      loadSavedSettings = function loadSavedSettingsWithMotionProfiles(...args) {
+      const wrapped = function loadSavedSettingsWithMotionProfiles(...args) {
         const result = loadSavedSettingsBeforeProfiles.apply(this, args);
         try {
           const saved = JSON.parse(readStorage(SETTINGS_KEY) || "{}");
@@ -187,6 +38,10 @@
         }
         return result;
       };
+      wrapped.motionProfilePersistenceInstalled = true;
+      wrapped.previousLoadSavedSettings = loadSavedSettingsBeforeProfiles;
+      loadSavedSettings = wrapped;
+      window.loadSavedSettings = wrapped;
     }
   }
 
@@ -224,16 +79,17 @@
   }
 
   function refreshTranslatorWorkbench() {
+    const service = translationService();
     const workbench = document.querySelector(".servo-motion-workbench");
-    if (!workbench) return;
-    const profile = selectedTranslatorProfile();
+    if (!service || !workbench) return;
+    const profile = service.selectedProfile();
     const result = state.motionTranslation;
     const headingCopy = workbench.querySelector(".servo-motion-head p");
     const statusBadge = workbench.querySelector(".servo-motion-status");
     const summary = workbench.querySelector("#motionProfileSummary");
     if (headingCopy) headingCopy.textContent = "The selected profile now drives planner intents and the generated CMD program.";
 
-    const machineName = window.LabelerServoCommandDriver?.profileDefinition?.(result?.machineProfile || translatorMachineProfile(profile))?.name
+    const machineName = window.LabelerServoCommandDriver?.profileDefinition?.(result?.machineProfile || service.machineProfile(profile))?.name
       || result?.machineProfile
       || "Machine profile";
     const modeText = result?.advancedCommandsApplied
@@ -264,46 +120,42 @@
     });
   }
 
-  installTranslatorAwareCommandValidation();
-  persistMotionProfileSelection();
-  installProfileSelectionRegeneration();
-  installTranslatorStyles();
-
-  if (typeof applyGeneratedServoProfile === "function") {
-    const applyGeneratedServoProfileBeforeTranslation = applyGeneratedServoProfile;
-    applyGeneratedServoProfile = function applyGeneratedServoProfileWithTranslation(...args) {
-      const output = applyGeneratedServoProfileBeforeTranslation.apply(this, args);
-      buildAndTranslateProgram();
-      scheduleWorkbenchRefresh();
-      return output;
-    };
-  }
-
-  if (typeof currentMechanicalMotionPlan === "function") {
+  function installAppliedPlanView() {
+    if (typeof currentMechanicalMotionPlan !== "function" || currentMechanicalMotionPlan.translationPlanViewInstalled) return;
     const currentMechanicalMotionPlanBeforeTranslation = currentMechanicalMotionPlan;
-    currentMechanicalMotionPlan = function currentAppliedMechanicalMotionPlan(...args) {
+    const wrapped = function currentAppliedMechanicalMotionPlan(...args) {
       return state.motionTranslation?.plan || currentMechanicalMotionPlanBeforeTranslation.apply(this, args);
     };
+    wrapped.translationPlanViewInstalled = true;
+    wrapped.previousCurrentMechanicalMotionPlan = currentMechanicalMotionPlanBeforeTranslation;
+    currentMechanicalMotionPlan = wrapped;
+    window.currentMechanicalMotionPlan = wrapped;
   }
 
-  if (typeof validate === "function") {
-    const validateBeforeTranslation = validate;
-    validate = function validateWithTranslation(...args) {
-      const notes = validateBeforeTranslation.apply(this, args);
-      const translator = window.LabelerProfileTranslatorDriver;
-      if (!translator?.validate || !state.motionTranslation) return notes;
-      translator.validate(state.motionTranslation).forEach((issue) => {
-        notes.push([issue.level, issue.message]);
-      });
-      return notes;
-    };
+  function install() {
+    if (installed) return true;
+    if (!translationService()) return false;
+    installed = true;
+
+    persistMotionProfileSelection();
+    installProfileSelectionRegeneration();
+    installTranslatorStyles();
+    installAppliedPlanView();
+    window.addEventListener("servoforge:profile-translated", scheduleWorkbenchRefresh);
+
+    const observer = new MutationObserver(scheduleWorkbenchRefresh);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+    scheduleWorkbenchRefresh();
+    return true;
   }
 
-  const observer = new MutationObserver(scheduleWorkbenchRefresh);
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  function start() {
+    Promise.resolve(window.ServoForgeProfileGenerationReady)
+      .then(() => {
+        if (!install()) window.setTimeout(start, 25);
+      })
+      .catch((error) => console.error("Unable to initialize profile translator UI.", error));
+  }
 
-  const versionMeta = document.querySelector('meta[name="application-version"]');
-  if (versionMeta) versionMeta.content = TRANSLATOR_RELEASE_VERSION;
-  const versionStatus = document.querySelector("#updateCheckStatus");
-  if (versionStatus) versionStatus.textContent = `Version ${TRANSLATOR_RELEASE_VERSION} • Updates are checked automatically.`;
+  start();
 })();
