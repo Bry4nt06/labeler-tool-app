@@ -1,9 +1,12 @@
 "use strict";
 
-// Compatibility-only migration for settings created before maps became
-// global records. New maps and exports do not retain location metadata.
+// Compatibility-only API for settings created before machine maps became
+// global records. Active DOM enforcement, storage cleanup, save/delete
+// interception, and runtime wrappers live in remove-zone-site-integration.js.
+
 function purgeDeprecatedMapLocationMetadata(target = state) {
   if (!target || typeof target !== "object") return target;
+
   [
     "selected" + "Zone",
     "selected" + "Site",
@@ -11,6 +14,7 @@ function purgeDeprecatedMapLocationMetadata(target = state) {
     "mapLibrary" + "Site",
     "zoneSite" + "Configuration"
   ].forEach((key) => delete target[key]);
+
   if (Array.isArray(target.mapLibrary)) {
     target.mapLibrary.forEach((map) => {
       if (!map || typeof map !== "object") return;
@@ -18,6 +22,7 @@ function purgeDeprecatedMapLocationMetadata(target = state) {
       delete map.site;
     });
   }
+
   return target;
 }
 
@@ -26,9 +31,14 @@ function removeDeprecatedLocationControls() {
     const control = document.querySelector(selector);
     (control?.closest("label") || control)?.remove();
   });
-  document.querySelectorAll(".zone-site-editor,.zone-site-selection,.developer-menu-actions").forEach((node) => node.remove());
+
+  document
+    .querySelectorAll(".zone-site-editor,.zone-site-selection,.developer-menu-actions")
+    .forEach((node) => node.remove());
 }
 
+// Retained no-op compatibility functions for older modules and imported
+// settings. New code must not use Zone/Site as map identity.
 function normalizedZoneSiteName() {
   return "";
 }
@@ -74,46 +84,3 @@ function bindZoneSiteDeveloperMenu() {
   purgeDeprecatedMapLocationMetadata();
   removeDeprecatedLocationControls();
 }
-
-function bindRetiredLocationPromptGuard() {
-  if (document.documentElement.dataset.retiredLocationPromptGuard === "true") return;
-  document.documentElement.dataset.retiredLocationPromptGuard = "true";
-  document.addEventListener("click", (event) => {
-    const saveButton = event.target.closest?.("#saveMachineMap");
-    if (saveButton) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      purgeDeprecatedMapLocationMetadata();
-      if (typeof saveMapDefinitionFromControls === "function") {
-        saveMapDefinitionFromControls({ type: "input" });
-        purgeDeprecatedMapLocationMetadata();
-        if (typeof saveCurrentSettings === "function") saveCurrentSettings();
-        if (typeof renderWipeDownBuilder === "function") renderWipeDownBuilder();
-      }
-      return;
-    }
-
-    const deleteButton = event.target.closest?.("#deleteMachineMap");
-    if (!deleteButton) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (!Array.isArray(state.mapLibrary) || state.mapLibrary.length <= 1) {
-      window.alert("At least one machine map must remain in the library.");
-      return;
-    }
-    const index = state.mapLibrary.findIndex((map) => map.id === state.activeMapId);
-    const map = state.mapLibrary[index];
-    if (!map || !window.confirm(`Delete map "${map.name}"? This cannot be undone.`)) return;
-    state.mapLibrary.splice(index, 1);
-    purgeDeprecatedMapLocationMetadata();
-    const replacement = state.mapLibrary[Math.max(0, index - 1)] || state.mapLibrary[0];
-    if (typeof clearServoSimulationForSelectedMap === "function") clearServoSimulationForSelectedMap();
-    if (typeof loadMachineMapIntoRuntime === "function") loadMachineMapIntoRuntime(replacement, true);
-    if (typeof saveCurrentSettings === "function") saveCurrentSettings();
-    if (typeof renderWipeDownBuilder === "function") renderWipeDownBuilder();
-  }, true);
-}
-
-purgeDeprecatedMapLocationMetadata();
-removeDeprecatedLocationControls();
-bindRetiredLocationPromptGuard();

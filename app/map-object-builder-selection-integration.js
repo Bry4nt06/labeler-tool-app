@@ -17,8 +17,26 @@
     }
   }
 
+  function runtimeObjectLists() {
+    const lists = [];
+    const mapObjects = activeMap()?.objects;
+    if (Array.isArray(mapObjects)) lists.push(mapObjects);
+    if (typeof state !== "undefined" && Array.isArray(state.aplMapObjects)) lists.push(state.aplMapObjects);
+    if (typeof state !== "undefined" && Array.isArray(state.coldGlueMapObjects)) lists.push(state.coldGlueMapObjects);
+    try {
+      const coldGlueObjects = typeof coldGlueMapObjects === "function" ? coldGlueMapObjects() : null;
+      if (Array.isArray(coldGlueObjects)) lists.push(coldGlueObjects);
+    } catch { }
+    return lists;
+  }
+
   function objectFromId(objectId) {
-    return activeMap()?.objects?.find((item) => String(item.id) === String(objectId)) || null;
+    const id = String(objectId);
+    for (const objects of runtimeObjectLists()) {
+      const item = objects.find((entry) => String(entry?.id) === id);
+      if (item) return item;
+    }
+    return null;
   }
 
   function builderIsOpen() {
@@ -144,6 +162,7 @@
       });
     };
     selectMapBuilderObject.doubleClickMapSelection = true;
+    window.selectMapBuilderObject = selectMapBuilderObject;
     wrappedNativeSelector = true;
     return true;
   }
@@ -202,6 +221,7 @@
     const objectId = String(node.dataset.mapObjectId || "");
     if (!objectId || !objectFromId(objectId)) return;
     event.preventDefault();
+    event.stopImmediatePropagation();
     suppressOutsideAutoCloseForThisPointer();
     suppressedSelection = { objectId, until: performance.now() + NATIVE_CLICK_SUPPRESSION_MS };
     selectAndDrillToObject(objectId, { openBuilder: true, scroll: true });
@@ -212,7 +232,7 @@
     const style = document.createElement("style");
     style.id = "mapObjectBuilderSelectionStyles";
     style.textContent = `
-      #mapSvg [data-map-object-id]{cursor:grab}
+      #mapSvg [data-map-object-id]{cursor:grab;pointer-events:all}
       #mapSvg [data-map-object-id]:active{cursor:grabbing}
       #mapSvg.map-is-locked [data-map-object-id]{cursor:pointer}
       #applicationSetupDialog .wipe-builder-row.selected-builder-object{
