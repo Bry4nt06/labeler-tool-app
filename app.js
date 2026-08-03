@@ -2,6 +2,50 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
+
+  function loadScript(path, version) {
+    return new Promise((resolve, reject) => {
+      const expected = new URL(`./${path}`, window.location.href).pathname;
+      const existing = [...document.scripts].find((script) => {
+        try { return new URL(script.src, window.location.href).pathname === expected; }
+        catch { return false; }
+      });
+      if (existing) {
+        if (existing.dataset.loaded === "true") resolve();
+        else {
+          existing.addEventListener("load", resolve, { once: true });
+          existing.addEventListener("error", reject, { once: true });
+        }
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = `./${path}?v=${encodeURIComponent(version)}`;
+      script.async = false;
+      script.dataset.orientationConstraintModule = path;
+      script.addEventListener("load", () => {
+        script.dataset.loaded = "true";
+        resolve();
+      }, { once: true });
+      script.addEventListener("error", () => reject(new Error(`Unable to load ${path}.`)), { once: true });
+      document.body.appendChild(script);
+    });
+  }
+
+  async function loadOrientationConstraintPlanner() {
+    const version = document.querySelector('meta[name="application-version"]')?.content || "0.9.10";
+    await loadScript("drivers/profile/orientation-constraint-planner-driver.js", version);
+    await loadScript("app/orientation-constraint-target-service.js", version);
+    await loadScript("app/orientation-constraint-program-planner.js", version);
+    await loadScript("app/orientation-constraint-planner-integration.js", version);
+    const ready = window.ServoForgeOrientationConstraintPlannerReady;
+    if (ready && typeof ready.then === "function") {
+      await Promise.race([
+        ready,
+        new Promise((resolve) => window.setTimeout(resolve, 2000))
+      ]);
+    }
+  }
+
   try {
     progress?.set(12, "Loading profile engine…");
     if (window.ServoForgeProfileGenerationReady) await window.ServoForgeProfileGenerationReady;
@@ -15,7 +59,10 @@
     progress?.set(53, "Loading feature integrations…");
     if (window.ServoForgeFeatureIntegrationsReady) await window.ServoForgeFeatureIntegrationsReady;
 
-    progress?.set(67, "Loading workspace controllers…");
+    progress?.set(61, "Coordinating sensor and coder turns…");
+    await loadOrientationConstraintPlanner();
+
+    progress?.set(70, "Loading workspace controllers…");
     if (window.ServoForgeBootstrapReady) await window.ServoForgeBootstrapReady;
     if (typeof initializeLabelerApp !== "function") {
       throw new Error("initializeLabelerApp is not loaded.");
