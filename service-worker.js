@@ -1,7 +1,7 @@
 "use strict";
 
-const RELEASE_VERSION = "0.9.9";
-const CACHE_NAME = "servoforge-labeler-production-v0.9.9-200c8d2";
+const RELEASE_VERSION = "0.9.10";
+const CACHE_NAME = "servoforge-labeler-production-v0.9.10-4e5bb1a";
 const CACHE_PREFIX = "servoforge-labeler-production-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 

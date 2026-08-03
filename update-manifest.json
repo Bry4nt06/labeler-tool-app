@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "version": "0.9.9",
+  "version": "0.9.10",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.9 promotes the approved staging controller architecture, startup loader, layout-oriented themes, semantic health visuals, Map Builder lifecycle fixes, dimension-driven label presence, coder fallback, and final TOPMODUL CMD 3/CMD 7 segment ownership."
+  "notes": "ServoForge 0.9.10 regenerates the Servo Program when a Brand Recipe is selected and stacks the top Validation summary so it cannot overflow the panel."
 }
