@@ -110,7 +110,7 @@
     ]),
 
     diagnostics: Object.freeze([
-      "app/validation-diagnostics-integration.js?v=0.9.7-validation-diagnostics-v1"
+      "app/validation-diagnostics-integration.js?v=0.9.10-validation-summary-stack-v3"
     ])
   });
 

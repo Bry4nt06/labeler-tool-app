@@ -1,7 +1,7 @@
 "use strict";
 
 (function loadServoForgeBootstrapModules() {
-  const version = "0.9.9";
+  const version = "0.9.10";
   window.SERVOFORGE_RELEASE_VERSION = version;
   document.querySelector(".staging-environment-banner")?.remove();
   const modules = Object.freeze([

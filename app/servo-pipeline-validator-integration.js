@@ -1,7 +1,7 @@
 "use strict";
 
 (function installServoPipelineValidation() {
-  const VALIDATOR_RELEASE_VERSION = "0.9.9";
+  const VALIDATOR_RELEASE_VERSION = "0.9.10";
   const LEGACY_PAIR_CODES = new Set([
     "correction-missing-leading-reference",
     "correction-missing-trailing-reference",

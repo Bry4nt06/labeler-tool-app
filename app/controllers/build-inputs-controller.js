@@ -7,6 +7,7 @@
     return actions.execute({
       mutate,
       syncMap: Boolean(options.syncMap),
+      regenerate: Boolean(options.regenerate),
       persist: options.persist !== false,
       render: options.render || "all"
     });
@@ -36,7 +37,8 @@
     commit(() => {
       state.selectedBrand = value;
       actions.call("ensureBottleReferenceForLabel", actions.call("selectedLabelSpec"));
-    });
+      actions.call("applyLabelLengthStationRules");
+    }, { regenerate: true });
   }
 
   function selectBottle(value) {
