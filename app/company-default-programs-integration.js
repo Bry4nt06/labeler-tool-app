@@ -93,13 +93,23 @@
     if (!bottles.length) throw new Error("No default bottle specifications were provided.");
 
     const defaultIds = new Set(maps.map((map) => key(map?.id)));
-    const hasCustomMap = (state.mapLibrary || []).some((map) => {
+    const existingMaps = Array.isArray(state.mapLibrary) ? state.mapLibrary : [];
+    const hasCustomMap = existingMaps.some((map) => {
       const id = key(map?.id);
-      return id && id !== "map-blank-apl" && !defaultIds.has(id);
+      return id
+        && id !== "map-blank-apl"
+        && !defaultIds.has(id)
+        && map?.companyDefaultProgram !== true;
     });
+    const retainedMaps = existingMaps.filter((map) => {
+      const id = key(map?.id);
+      if (!id || defaultIds.has(id)) return true;
+      return map?.companyDefaultProgram !== true;
+    });
+    const removedDefaults = existingMaps.length - retainedMaps.length;
     const upgradeNeeded = savedVersion() < version;
 
-    const mapResult = upsert(state.mapLibrary, maps.map((map) => ({
+    const mapResult = upsert(retainedMaps, maps.map((map) => ({
       ...clone(map), companyDefaultProgram: true, companyDefaultProgramVersion: version
     })), (map) => key(map?.id));
 
@@ -128,7 +138,8 @@
       baseApplied = true;
     }
 
-    const changed = mapResult.changed
+    const changed = removedDefaults > 0
+      || mapResult.changed
       || labelResult.changed
       || bottleResult.changed
       || machineTypesChanged
@@ -145,7 +156,12 @@
     return {
       changed,
       version,
-      maps: { added: mapResult.added, updated: mapResult.updated, total: state.mapLibrary.length },
+      maps: {
+        added: mapResult.added,
+        updated: mapResult.updated,
+        removed: removedDefaults,
+        total: state.mapLibrary.length
+      },
       labels: { added: labelResult.added, updated: labelResult.updated, total: state.labelSpecs.length },
       bottles: { added: bottleResult.added, updated: bottleResult.updated, total: state.bottleSpecs.length },
       baseApplied
