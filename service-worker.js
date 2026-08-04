@@ -1,7 +1,7 @@
 "use strict";
 
 const RELEASE_VERSION = "0.9.10";
-const CACHE_NAME = "servoforge-labeler-production-v0.9.10-4e5bb1a";
+const CACHE_NAME = "servoforge-labeler-production-v0.9.10-company-defaults-v3";
 const CACHE_PREFIX = "servoforge-labeler-production-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 
@@ -16,13 +16,10 @@ const CORE_ASSETS = Object.freeze([
   "./recovery.html",
   "./config/company-default-settings.json",
   "./config/default-programs/map-blank-apl.json",
-  "./config/default-programs/machine-map-1784426568359-9375.json",
+  "./config/default-programs/map-l85-workbook-reference-3-label-apl.json",
   "./config/default-programs/machine-map-1784427388958-9702.json",
   "./config/default-programs/machine-map-1784477554290-6537.json",
-  "./config/default-programs/machine-map-1785590537632-2751.json",
-  "./config/default-programs/machine-map-1785604940794-6949.json",
-  "./config/default-programs/machine-map-1785604972525-2064.json",
-  "./config/default-programs/map-l85-workbook-reference-3-label-apl.json",
+  "./config/default-programs/machine-map-1785801207122-2451.json",
   "./config/default-programs/label-specs.json",
   "./config/default-programs/bottle-specs.json",
   "./drivers/core/driver-registry.js",
@@ -54,6 +51,7 @@ const CORE_ASSETS = Object.freeze([
   "./drivers/profile/map-object-row-builder-driver.js",
   "./drivers/profile/orientation-issue-factory-driver.js",
   "./drivers/profile/profile-pipeline-driver.js",
+  "./drivers/profile/orientation-constraint-planner-driver.js",
   "./app/defaults.js",
   "./app/persistence.js",
   "./app/zone-site-configuration.js",
@@ -168,6 +166,9 @@ const CORE_ASSETS = Object.freeze([
   "./app/clockwise-code-box-orientation-integration.js",
   "./app/coder-rest-grammar-repair-integration.js",
   "./app/profile-pipeline-orchestrator-integration.js",
+  "./app/orientation-constraint-target-service.js",
+  "./app/orientation-constraint-program-planner.js",
+  "./app/orientation-constraint-planner-integration.js",
   "./app/motion-profile-workbench-integration.js",
   "./app/optimizer-map-contact-integration.js",
   "./app/optimizer-brush-channel-expansion-integration.js",
