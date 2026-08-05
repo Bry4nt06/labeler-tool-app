@@ -3,5 +3,5 @@
   "version": "0.9.10",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.10 promotes approved staging build 4e5196d with inactive-label sensor suppression and Servo Simulation/Diagnostics hidden by default."
+  "notes": "ServoForge 0.9.10 promotes approved staging build e053326 with the core sensor field-of-view visualization, shortened to the bottle path with reduced transparency."
 }
