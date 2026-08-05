@@ -1,8 +1,30 @@
 "use strict";
 
+(function seedDefaultWorkspacePanelVisibility() {
+  const preferencesKey = "servoforge-developer-preferences-v1";
+  const migrationKey = "servoforge-default-hidden-panels-v1-applied";
+  const defaultHiddenPanels = ["simulation", "diagnostics"];
+
+  try {
+    if (localStorage.getItem(migrationKey) === "true") return;
+    const parsed = JSON.parse(localStorage.getItem(preferencesKey) || "{}");
+    const preferences = parsed && typeof parsed === "object" ? parsed : {};
+    const hiddenPanels = new Set(Array.isArray(preferences.hiddenPanels) ? preferences.hiddenPanels.map(String) : []);
+    defaultHiddenPanels.forEach((panel) => hiddenPanels.add(panel));
+    localStorage.setItem(preferencesKey, JSON.stringify({
+      ...preferences,
+      hiddenPanels: [...hiddenPanels]
+    }));
+    localStorage.setItem(migrationKey, "true");
+  } catch {
+    // Storage may be unavailable in a restricted browser context. The normal
+    // workspace controls remain usable without persisted visibility defaults.
+  }
+})();
+
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "inactive-label-sensor-v13";
+  const build = "workspace-defaults-v14";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
