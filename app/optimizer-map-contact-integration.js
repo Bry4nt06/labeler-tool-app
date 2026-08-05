@@ -49,6 +49,13 @@
     return /pad|roller|brush|wipe/i.test(`${item?.kind || ""} ${item?.type || ""} ${item?.name || ""}`);
   }
 
+  function physicalContactFrame(frame) {
+    const action = text(frame?.action);
+    if (/wipe\s+hold/i.test(action)) return false;
+    return /wipe|brush|pad|roller/i.test(action)
+      && [1, 2, 4, 5, 6, 7].includes(Number(frame?.command));
+  }
+
   function activeObjects(options = {}) {
     const map = activeMap(options);
     const source = Array.isArray(map?.objects) && map.objects.length
@@ -139,7 +146,10 @@
     [baseShift - 1, baseShift, baseShift + 1].forEach((turns) => {
       const shifted = { start: range.start + turns * 360, end: range.end + turns * 360 };
       const score = overlap(frameStart, frameEnd, shifted.start, shifted.end);
-      if (!best || score > best.score) best = { ...shifted, score };
+      const distance = Math.abs((shifted.start + shifted.end) / 2 - targetMid);
+      if (!best || score > best.score || (Math.abs(score - best.score) <= EPSILON && distance < best.distance)) {
+        best = { ...shifted, score, distance };
+      }
     });
     return best;
   }
@@ -178,7 +188,7 @@
     const diagnostics = [];
 
     frames
-      .filter((frame) => /wipe|brush|pad|roller/i.test(text(frame.action)) && [1, 2, 4, 5, 6, 7].includes(Number(frame.command)))
+      .filter(physicalContactFrame)
       .forEach((frame) => {
         const matches = matchingObjects(frame, objects, map);
         if (!matches.length) {
@@ -254,7 +264,12 @@
       return result;
     };
 
-    global.LabelerProgramOptimizerDriver = Object.freeze({ ...driver, analyze: wrappedAnalyze });
+    global.LabelerProgramOptimizerDriver = Object.freeze({
+      ...driver,
+      analyze: wrappedAnalyze,
+      mapAwareCoverageV2: true,
+      physicalContactFrame
+    });
     installed = true;
 
     try {
