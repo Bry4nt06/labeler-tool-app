@@ -2,6 +2,94 @@
 
 (function installMechanicalMapSceneRenderer(global) {
   const ROTATOR_HANDLE_OFFSET = 40;
+  const SENSOR_FIELD_OF_VIEW_DEG = 18;
+
+  function clamp(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, value));
+  }
+
+  function sensorConeGeometry(length, fieldOfViewDeg) {
+    const resolvedLength = Math.max(1, Number(length) || 1);
+    const resolvedField = clamp(Number(fieldOfViewDeg) || SENSOR_FIELD_OF_VIEW_DEG, 4, 60);
+    const halfAngleRad = resolvedField * Math.PI / 360;
+    const edgeX = resolvedLength * Math.cos(halfAngleRad);
+    const edgeY = resolvedLength * Math.sin(halfAngleRad);
+    return {
+      fieldOfViewDeg: resolvedField,
+      path: `M 0 0 L ${edgeX} ${-edgeY} A ${resolvedLength} ${resolvedLength} 0 0 1 ${edgeX} ${edgeY} Z`
+    };
+  }
+
+  function sensorShouldRender(sensor, map) {
+    const activation = global.LabelerSensorActivationController;
+    if (typeof activation?.shouldRender === "function") {
+      try { return Boolean(activation.shouldRender(sensor, map)); }
+      catch { return true; }
+    }
+    return sensor?.enabled !== false;
+  }
+
+  function drawSensorFieldOfViewCones(add, layer, map) {
+    const sensors = (Array.isArray(map?.objects) ? map.objects : [])
+      .filter((item) => item?.kind === "sensor" && sensorShouldRender(item, map));
+
+    sensors.forEach((sensor) => {
+      const placement = Number(sensor.angle ?? sensor.start);
+      if (!Number.isFinite(placement)) return;
+
+      const tableRadius = Number(state.radius || 0);
+      const radius = tableRadius + Number(state.depths?.opRoller || 0) + 7;
+      const origin = angleToXY(placement, radius);
+      const aim = clamp(Number(sensor.sensorAimOffsetDeg || 0), -90, 90);
+      const directionSign = state.direction === "cw" ? -1 : 1;
+      const rotation = angleToSvgRotation(placement) + 180 + directionSign * aim;
+      const coneLength = clamp(Math.abs(radius - tableRadius) + 14, 32, 48);
+      const geometry = sensorConeGeometry(coneLength, sensor.sensorFieldOfViewDeg);
+      const selected = String(state.selectedMapObjectId || "") === String(sensor.id);
+      const group = add("g", {
+        transform: `translate(${origin.x} ${origin.y}) rotate(${rotation})`,
+        "data-sensor-field-of-view": sensor.id,
+        "data-sensor-aim-deg": aim,
+        "data-sensor-field-of-view-deg": geometry.fieldOfViewDeg,
+        "pointer-events": "none",
+        "aria-hidden": "true"
+      }, layer);
+
+      add("path", {
+        d: geometry.path,
+        fill: "#55d7ff",
+        "fill-opacity": selected ? 0.24 : 0.13,
+        stroke: "#a8efff",
+        "stroke-width": selected ? 1.8 : 1.35,
+        "stroke-opacity": selected ? 0.82 : 0.64,
+        "vector-effect": "non-scaling-stroke"
+      }, group);
+      add("line", {
+        x1: 0,
+        y1: 0,
+        x2: coneLength,
+        y2: 0,
+        stroke: "#e1fbff",
+        "stroke-width": selected ? 1.8 : 1.35,
+        "stroke-opacity": selected ? 0.92 : 0.78,
+        "stroke-dasharray": "5 4",
+        "vector-effect": "non-scaling-stroke"
+      }, group);
+      add("circle", {
+        cx: 0,
+        cy: 0,
+        r: selected ? 3.5 : 2.8,
+        fill: "#e1fbff",
+        "fill-opacity": selected ? 0.92 : 0.78,
+        stroke: "#08677e",
+        "stroke-width": 1,
+        "stroke-opacity": 0.76,
+        "vector-effect": "non-scaling-stroke"
+      }, group);
+      const title = add("title", {}, group);
+      title.textContent = `${sensor.name || "Sensor"} field of view: ${geometry.fieldOfViewDeg}° at ${aim}° rotation`;
+    });
+  }
 
   function applyMapView() {
     if (!els.mapSvg) return;
@@ -96,6 +184,8 @@
 
     const configuredAssemblyLayer = add("g", { "aria-label": "Configured wipe-down assemblies" });
     drawConfiguredAssemblies(add, configuredAssemblyLayer);
+    const sensorFieldOfViewLayer = add("g", { "aria-label": "Sensor field-of-view cones", "data-sensor-field-of-view-layer": "core" });
+    drawSensorFieldOfViewCones(add, sensorFieldOfViewLayer, activeMap);
 
     const centerReadout = add("g", { "aria-label": "Current table angle" });
     const centerAngleFontSize = Math.abs(state.previewAngle) >= 100 ? 14 : Math.abs(state.previewAngle) >= 10 ? 16 : 18;
@@ -109,7 +199,15 @@
     renderLabelerMapReference();
   }
 
+  renderMap.sensorFieldOfViewCoreV1 = true;
   global.applyMapView = applyMapView;
   global.renderMap = renderMap;
-  global.LabelerMechanicalMapSceneRenderer = Object.freeze({ applyMapView, renderMap });
+  global.LabelerMechanicalMapSceneRenderer = Object.freeze({
+    applyMapView,
+    renderMap,
+    SENSOR_FIELD_OF_VIEW_DEG,
+    sensorConeGeometry,
+    drawSensorFieldOfViewCones,
+    sensorFieldOfViewCoreV1: true
+  });
 })(window);
