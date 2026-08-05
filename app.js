@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "workspace-defaults-v14";
+  const build = "sensor-field-of-view-core-v18";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
