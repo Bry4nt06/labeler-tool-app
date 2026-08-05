@@ -29,7 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
-          git -C /tmp/labeler-tool-staging checkout 4e5196d2c3d7a7e81272c1e99dcff5652f093255
+          git -C /tmp/labeler-tool-staging checkout b7b4bda140576a2e0352596bdb372e9760989ff0
 
       - name: Replace production runtime
         shell: bash
@@ -53,7 +53,7 @@ jobs:
 
           root = pathlib.Path(sys.argv[1])
           version = "0.9.10"
-          staging_commit = "4e5196d2c3d7a7e81272c1e99dcff5652f093255"
+          staging_commit = "b7b4bda140576a2e0352596bdb372e9760989ff0"
           staging_url = "https://bry4nt06.github.io/labeler-tool-staging/"
           production_url = "https://bry4nt06.github.io/labeler-tool-app/"
 
@@ -116,7 +116,7 @@ jobs:
           worker_path = root / "service-worker.js"
           worker = worker_path.read_text(encoding="utf-8")
           worker = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', worker)
-          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-4e5196d";', worker)
+          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-b7b4bda";', worker)
           worker = re.sub(r'const CACHE_PREFIX = "[^"]+";', 'const CACHE_PREFIX = "servoforge-labeler-";', worker)
           worker_path.write_text(worker, encoding="utf-8")
 
@@ -127,7 +127,7 @@ jobs:
               "version": version,
               "releaseUrl": production_url,
               "downloadUrl": production_url,
-              "notes": f"ServoForge {version} promotes approved staging build {staging_commit[:7]} with inactive-label sensor suppression and Servo Simulation/Diagnostics hidden by default."
+              "notes": f"ServoForge {version} promotes approved staging build {staging_commit[:7]} with sensor field-of-view rendering, repository brand download, retired bottle defaults, and corrected brand-independent wipe-hold coverage validation."
           })
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
@@ -152,14 +152,22 @@ jobs:
           required=(
             app/company-default-programs-integration.js
             app/company-default-map-catalog-integration.js
+            app/default-bottle-spec-retirement-integration.js
+            app/repository-brand-download-integration.js
             app/inactive-label-sensor-suppression-integration.js
             app/sensor-editor-focus-guard-integration.js
             app/sensor-post-inspection-release-integration.js
+            app/sensor-field-of-view-integration.js
+            app/mechanical-map-scene-renderer.js
             app/apl-overlapping-pad-handoff-integration.js
             app/map-object-coder-after-wipe-integration.js
             app/machine-terminal-policy-integration.js
+            app/optimizer-map-contact-integration.js
+            app/optimizer-post-wipe-coverage-fix-integration.js
             drivers/profile/map-object-orientation-driver.js
             drivers/profile/sensor-post-inspection-release-driver.js
+            config/default-programs/bottle-specs.json
+            config/default-programs/label-specs.json
             config/default-programs/map-apl-6-aggregate.json
             config/default-programs/map-45h-topmodul-3-label-apl-wipe-down-pads.json
           )
@@ -189,6 +197,14 @@ jobs:
           assert all(item['protectedDefaultMap'] is True for item in maps)
           assert all(item['companyDefaultProgramVersion'] == 12 for item in maps)
           assert manifest['settings']['activeMapId'] == 'map-apl-default'
+
+          bottle_specs = json.loads((root / 'config/default-programs/bottle-specs.json').read_text(encoding='utf-8'))
+          assert [item['id'] for item in bottle_specs] == [2, 3, 6, 7, 8, 9, 10]
+          assert all(item['id'] not in {1, 4, 5} for item in bottle_specs)
+
+          label_specs = json.loads((root / 'config/default-programs/label-specs.json').read_text(encoding='utf-8'))
+          assert any(item.get('brand') == '12oz LandShark (LN)' for item in label_specs)
+          assert any(item.get('brand') == '12oz Mic Family (T6,41,FO,79,BT,87)' for item in label_specs)
           PY
 
           ! test -e app/release-readiness-staging-alignment-integration.js
@@ -203,11 +219,16 @@ jobs:
 
           node tests/default-hidden-workspace-panels.test.js
           node tests/inactive-label-sensor-suppression.test.js
+          node tests/sensor-field-of-view.test.js
+          node tests/sensor-aim-geometry.test.js
           node tests/topmodul-terminal-coding-hold.test.js
           node tests/default-catalog-reset.test.js
           node tests/standard-45h-wipe-down-default.test.js
           node tests/apl-6-aggregate-default.test.js
           node tests/sensor-target-policy.test.js
+          node tests/repository-brand-download.test.js
+          node tests/brand-selection-regeneration.test.js
+          node tests/optimizer-post-wipe-coverage.test.js
 
       - name: Commit and publish production build
         shell: bash
@@ -217,7 +238,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if ! git diff --quiet; then
             git add -A
-            git commit -m 'Promote staging 4e5196d to production 0.9.10'
+            git commit -m 'Promote staging b7b4bda to production 0.9.10'
           fi
           git push origin HEAD:main
           git push --force origin HEAD:release/servoforge-0.9.10-2026-08-05
