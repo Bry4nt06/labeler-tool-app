@@ -1,7 +1,7 @@
 "use strict";
 
 const RELEASE_VERSION = "0.9.10";
-const CACHE_NAME = "servoforge-labeler-v0.9.10-production-e053326";
+const CACHE_NAME = "servoforge-labeler-v0.9.10-production-b7b4bda";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 
@@ -24,6 +24,7 @@ const CORE_ASSETS = Object.freeze([
   "./config/default-programs/machine-map-1785604972525-2064.json",
   "./config/default-programs/map-l85-workbook-reference-3-label-apl.json",
   "./config/default-programs/map-45h-topmodul-3-label-apl-wipe-down-pads.json",
+  "./config/default-programs/map-apl-6-aggregate.json",
   "./config/default-programs/label-specs.json",
   "./config/default-programs/bottle-specs.json",
   "./drivers/core/driver-registry.js",
@@ -57,6 +58,8 @@ const CORE_ASSETS = Object.freeze([
   "./drivers/profile/profile-pipeline-driver.js",
   "./drivers/profile/orientation-constraint-planner-driver.js",
   "./drivers/profile/sensor-target-policy-driver.js",
+  "./drivers/profile/sensor-station-label-driver.js",
+  "./drivers/profile/sensor-post-inspection-release-driver.js",
   "./app/defaults.js",
   "./app/persistence.js",
   "./app/zone-site-configuration.js",
@@ -137,6 +140,8 @@ const CORE_ASSETS = Object.freeze([
   "./app/map-object-double-click-open-fix-integration.js",
   "./app/label-spec-section-selection-integration.js",
   "./app/company-default-programs-integration.js",
+  "./app/default-bottle-spec-retirement-integration.js",
+  "./app/repository-brand-download-integration.js",
   "./app/workbook-reference-map-library-integration.js",
   "./app/locked-map-brand-selector-integration.js",
   "./app/clockwise-code-box-orientation-integration.js",
@@ -144,11 +149,21 @@ const CORE_ASSETS = Object.freeze([
   "./app/profile-pipeline-orchestrator-integration.js",
   "./app/orientation-constraint-target-service.js",
   "./app/orientation-constraint-program-planner.js",
+  "./app/coder-window-reference-handoff-integration.js",
   "./app/orientation-constraint-planner-integration.js",
+  "./app/sensor-post-inspection-release-integration.js",
   "./app/sensor-orientation-default-map-fix-integration.js",
+  "./app/sensor-station-label-inheritance-integration.js",
+  "./app/inactive-label-sensor-suppression-integration.js",
+  "./app/company-default-map-catalog-integration.js",
+  "./app/standard-45h-wipe-down-default-integration.js",
+  "./app/protected-default-map-integration.js",
+  "./app/sensor-editor-focus-guard-integration.js",
+  "./app/sensor-editor-compact-interaction-integration.js",
   "./app/motion-profile-workbench-integration.js",
   "./app/optimizer-map-contact-integration.js",
   "./app/optimizer-brush-channel-expansion-integration.js",
+  "./app/optimizer-post-wipe-coverage-fix-integration.js",
   "./app/update-manager.js",
   "./app.js"
 ]);
