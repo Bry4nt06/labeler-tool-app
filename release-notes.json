@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "environment": "production",
   "currentVersion": "0.9.10",
-  "generatedAt": "2026-08-03T18:40:18Z",
+  "generatedAt": "2026-08-05T11:42:24Z",
   "releases": [
     {
       "version": "0.9.10",
@@ -13,23 +13,7 @@
         "Apply dimension-driven label station rules whenever a Brand Recipe is selected.",
         "Regenerate and persist the Servo Program before rerendering Validation.",
         "Stack Validation status, faults, warnings, checks, and duplicate counts in one constrained column.",
-        "Refresh production release and cache identifiers to prevent reuse of the 0.9.9 behavior."
-      ]
-    },
-    {
-      "version": "0.9.9",
-      "milestone": 13,
-      "title": "Controller Architecture and TOPMODUL Stabilization",
-      "summary": "Promotes the approved modular workspace, refined operator visuals, reliable Map Builder actions, and corrected TOPMODUL profile validation.",
-      "changes": [
-        "Split workspace state, event handling, rendering, validation, map, specification, station, Servo Program, and simulation responsibilities into focused modules.",
-        "Add milestone-based startup progress and make Direct view the default for new workspaces.",
-        "Add Carbon Crimson, Carbon Brass, Graphite Copper, and Midnight Alloy themes with theme-independent green, yellow, and red health semantics.",
-        "Keep the Validation panel within its available width and simplify the Servo Pipeline status presentation.",
-        "Restore Map Builder add, delete, station delete, and double-click-to-edit behavior across runtime object sources.",
-        "Derive Neck, Body, and Back label presence from dimensions greater than 1 mm instead of manual section checkboxes.",
-        "Retarget coding to an active label when a saved Back target is unavailable while preserving physical sensor validation.",
-        "Assign TOPMODUL CMD 7 to actual plate-motion segments and CMD 3 only to true holds, eliminating stale Rest-with-motion failures."
+        "Refresh release and feature cache keys so browsers do not reuse the 0.9.9 behavior."
       ]
     },
     {

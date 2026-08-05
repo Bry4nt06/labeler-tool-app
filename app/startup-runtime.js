@@ -51,6 +51,9 @@ async function initializeLabelerApp() {
     if (!window.LabelerValidationPanelUiController?.installed) {
       throw new Error("Validation panel UI controller is not loaded.");
     }
+    if (!window.LabelerSettingsResetController?.installed) {
+      throw new Error("Settings reset controller is not loaded.");
+    }
     if (!window.LabelerSpecificationEventController?.installed) {
       throw new Error("Specification field event controller is not loaded.");
     }
@@ -59,6 +62,15 @@ async function initializeLabelerApp() {
     }
     if (!window.LabelerSpecificationTableUiController?.installed) {
       throw new Error("Specs table UI controller is not loaded.");
+    }
+    if (!window.LabelerSpecificationSensorGuidanceController?.installed) {
+      throw new Error("Specification and sensor guidance controller is not loaded.");
+    }
+    if (!window.LabelerSensorActivationController?.installed) {
+      throw new Error("Recipe-aware sensor activation controller is not loaded.");
+    }
+    if (!window.LabelerCodingCycleNormalizationController?.installed) {
+      throw new Error("Coding station cycle normalization controller is not loaded.");
     }
     if (!window.LabelerServoProgramEventController?.installed) {
       throw new Error("Servo Program event controller is not loaded.");
@@ -103,6 +115,8 @@ async function initializeLabelerApp() {
     progress?.set(96, "Rendering ServoForge workspace…");
     render();
     window.LabelerHealthStatusUiController.refresh();
+    window.LabelerSensorActivationController.refresh();
+    window.LabelerCodingCycleNormalizationController.refresh();
     startAnimationLoop();
 
     progress?.set(98, "Registering update service…");

@@ -3,5 +3,5 @@
   "version": "0.9.10",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.10 regenerates the Servo Program when a Brand Recipe is selected and stacks the top Validation summary so it cannot overflow the panel."
+  "notes": "ServoForge 0.9.10 promotes the approved current staging build 251bf73 with the two-map default catalog, sensor workflow corrections, and TopModul terminal fixes."
 }

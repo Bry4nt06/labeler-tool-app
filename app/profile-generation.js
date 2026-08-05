@@ -3,9 +3,12 @@
 (function loadServoForgeProfileGenerationModules() {
   const version = document.querySelector('meta[name="application-version"]')?.content || "0.9.2";
   const modules = Object.freeze([
+    "drivers/profile/apl-contact-window-driver.js",
+    "app/sensor-station-cycle-anchor-integration.js",
     "app/apl-seed-profile.js",
     "app/cold-glue-profile-generation.js",
     "app/apl-map-profile-generation.js",
+    "app/apl-overlapping-pad-handoff-integration.js",
     "app/profile-routing.js",
     "app/machine-profile-framing.js",
     "app/servo-overrides.js",

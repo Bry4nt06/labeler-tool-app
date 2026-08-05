@@ -35,7 +35,15 @@
   }
 
   function isCodingHold(row) {
-    return row?.codingHold === true || /hold\s+for\s+coding/i.test(String(row?.action || ""));
+    if (Number(row?.cmd) !== 3) return false;
+    const action = String(row?.action || "");
+    const hasCodingObject = Boolean(row?.codingObjectId)
+      || (Array.isArray(row?.codingObjectIds) && row.codingObjectIds.length > 0);
+    return row?.codingHold === true
+      || (row?.orientationHold === true && (hasCodingObject || /coding|code box/i.test(action)))
+      || (Boolean(row?.codingReadyTableAngle) && !row?.orientationConstraintContinuation)
+      || /hold\s+for\s+coding/i.test(action)
+      || /hold.*(?:coding|code box)|(?:coding|code box).*hold/i.test(action);
   }
 
   function isAutocolEndCurve(row) {

@@ -2,6 +2,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
+  const build = "inactive-label-sensor-v13";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -19,9 +20,10 @@
         return;
       }
       const script = document.createElement("script");
-      script.src = `./${path}?v=${encodeURIComponent(version)}`;
+      script.src = `./${path}?v=${encodeURIComponent(version)}&build=${encodeURIComponent(build)}`;
       script.async = false;
       script.dataset.orientationConstraintModule = path;
+      script.dataset.orientationConstraintBuild = build;
       script.addEventListener("load", () => {
         script.dataset.loaded = "true";
         resolve();
@@ -33,10 +35,30 @@
 
   async function loadOrientationConstraintPlanner() {
     const version = document.querySelector('meta[name="application-version"]')?.content || "0.9.10";
+    await loadScript("app/global-machine-parameter-defaults-integration.js", version);
     await loadScript("drivers/profile/orientation-constraint-planner-driver.js", version);
+    await loadScript("drivers/profile/sensor-target-policy-driver.js", version);
+    await loadScript("drivers/profile/sensor-station-label-driver.js", version);
+    await loadScript("drivers/profile/sensor-post-inspection-release-driver.js", version);
     await loadScript("app/orientation-constraint-target-service.js", version);
     await loadScript("app/orientation-constraint-program-planner.js", version);
-    await loadScript("app/orientation-constraint-planner-integration.js", version);
+    await loadScript("app/sensor-editor-focus-guard-integration.js", version);
+
+    try {
+      await loadScript("app/orientation-constraint-planner-integration.js", version);
+      await loadScript("app/sensor-post-inspection-release-integration.js", version);
+      await loadScript("app/sensor-orientation-default-map-fix-integration.js", version);
+      await loadScript("app/standard-45h-wipe-down-default-integration.js", version);
+      await loadScript("app/sensor-station-label-inheritance-integration.js", version);
+      await loadScript("app/inactive-label-sensor-suppression-integration.js", version);
+      await loadScript("app/company-default-map-catalog-integration.js", version);
+      await loadScript("app/protected-default-map-integration.js", version);
+      await window.LabelerSensorEditorFocusGuard?.waitForScopedObservers?.(2, 2000);
+    } finally {
+      window.LabelerSensorEditorFocusGuard?.restoreMutationObserver?.();
+    }
+
+    await loadScript("app/sensor-editor-compact-interaction-integration.js", version);
     const ready = window.ServoForgeOrientationConstraintPlannerReady;
     if (ready && typeof ready.then === "function") {
       await Promise.race([
@@ -59,7 +81,7 @@
     progress?.set(53, "Loading feature integrations…");
     if (window.ServoForgeFeatureIntegrationsReady) await window.ServoForgeFeatureIntegrationsReady;
 
-    progress?.set(61, "Coordinating sensor and coder turns…");
+    progress?.set(61, "Applying compact sensor controls…");
     await loadOrientationConstraintPlanner();
 
     progress?.set(70, "Loading workspace controllers…");

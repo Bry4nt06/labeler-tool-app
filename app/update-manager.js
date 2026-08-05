@@ -148,7 +148,7 @@
   window.addEventListener("load", enforceReleaseVersion, { once: true });
 })();
 
-(function loadStagingFeatureModules() {
+(function loadProductionFeatureModules() {
   const RELEASE_VERSION = "0.9.10";
   const modules = [
     "app/diagnostics-workspace-integration.js",
@@ -185,7 +185,7 @@
   }
 
   modules.reduce((promise, path) => promise.then(() => loadScript(path)), Promise.resolve())
-    .catch((error) => console.error("Staging feature module load failed", error));
+    .catch((error) => console.error("Production feature module load failed", error));
 })();
 
 (function scopeReleaseReadinessAssetVersions() {

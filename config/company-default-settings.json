@@ -1,8 +1,8 @@
 {
   "format": "labeler-tool-portable-settings",
   "version": 1,
-  "companyDefaultsVersion": 3,
-  "exportedAt": "2026-08-03T23:58:00.000Z",
+  "companyDefaultsVersion": 12,
+  "exportedAt": "2026-08-05T03:29:00.000Z",
   "settings": {
     "themePreset": "graphite",
     "headCount": 45,
@@ -13,10 +13,10 @@
     "animationSpeedUnit": "deg-per-second",
     "maxMoveRatio": 21,
     "tablePitchRadiusMm": 572.958,
-    "referencePitchRadiusMm": 572.965,
+    "referencePitchRadiusMm": 572.958,
     "autoScaleTableMap": true,
-    "encoderCountsPerRev": 10000,
-    "servoGearRatio": 1.051,
+    "encoderCountsPerRev": 4096,
+    "servoGearRatio": 1,
     "padClearanceMm": 5,
     "showMoveDistanceOverlay": false,
     "showAllProgramMovesOverlay": true,
@@ -33,20 +33,20 @@
       "MultiModul"
     ],
     "mapLocked": true,
-    "activeMapId": "machine-map-1785801207122-2451",
+    "activeMapId": "map-apl-default",
     "applicationMode": "apl",
-    "selectedBrand": "12oz Budweiser 2 Label",
+    "selectedBrand": "",
     "selectedBottle": "LNNR - 12 Oz",
     "buildInputs": {
       "neckSpenderPlateDeg": 75,
       "neckApplication": "Center",
-      "neckContactMm": 4.4,
-      "bodyContactMm": 5,
-      "backContactMm": 5,
+      "neckContactMm": 0,
+      "bodyContactMm": 0,
+      "backContactMm": 0,
       "neckOverWipeDeg": 66,
       "bodyOverWipeDeg": 10,
       "backOverWipeDeg": 10,
-      "plateStartPositionDeg": 0,
+      "plateStartPositionDeg": 15,
       "neckOffsetMm": 0,
       "bodyOffsetMm": 0,
       "backOffsetMm": 0,
@@ -65,13 +65,10 @@
   },
   "fragments": {
     "mapLibrary": [
-      "./config/default-programs/map-blank-apl.json",
-      "./config/default-programs/map-l85-workbook-reference-3-label-apl.json",
-      "./config/default-programs/machine-map-1784427388958-9702.json",
-      "./config/default-programs/machine-map-1784477554290-6537.json",
-      "./config/default-programs/machine-map-1785801207122-2451.json"
+      "./config/default-programs/map-apl-6-aggregate.json",
+      "./config/default-programs/map-45h-topmodul-3-label-apl-wipe-down-pads.json"
     ],
-    "labelSpecs": "./config/default-programs/label-specs.json",
+    "labelSpecs": [],
     "bottleSpecs": "./config/default-programs/bottle-specs.json"
   }
 }

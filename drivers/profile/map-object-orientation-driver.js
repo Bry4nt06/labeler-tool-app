@@ -46,12 +46,12 @@
     const explicit = String(item?.orientationLabelSection || "auto").trim().toLowerCase();
     if (explicit === "none") return "none";
     if (["neck", "body", "back"].includes(explicit)) {
-      if (activeApplications[explicit]) return explicit;
-      // Coding targets saved with a three-label recipe must remain usable when
-      // the selected recipe has fewer labels. Retarget only coders; sensors
-      // remain tied to their physical station and should still report a fault.
+      if (activeApplications[explicit] !== false) return explicit;
+      // A physical label sensor has no inspection duty when its assigned label
+      // is absent from the selected brand. Ignore it without creating a turn,
+      // hold, or validation issue. Coders still retarget to the active label.
       if (item?.kind === "coding") return activeFallback(activeApplications);
-      return explicit;
+      return "none";
     }
     if (item?.kind === "sensor") {
       const station = Number(item?.station);
@@ -60,7 +60,12 @@
         || (typeof fallbackStationSection === "function" ? fallbackStationSection(station) : "")
         || ""
       ).toLowerCase();
-      if (VALID_SECTIONS.includes(inferred)) return inferred;
+      if (VALID_SECTIONS.includes(inferred)) {
+        if (["neck", "body", "back"].includes(inferred) && activeApplications[inferred] === false) {
+          return "none";
+        }
+        return inferred;
+      }
     }
     return activeFallback(activeApplications);
   }
@@ -96,6 +101,23 @@
     return { start, end };
   }
 
+  function applicationSection(row) {
+    const explicit = String(
+      row?.applicationSection
+      || row?.applicationTargetSection
+      || ""
+    ).trim().toLowerCase();
+    if (["neck", "body", "back"].includes(explicit)) return explicit;
+
+    // A section-boundary Rest can finish the current wipe while already
+    // holding the next label's application angle. In that case row.section
+    // describes the completed wipe, while the action identifies the actual
+    // application reference. Prefer that named application so a Body sensor
+    // cannot accidentally use the following Back-label target.
+    const match = String(row?.action || "").match(/\b(neck|body|back)\s+application\b/i);
+    return match ? match[1].toLowerCase() : "none";
+  }
+
   function applicationTarget({
     section,
     rows = [],
@@ -105,12 +127,17 @@
   } = {}) {
     const planned = finite(plannedTarget, NaN);
     if (Number.isFinite(planned)) return planned;
-    const row = [...rows].reverse().find((entry) =>
-      finite(entry?.tableAngle, Infinity) < finite(before, Infinity)
-      && String(entry?.section || "").toLowerCase() === String(section || "").toLowerCase()
-      && /application/i.test(String(entry?.action || ""))
-      && Number.isFinite(finite(entry?.plateAngle, NaN))
-    );
+    const requestedSection = String(section || "").toLowerCase();
+    const row = [...rows].reverse().find((entry) => {
+      const action = String(entry?.action || "");
+      if (finite(entry?.tableAngle, Infinity) >= finite(before, Infinity)
+        || !/application/i.test(action)
+        || !Number.isFinite(finite(entry?.plateAngle, NaN))) return false;
+
+      const namedSection = applicationSection(entry);
+      if (namedSection !== "none") return namedSection === requestedSection;
+      return String(entry?.section || "").toLowerCase() === requestedSection;
+    });
     return row ? finite(row.plateAngle, seedTarget) : finite(seedTarget, 0);
   }
 
@@ -215,6 +242,7 @@
     resolveSection,
     enabled,
     objectWindow,
+    applicationSection,
     applicationTarget,
     orientationTarget,
     isPhysicalContactTransition,

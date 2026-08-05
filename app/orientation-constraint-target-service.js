@@ -19,6 +19,18 @@
       || null;
   }
 
+  function sensorStationDriver() {
+    return global.LabelerDriverRegistry?.resolve("profile.sensorStationLabel")
+      || global.LabelerSensorStationLabelDriver
+      || null;
+  }
+
+  function sensorAimOffset(item) {
+    const driver = sensorStationDriver();
+    if (driver?.sensorAimOffset) return driver.sensorAimOffset(item?.sensorAimOffsetDeg);
+    return Math.max(-90, Math.min(90, num(item?.sensorAimOffsetDeg, 0)));
+  }
+
   function activeMap() {
     try { return typeof global.activeMachineMap === "function" ? global.activeMachineMap() : null; }
     catch { return null; }
@@ -117,12 +129,35 @@
     const center = typeof global.labelSensorInspectionCenter === "function"
       ? global.labelSensorInspectionCenter(section, application, shape.width)
       : application;
+    const aim = item?.kind === "sensor" ? sensorAimOffset(item) : 0;
     let sensorPlan = null;
     if (item.kind === "sensor") {
       const required = Math.min(100, Math.max(1, num(item.requiredVisibilityPercent, 50)));
-      sensorPlan = typeof global.nearestLabelSensorTarget === "function"
-        ? global.nearestLabelSensorTarget(currentPlate, center, shape.width, required, 180)
-        : { target: center, visibility: { percent: 100 } };
+      if (typeof global.nearestLabelSensorTarget === "function") {
+        // Solve in the sensor's viewing coordinate, then convert back to the
+        // physical bottle-plate target. Aimed hardware can therefore satisfy
+        // the same view with less bottle rotation.
+        const viewedPlan = global.nearestLabelSensorTarget(
+          num(currentPlate, 0) + aim,
+          center,
+          shape.width,
+          required,
+          180
+        );
+        sensorPlan = {
+          ...viewedPlan,
+          viewedTarget: viewedPlan.target,
+          target: num(viewedPlan.target, center) - aim,
+          sensorAimOffsetDeg: aim
+        };
+      } else {
+        sensorPlan = {
+          target: center - aim,
+          viewedTarget: center,
+          visibility: { percent: 100 },
+          sensorAimOffsetDeg: aim
+        };
+      }
     }
     const target = orientationDriver()?.orientationTarget({
       item,
@@ -137,7 +172,7 @@
       codeBoxOffsetDeg: shape.code,
       inspectionOffsetDeg: shape.inspection
     }) || {
-      target: currentPlate,
+      target: item.kind === "sensor" ? center - aim : currentPlate,
       mode: item.kind === "coding" ? "code-box" : "label-center",
       required: item.kind === "sensor" ? num(item.requiredVisibilityPercent, 50) : 100,
       visibility: 100,
@@ -148,6 +183,8 @@
       ...target,
       center: num(target.center, center),
       width: num(target.width, shape.width),
+      sensorAimOffsetDeg: aim,
+      viewedTarget: sensorPlan?.viewedTarget,
       required: item.kind === "sensor"
         ? Math.min(100, Math.max(1, num(target.required, item.requiredVisibilityPercent || 50)))
         : 100
@@ -157,16 +194,19 @@
   function visibilityAt(object, plateAngle) {
     if (object?.item?.kind !== "sensor") return 100;
     if (typeof global.labelSensorVisibility !== "function") return num(object?.target?.visibility, 0);
+    const effectiveViewAngle = num(plateAngle, 0) + sensorAimOffset(object.item);
     return num(global.labelSensorVisibility(
       object.target.center,
-      plateAngle,
+      effectiveViewAngle,
       object.target.width,
       180
     )?.percent, 0);
   }
 
   function enabled(item) {
-    if (item?.kind === "sensor") return Boolean(item.orientBottle ?? item.servoAssist);
+    if (item?.kind === "sensor") {
+      return item.enabled !== false && Boolean(item.orientBottle ?? item.servoAssist);
+    }
     if (item?.kind === "coding") {
       return String(item.orientationLabelSection || "auto").toLowerCase() !== "none"
         && item.disableServoOrientation !== true;
@@ -179,6 +219,8 @@
     num,
     done,
     orientationDriver,
+    sensorStationDriver,
+    sensorAimOffset,
     activeMap,
     applications,
     stationSections,
