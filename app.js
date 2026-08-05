@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "sensor-field-of-view-core-v18";
+  const build = "coder-window-wipe-hold-v22-production";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -64,6 +64,7 @@
     await loadScript("drivers/profile/sensor-post-inspection-release-driver.js", version);
     await loadScript("app/orientation-constraint-target-service.js", version);
     await loadScript("app/orientation-constraint-program-planner.js", version);
+    await loadScript("app/coder-window-reference-handoff-integration.js", version);
     await loadScript("app/sensor-editor-focus-guard-integration.js", version);
 
     try {
@@ -74,7 +75,10 @@
       await loadScript("app/sensor-station-label-inheritance-integration.js", version);
       await loadScript("app/inactive-label-sensor-suppression-integration.js", version);
       await loadScript("app/company-default-map-catalog-integration.js", version);
+      await loadScript("app/default-bottle-spec-retirement-integration.js", version);
       await loadScript("app/protected-default-map-integration.js", version);
+      await loadScript("app/repository-brand-download-integration.js", version);
+      await loadScript("app/optimizer-post-wipe-coverage-fix-integration.js", version);
       await window.LabelerSensorEditorFocusGuard?.waitForScopedObservers?.(2, 2000);
     } finally {
       window.LabelerSensorEditorFocusGuard?.restoreMutationObserver?.();
