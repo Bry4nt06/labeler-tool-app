@@ -25,7 +25,8 @@ function execute(initial = {}) {
 }
 
 const preferencesKey = "servoforge-developer-preferences-v1";
-const migrationKey = "servoforge-default-hidden-panels-v1-applied";
+const previousMigrationKey = "servoforge-default-hidden-panels-v1-applied";
+const migrationKey = "servoforge-default-hidden-panels-v2-applied";
 
 const fresh = execute();
 assert.deepEqual(
@@ -44,17 +45,29 @@ assert.deepEqual(
     lockedMapIds: ["map-1"],
     hiddenPanels: ["program", "simulation", "diagnostics"]
   },
-  "The one-time migration must preserve existing workspace settings while adding the two default-hidden panels."
+  "The renewed one-time migration must preserve existing workspace settings while adding the two default-hidden panels."
 );
 
-const manuallyShown = execute({
+const previouslyMigrated = execute({
   [preferencesKey]: JSON.stringify({ hiddenPanels: [] }),
+  [previousMigrationKey]: "true"
+});
+assert.deepEqual(
+  JSON.parse(previouslyMigrated.get(preferencesKey)).hiddenPanels.sort(),
+  ["diagnostics", "simulation"],
+  "Browsers carrying only the former migration marker must receive the renewed hidden-panel default once."
+);
+assert.equal(previouslyMigrated.get(migrationKey), "true");
+
+const manuallyShownAfterRenewal = execute({
+  [preferencesKey]: JSON.stringify({ hiddenPanels: [] }),
+  [previousMigrationKey]: "true",
   [migrationKey]: "true"
 });
 assert.deepEqual(
-  JSON.parse(manuallyShown.get(preferencesKey)).hiddenPanels,
+  JSON.parse(manuallyShownAfterRenewal.get(preferencesKey)).hiddenPanels,
   [],
-  "After the user shows the panels, later loads must preserve that manual choice."
+  "After the renewed default is applied, later manual visibility choices must remain preserved."
 );
 
 console.log("Default hidden workspace panels regression passed.");
