@@ -1,0 +1,85 @@
+name: Validate production after Pages
+
+on:
+  workflow_run:
+    workflows: ["pages build and deployment"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-servoforge-production
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out production main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate production identity and catalogs
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'content="0.9.10"' index.html
+          grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
+          grep -q 'coder-window-wipe-hold-v22-production' app.js
+          grep -q 'production-b7b4bda' service-worker.js
+          ! grep -q 'labeler-tool-staging' update-manifest.json
+
+          python3 - <<'PY'
+          import json
+          import pathlib
+
+          root = pathlib.Path('.')
+          bottles = json.loads((root / 'config/default-programs/bottle-specs.json').read_text(encoding='utf-8'))
+          assert [item['id'] for item in bottles] == [2, 3, 6, 7, 8, 9, 10]
+          assert all(item['id'] not in {1, 4, 5} for item in bottles)
+
+          labels = json.loads((root / 'config/default-programs/label-specs.json').read_text(encoding='utf-8'))
+          assert any(item.get('brand') == '12oz LandShark (LN)' for item in labels)
+          assert any(item.get('brand') == '12oz Mic Family (T6,41,FO,79,BT,87)' for item in labels)
+
+          manifest = json.loads((root / 'update-manifest.json').read_text(encoding='utf-8'))
+          assert manifest['version'] == '0.9.10'
+          assert manifest['releaseUrl'] == 'https://bry4nt06.github.io/labeler-tool-app/'
+          PY
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check service-worker.js
+          node --check app/coder-window-reference-handoff-integration.js
+          node --check app/default-bottle-spec-retirement-integration.js
+          node --check app/repository-brand-download-integration.js
+          node --check app/optimizer-map-contact-integration.js
+          node --check app/optimizer-post-wipe-coverage-fix-integration.js
+          node --check app/mechanical-map-scene-renderer.js
+
+      - name: Run production regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/repository-brand-download.test.js
+          node tests/optimizer-post-wipe-coverage.test.js
+          node tests/coder-window-reference-handoff.test.js
+          node tests/sensor-field-of-view.test.js
+          node tests/default-hidden-workspace-panels.test.js
+          node tests/inactive-label-sensor-suppression.test.js
+          node tests/topmodul-terminal-coding-hold.test.js
+          node tests/default-catalog-reset.test.js
+          node tests/standard-45h-wipe-down-default.test.js
+          node tests/apl-6-aggregate-default.test.js
+          node tests/sensor-target-policy.test.js
