@@ -29,7 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
-          git -C /tmp/labeler-tool-staging checkout 7f08492700d14726d3d2a60f7cd846dba4566a2c
+          git -C /tmp/labeler-tool-staging checkout 251bf73f483254b93502528dceab58c1ac152762
 
       - name: Replace production runtime
         shell: bash
@@ -52,8 +52,8 @@ jobs:
           import sys
 
           root = pathlib.Path(sys.argv[1])
-          version = "0.9.5"
-          staging_commit = "7f08492700d14726d3d2a60f7cd846dba4566a2c"
+          version = "0.9.10"
+          staging_commit = "251bf73f483254b93502528dceab58c1ac152762"
           staging_url = "https://bry4nt06.github.io/labeler-tool-staging/"
           production_url = "https://bry4nt06.github.io/labeler-tool-app/"
 
@@ -100,21 +100,23 @@ jobs:
           index_path.write_text(index, encoding="utf-8")
 
           loader_path = root / "app" / "simulation-collapsible-integration.js"
-          loader = loader_path.read_text(encoding="utf-8")
-          loader = loader.replace("Staging integration load failed", "Production integration load failed")
-          loader_path.write_text(loader, encoding="utf-8")
+          if loader_path.exists():
+              loader = loader_path.read_text(encoding="utf-8")
+              loader = loader.replace("Staging integration load failed", "Production integration load failed")
+              loader_path.write_text(loader, encoding="utf-8")
 
           updater_path = root / "app" / "update-manager.js"
-          updater = updater_path.read_text(encoding="utf-8")
-          updater = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', updater)
-          updater = updater.replace("loadStagingFeatureModules", "loadProductionFeatureModules")
-          updater = updater.replace("Staging feature module load failed", "Production feature module load failed")
-          updater_path.write_text(updater, encoding="utf-8")
+          if updater_path.exists():
+              updater = updater_path.read_text(encoding="utf-8")
+              updater = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', updater)
+              updater = updater.replace("loadStagingFeatureModules", "loadProductionFeatureModules")
+              updater = updater.replace("Staging feature module load failed", "Production feature module load failed")
+              updater_path.write_text(updater, encoding="utf-8")
 
           worker_path = root / "service-worker.js"
           worker = worker_path.read_text(encoding="utf-8")
           worker = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', worker)
-          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-7f08492";', worker)
+          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-251bf73";', worker)
           worker = re.sub(r'const CACHE_PREFIX = "[^"]+";', 'const CACHE_PREFIX = "servoforge-labeler-";', worker)
           worker_path.write_text(worker, encoding="utf-8")
 
@@ -125,7 +127,7 @@ jobs:
               "version": version,
               "releaseUrl": production_url,
               "downloadUrl": production_url,
-              "notes": f"ServoForge {version} promotes the approved default-program package and exact normalized staging commit {staging_commit[:7]}."
+              "notes": f"ServoForge {version} promotes the approved current staging build {staging_commit[:7]} with the two-map default catalog, sensor workflow corrections, and TopModul terminal fixes."
           })
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
@@ -143,26 +145,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'content="0.9.5"' index.html
-          grep -q 'Version 0.9.5' index.html
+          grep -q 'content="0.9.10"' index.html
+          grep -q 'Version 0.9.10' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
 
           required=(
             app/company-default-programs-integration.js
-            app/workbook-reference-map-library-integration.js
-            app/locked-map-brand-selector-integration.js
-            app/motion-profile-regeneration-integration.js
-            app/apl-continuous-motion-integration.js
+            app/company-default-map-catalog-integration.js
+            app/inactive-label-sensor-suppression-integration.js
+            app/sensor-editor-focus-guard-integration.js
+            app/sensor-post-inspection-release-integration.js
+            app/apl-overlapping-pad-handoff-integration.js
             app/map-object-coder-after-wipe-integration.js
-            app/map-object-servo-orientation-integration.js
-            app/apl-neck-final-pad-completion-integration.js
-            app/map-object-double-click-open-fix-integration.js
-            app/label-spec-section-selection-integration.js
+            app/machine-terminal-policy-integration.js
+            drivers/profile/map-object-orientation-driver.js
+            drivers/profile/sensor-post-inspection-release-driver.js
+            config/default-programs/map-apl-6-aggregate.json
+            config/default-programs/map-45h-topmodul-3-label-apl-wipe-down-pads.json
           )
           for file in "${required[@]}"; do
             test -f "$file"
-            name="$(basename "$file")"
-            grep -q "$name" app/simulation-collapsible-integration.js service-worker.js
           done
 
           python3 - <<'PY'
@@ -171,18 +173,22 @@ jobs:
 
           root = pathlib.Path('.')
           manifest = json.loads((root / 'config/company-default-settings.json').read_text(encoding='utf-8'))
-          assert manifest['companyDefaultsVersion'] == 2
+          assert manifest['companyDefaultsVersion'] == 12
           fragments = manifest['fragments']
+          assert fragments['mapLibrary'] == [
+              './config/default-programs/map-apl-6-aggregate.json',
+              './config/default-programs/map-45h-topmodul-3-label-apl-wipe-down-pads.json'
+          ]
+          assert fragments['labelSpecs'] == []
           maps = [json.loads((root / path.removeprefix('./')).read_text(encoding='utf-8')) for path in fragments['mapLibrary']]
-          labels = json.loads((root / fragments['labelSpecs'].removeprefix('./')).read_text(encoding='utf-8'))
-          bottles = json.loads((root / fragments['bottleSpecs'].removeprefix('./')).read_text(encoding='utf-8'))
-          assert len(maps) == 8
-          assert len({item['id'] for item in maps}) == 8
-          assert len(labels) == 16
-          assert len(bottles) == 10
-          reference = next(item for item in maps if item['id'] == 'map-l85-workbook-reference-3-label-apl')
-          assert len(reference['objects']) == 15
-          assert manifest['settings']['activeMapId'] == reference['id']
+          assert [item['id'] for item in maps] == [
+              'map-apl-default',
+              'map-45h-topmodul-3-label-apl-wipe-down-pads'
+          ]
+          assert all(item['companyDefaultProgram'] is True for item in maps)
+          assert all(item['protectedDefaultMap'] is True for item in maps)
+          assert all(item['companyDefaultProgramVersion'] == 12 for item in maps)
+          assert manifest['settings']['activeMapId'] == 'map-apl-default'
           PY
 
           ! test -e app/release-readiness-staging-alignment-integration.js
@@ -195,6 +201,13 @@ jobs:
           python3 -m json.tool update-manifest.json >/dev/null
           python3 -m json.tool release-notes.json >/dev/null
 
+          node tests/inactive-label-sensor-suppression.test.js
+          node tests/topmodul-terminal-coding-hold.test.js
+          node tests/default-catalog-reset.test.js
+          node tests/standard-45h-wipe-down-default.test.js
+          node tests/apl-6-aggregate-default.test.js
+          node tests/sensor-target-policy.test.js
+
       - name: Commit and publish production build
         shell: bash
         run: |
@@ -203,7 +216,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if ! git diff --quiet; then
             git add -A
-            git commit -m 'Promote approved staging 7f08492 to production 0.9.5'
+            git commit -m 'Promote staging 251bf73 to production 0.9.10'
           fi
           git push origin HEAD:main
-          git push origin HEAD:release/servoforge-0.9.5-2026-08-01
+          git push --force origin HEAD:release/servoforge-0.9.10-2026-08-05
