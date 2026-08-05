@@ -2,7 +2,7 @@
 
 (function seedDefaultWorkspacePanelVisibility() {
   const preferencesKey = "servoforge-developer-preferences-v1";
-  const migrationKey = "servoforge-default-hidden-panels-v1-applied";
+  const migrationKey = "servoforge-default-hidden-panels-v2-applied";
   const defaultHiddenPanels = ["simulation", "diagnostics"];
 
   try {
