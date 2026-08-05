@@ -29,7 +29,7 @@ jobs:
         run: |
           set -euo pipefail
           git clone https://github.com/Bry4nt06/labeler-tool-staging.git /tmp/labeler-tool-staging
-          git -C /tmp/labeler-tool-staging checkout 251bf73f483254b93502528dceab58c1ac152762
+          git -C /tmp/labeler-tool-staging checkout 4e5196d2c3d7a7e81272c1e99dcff5652f093255
 
       - name: Replace production runtime
         shell: bash
@@ -53,7 +53,7 @@ jobs:
 
           root = pathlib.Path(sys.argv[1])
           version = "0.9.10"
-          staging_commit = "251bf73f483254b93502528dceab58c1ac152762"
+          staging_commit = "4e5196d2c3d7a7e81272c1e99dcff5652f093255"
           staging_url = "https://bry4nt06.github.io/labeler-tool-staging/"
           production_url = "https://bry4nt06.github.io/labeler-tool-app/"
 
@@ -116,7 +116,7 @@ jobs:
           worker_path = root / "service-worker.js"
           worker = worker_path.read_text(encoding="utf-8")
           worker = re.sub(r'const RELEASE_VERSION = "[^"]+";', f'const RELEASE_VERSION = "{version}";', worker)
-          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-251bf73";', worker)
+          worker = re.sub(r'const CACHE_NAME = "[^"]+";', f'const CACHE_NAME = "servoforge-labeler-v{version}-production-4e5196d";', worker)
           worker = re.sub(r'const CACHE_PREFIX = "[^"]+";', 'const CACHE_PREFIX = "servoforge-labeler-";', worker)
           worker_path.write_text(worker, encoding="utf-8")
 
@@ -127,7 +127,7 @@ jobs:
               "version": version,
               "releaseUrl": production_url,
               "downloadUrl": production_url,
-              "notes": f"ServoForge {version} promotes the approved current staging build {staging_commit[:7]} with the two-map default catalog, sensor workflow corrections, and TopModul terminal fixes."
+              "notes": f"ServoForge {version} promotes approved staging build {staging_commit[:7]} with inactive-label sensor suppression and Servo Simulation/Diagnostics hidden by default."
           })
           manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
@@ -201,6 +201,7 @@ jobs:
           python3 -m json.tool update-manifest.json >/dev/null
           python3 -m json.tool release-notes.json >/dev/null
 
+          node tests/default-hidden-workspace-panels.test.js
           node tests/inactive-label-sensor-suppression.test.js
           node tests/topmodul-terminal-coding-hold.test.js
           node tests/default-catalog-reset.test.js
@@ -216,7 +217,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           if ! git diff --quiet; then
             git add -A
-            git commit -m 'Promote staging 251bf73 to production 0.9.10'
+            git commit -m 'Promote staging 4e5196d to production 0.9.10'
           fi
           git push origin HEAD:main
           git push --force origin HEAD:release/servoforge-0.9.10-2026-08-05
