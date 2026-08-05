@@ -36,6 +36,7 @@ jobs:
           grep -q 'content="0.9.10"' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
           grep -q 'coder-window-wipe-hold-v22-production' app.js
+          grep -q 'workspace-panel-visibility-guard-integration.js' app.js
           grep -q 'production-b7b4bda' service-worker.js
           ! grep -q 'labeler-tool-staging' update-manifest.json
 
@@ -66,6 +67,7 @@ jobs:
           node --check app/coder-window-reference-handoff-integration.js
           node --check app/default-bottle-spec-retirement-integration.js
           node --check app/repository-brand-download-integration.js
+          node --check app/workspace-panel-visibility-guard-integration.js
           node --check app/optimizer-map-contact-integration.js
           node --check app/optimizer-post-wipe-coverage-fix-integration.js
           node --check app/mechanical-map-scene-renderer.js
@@ -79,6 +81,7 @@ jobs:
           node tests/coder-window-reference-handoff.test.js
           node tests/sensor-field-of-view.test.js
           node tests/default-hidden-workspace-panels.test.js
+          node tests/workspace-panel-visibility-guard.test.js
           node tests/inactive-label-sensor-suppression.test.js
           node tests/topmodul-terminal-coding-hold.test.js
           node tests/default-catalog-reset.test.js
