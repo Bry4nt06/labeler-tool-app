@@ -104,7 +104,7 @@ assert.equal(diagnosticsTab.style.getPropertyValue("display"), "none");
 assert.equal(diagnosticsPanel.style.getPropertyValue("display"), "none");
 assert.equal(simulationPanel.getAttribute("aria-hidden"), "true");
 assert.equal(fallbackClicks > 0, true, "An active hidden panel must fall back to a visible workspace tab.");
-assert.deepEqual(observerOptions.attributeFilter, ["class"]);
+assert.deepEqual(Array.from(observerOptions.attributeFilter), ["class"]);
 assert.equal(observerOptions.childList, true);
 assert.equal(observerOptions.subtree, true);
 
