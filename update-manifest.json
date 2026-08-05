@@ -3,5 +3,5 @@
   "version": "0.9.10",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.10 promotes approved staging build e053326 with the core sensor field-of-view visualization, shortened to the bottle path with reduced transparency."
+  "notes": "ServoForge 0.9.10 includes the shortened sensor field-of-view cone, repository brand download, retired bottle defaults 1, 4, and 5, explicit coder-window holds, and brand-independent wipe-hold coverage validation."
 }
