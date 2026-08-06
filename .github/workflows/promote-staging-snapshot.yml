@@ -1,5 +1,6 @@
 name: Promote complete staging snapshot
 
+# One-time exact mirror from staging into production.
 on:
   push:
     branches: [main]
