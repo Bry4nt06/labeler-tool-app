@@ -19,7 +19,7 @@ assert.match(source, /function ensureExplicitCodingHolds/);
 assert.match(source, /explicitCodingWindowHold:\s*true/);
 assert.match(source, /codingHold:\s*true/);
 assert.match(source, /terminalRest:\s*true/);
-assert.match(startup, /coder-window-wipe-hold-v22/);
+assert.match(startup, /apl-post-wipe-sensor-hold-v24-production/);
 assert.match(
   startup,
   /orientation-constraint-program-planner\.js[\s\S]*coder-window-reference-handoff-integration\.js[\s\S]*orientation-constraint-planner-integration\.js/,
