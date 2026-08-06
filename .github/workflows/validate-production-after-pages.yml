@@ -35,7 +35,8 @@ jobs:
           set -euo pipefail
           grep -q 'content="0.9.10"' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
-          grep -q 'coder-window-wipe-hold-v22-production' app.js
+          grep -q 'apl-post-wipe-sensor-hold-v24-production' app.js
+          grep -q 'apl-post-wipe-sensor-hold-integration.js' app.js
           grep -q 'workspace-panel-visibility-guard-integration.js' app.js
           grep -q 'production-b7b4bda' service-worker.js
           ! grep -q 'labeler-tool-staging' update-manifest.json
@@ -65,6 +66,7 @@ jobs:
           node --check app.js
           node --check service-worker.js
           node --check app/coder-window-reference-handoff-integration.js
+          node --check app/apl-post-wipe-sensor-hold-integration.js
           node --check app/default-bottle-spec-retirement-integration.js
           node --check app/repository-brand-download-integration.js
           node --check app/workspace-panel-visibility-guard-integration.js
@@ -76,6 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node tests/apl-post-wipe-sensor-hold.test.js
           node tests/repository-brand-download.test.js
           node tests/optimizer-post-wipe-coverage.test.js
           node tests/coder-window-reference-handoff.test.js
