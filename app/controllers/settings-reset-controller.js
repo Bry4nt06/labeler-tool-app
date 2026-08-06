@@ -35,6 +35,12 @@
     );
   }
 
+  function restoreResetButton(button) {
+    if (!button) return;
+    button.disabled = false;
+    button.textContent = "Reset All Settings";
+  }
+
   function reset() {
     if (!confirmReset()) return false;
     const button = document.getElementById(BUTTON_ID);
@@ -42,17 +48,27 @@
       button.disabled = true;
       button.textContent = "Resetting…";
     }
+
+    const persistence = global.LabelerLocalPersistenceController;
+    persistence?.suspend();
+
     const service = global.LabelerCompanyDefaultsService;
     if (!service?.resetToDefaults) {
-      if (button) {
-        button.disabled = false;
-        button.textContent = "Reset All Settings";
-      }
+      persistence?.resume({ flushNow: false });
+      restoreResetButton(button);
       global.alert("Company defaults are still loading. Try the reset again after ServoForge finishes starting.");
       return false;
     }
-    service.resetToDefaults();
-    return true;
+
+    try {
+      service.resetToDefaults();
+      return true;
+    } catch (error) {
+      persistence?.resume({ flushNow: false });
+      restoreResetButton(button);
+      global.alert(`Unable to reset ServoForge: ${error?.message || error}`);
+      return false;
+    }
   }
 
   document.addEventListener("click", (event) => {

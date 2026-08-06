@@ -17,7 +17,7 @@ assert.match(source, /isMovingWipeHold/);
 assert.match(source, /maxConsecutiveCorrections/);
 assert.match(source, /wipeSensorSetupHold/);
 assert.match(source, /sensorSetupAfterHold/);
-assert.match(startup, /apl-post-wipe-sensor-hold-v24-production/);
+assert.match(startup, /apl-post-wipe-sensor-hold-v24/);
 assert.match(startup, /apl-post-wipe-sensor-hold-integration\.js/);
 
 const stages = new Map([
@@ -188,4 +188,4 @@ const noMatch = api.repair([
 assert.equal(noMatch.changes.length, 0);
 assert.equal(noMatch.rows.length, 3);
 
-console.log("Production APL post-wipe sensor hold regression passed for the actual Landshark sequence.");
+console.log("APL post-wipe sensor hold regression passed for the actual Landshark sequence.");

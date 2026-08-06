@@ -1,0 +1,31 @@
+name: Validate post-wipe coverage
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - app/optimizer-map-contact-integration.js
+      - app/optimizer-post-wipe-coverage-fix-integration.js
+      - tests/optimizer-post-wipe-coverage.test.js
+      - .github/workflows/validate-optimizer-post-wipe-coverage.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check app/optimizer-map-contact-integration.js
+          node --check app/optimizer-post-wipe-coverage-fix-integration.js
+          node --check tests/optimizer-post-wipe-coverage.test.js
+      - name: Run post-wipe coverage regression
+        run: node tests/optimizer-post-wipe-coverage.test.js

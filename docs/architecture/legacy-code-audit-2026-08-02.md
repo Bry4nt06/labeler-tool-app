@@ -1,7 +1,7 @@
 # ServoForge Legacy Code and Modularization Audit
 
 **Date:** 2026-08-02  
-**Repository:** `Bry4nt06/labeler-tool-app`  
+**Repository:** `Bry4nt06/labeler-tool-staging`  
 **Scope:** Browser-loaded runtime, application integrations, drivers, profile generation, map builder, persistence compatibility, validation, and service-worker assets.
 
 ## Objective

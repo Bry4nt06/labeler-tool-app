@@ -14,6 +14,7 @@
     "app/controllers/validation-panel-ui-controller.js",
     "app/controllers/settings-controller.js",
     "app/controllers/settings-reset-controller.js",
+    "app/controllers/local-persistence-controller.js",
     "app/controllers/map-controller.js",
     "app/controllers/specs-controller.js",
     "app/controllers/specification-event-controller.js",
@@ -50,8 +51,8 @@
     return new Promise((resolve, reject) => {
       const expected = new URL(`./${path}`, window.location.href).pathname;
       const existing = [...document.scripts].find((script) => {
-        try { return new URL(script.src, window.location.href).pathname === expected; }
-        catch { return false; }
+        try { return new URL(script.src, window.location.href).pathname === expected;
+        } catch { return false; }
       });
       if (existing) {
         if (existing.dataset.loaded === "true") resolve();

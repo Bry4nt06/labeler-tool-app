@@ -43,8 +43,8 @@ assert.match(
 );
 assert.match(
   startup,
-  /sensor-(?:editor-v14|release-v1[5-9])/,
-  "the focus guard and later sensor policies must use a cache-busting sensor build id"
+  /(?:sensor-(?:editor|release|field-of-view(?:-core)?)-v1[4-9]|coder-window-wipe-hold-v22)/,
+  "the focus guard and later sensor policies must use a cache-busting release build id"
 );
 
 console.log("Sensor editor focus guard regression passed.");

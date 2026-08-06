@@ -1,0 +1,59 @@
+name: Validate station-pair sensors
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - app/mechanical-map-scene-renderer.js
+      - app/map-object-orientation-controls-integration.js
+      - app/orientation-constraint-target-service.js
+      - app/sensor-editor-focus-guard-integration.js
+      - app/sensor-field-of-view-integration.js
+      - app/sensor-post-inspection-release-integration.js
+      - app/sensor-station-label-inheritance-integration.js
+      - app/sensor-editor-compact-interaction-integration.js
+      - drivers/profile/sensor-station-label-driver.js
+      - drivers/profile/sensor-post-inspection-release-driver.js
+      - tests/default-hidden-workspace-panels.test.js
+      - tests/sensor-station-label-driver.test.js
+      - tests/sensor-aim-geometry.test.js
+      - tests/sensor-editor-focus-guard.test.js
+      - tests/sensor-field-of-view.test.js
+      - tests/sensor-post-inspection-release.test.js
+      - tests/sensor-editor-compact-interaction.test.js
+      - .github/workflows/validate-sensor-station-labels.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check app/mechanical-map-scene-renderer.js
+          node --check app/map-object-orientation-controls-integration.js
+          node --check app/orientation-constraint-target-service.js
+          node --check app/sensor-editor-focus-guard-integration.js
+          node --check app/sensor-field-of-view-integration.js
+          node --check app/sensor-post-inspection-release-integration.js
+          node --check app/sensor-station-label-inheritance-integration.js
+          node --check app/sensor-editor-compact-interaction-integration.js
+          node --check drivers/profile/sensor-station-label-driver.js
+          node --check drivers/profile/sensor-post-inspection-release-driver.js
+      - name: Run sensor and workspace regressions
+        run: |
+          node tests/default-hidden-workspace-panels.test.js
+          node tests/sensor-station-label-driver.test.js
+          node tests/sensor-aim-geometry.test.js
+          node tests/sensor-editor-focus-guard.test.js
+          node tests/sensor-field-of-view.test.js
+          node tests/sensor-post-inspection-release.test.js
+          node tests/sensor-editor-compact-interaction.test.js

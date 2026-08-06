@@ -2,7 +2,9 @@
   "use strict";
 
   const LEVELS = Object.freeze({ BAD: "bad", WARN: "warn", OK: "ok" });
+  const LEVEL_PRIORITY = Object.freeze({ bad: 3, warn: 2, ok: 1 });
   const PREFIX_PATTERN = /^\s*\[([A-Z][A-Z0-9 _/-]{1,30})\]\s*/;
+  const EXPLICIT_KEY_PREFIX = "explicit|";
 
   function level(value, fallback = LEVELS.WARN) {
     const normalized = String(value || "").trim().toLowerCase();
@@ -73,6 +75,16 @@
       .trim();
   }
 
+  function normalizeValidationKey(value) {
+    let normalized = String(value || "").trim().toLowerCase();
+    while (normalized.startsWith(EXPLICIT_KEY_PREFIX)) normalized = normalized.slice(EXPLICIT_KEY_PREFIX.length);
+    normalized = normalized.replace(/^(bad|warn|ok)\|/, "");
+    return normalized
+      .replace(/\s*\|\s*/g, "|")
+      .replace(/\|{2,}/g, "|")
+      .replace(/^\|+|\|+$/g, "");
+  }
+
   function inferCondition(issue) {
     const text = normalizeText(issue.message);
     const category = normalizeCategory(issue.category);
@@ -86,7 +98,7 @@
     if (/finish.*cmd 3 rest|terminal rest|required.*end curve.*rest|end curve using cmd 3 rest/.test(text)) return `terminal-rest|${location}`;
 
     if (category === "speed" || /speed|ratio|deg bottle.*1 deg table|will fault/.test(text)) {
-      return `speed-envelope|${location}|${issue.level}`;
+      return `speed-envelope|${location}`;
     }
 
     if (/missing leading reference|without a preceding cmd 3|without an immediately preceding cmd 3/.test(text)) return `grammar-leading-reference|${location}`;
@@ -142,10 +154,13 @@
   }
 
   function semanticKey(issue) {
-    const explicit = issue.metadata?.validationKey || issue.metadata?.diagnosticKey || issue.metadata?.issueKey;
-    if (explicit) return `explicit|${explicit}`;
     const condition = inferCondition(issue);
-    return `${issue.level}|${condition}`;
+    const normalizedText = normalizeText(issue.message);
+    if (condition && condition !== normalizedText) return condition;
+
+    const explicit = issue.metadata?.validationKey || issue.metadata?.diagnosticKey || issue.metadata?.issueKey;
+    const explicitKey = normalizeValidationKey(explicit);
+    return explicitKey || condition;
   }
 
   function quality(issue) {
@@ -158,13 +173,34 @@
     return score;
   }
 
+  function severity(issue) {
+    return LEVEL_PRIORITY[level(issue?.level)] || 0;
+  }
+
+  function authoritativeIssue(current, candidate) {
+    const strongest = severity(candidate) > severity(current) ? candidate : current;
+    const richest = quality(candidate) > quality(current) ? candidate : current;
+    const fallback = richest === candidate ? current : candidate;
+    return create({
+      ...richest,
+      level: strongest.level,
+      code: richest.code || fallback.code,
+      category: richest.category !== "general" ? richest.category : fallback.category,
+      message: richest.message || strongest.message || fallback.message,
+      hmi: richest.hmi ?? fallback.hmi,
+      eventId: richest.eventId ?? fallback.eventId,
+      source: richest.source || fallback.source,
+      metadata: { ...(current.metadata || {}), ...(candidate.metadata || {}) }
+    });
+  }
+
   function dedupe(issues) {
     const slots = new Map();
     (Array.isArray(issues) ? issues : []).forEach((rawIssue) => {
       const issue = rawIssue?.message !== undefined ? create(rawIssue) : fromNote(rawIssue);
       const key = semanticKey(issue);
       const current = slots.get(key);
-      if (!current || quality(issue) > quality(current)) slots.set(key, issue);
+      slots.set(key, current ? authoritativeIssue(current, issue) : issue);
     });
     return [...slots.values()];
   }
@@ -195,12 +231,13 @@
     inferHmi,
     normalizeCategory,
     normalizeText,
+    normalizeValidationKey,
     stripPrefix
   });
 
   global.LabelerValidationIssueDriver = api;
   global.LabelerDriverRegistry?.register?.("validation.issue", api, {
-    version: 1,
+    version: 2,
     responsibilities: ["issue-creation", "normalization", "semantic-deduplication"]
   });
 })(window);

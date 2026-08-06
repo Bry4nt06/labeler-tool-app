@@ -46,6 +46,7 @@
       "app/assembly-map-renderer.js?v=0.9.7-assembly-ui-split-v1",
       "app/simulation-collapsible-core.js?v=0.9.3-direct",
       "app/servo-replay-loop-controls-integration.js?v=0.9.3-replay-icons-loop",
+      "app/release-readiness-staging-alignment-integration.js?v=0.9.3-staging-readiness-v2",
       "app/spec-row-duplicate-integration.js?v=0.9.3-spec-row-duplicate",
       "app/remove-zone-site-integration.js?v=0.9.3-global-map-library",
       "app/multi-map-lock-import-integration-v2.js?v=0.9.3-map-import-router"
@@ -182,6 +183,6 @@
 
   window.ServoForgeFeatureIntegrationsReady = waitForRuntimeOwners().then(loadAllFeatures);
   window.ServoForgeFeatureIntegrationsReady.catch((error) => {
-    console.error("Production integration load failed", error);
+    console.error("Staging integration load failed", error);
   });
 })();

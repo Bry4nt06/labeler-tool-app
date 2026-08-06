@@ -1,0 +1,29 @@
+name: Validate Landshark first application zero datum
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - app/first-application-zero-datum-integration.js
+      - tests/landshark-first-application-zero-datum.test.js
+      - .github/workflows/validate-landshark-first-application-zero-datum.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check app/first-application-zero-datum-integration.js
+          node --check tests/landshark-first-application-zero-datum.test.js
+      - name: Run Landshark zero-datum regression
+        run: node tests/landshark-first-application-zero-datum.test.js

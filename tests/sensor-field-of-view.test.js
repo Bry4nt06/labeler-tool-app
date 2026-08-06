@@ -25,11 +25,15 @@ assert.match(scene, /stroke-dasharray": "5 4"/);
 assert.match(scene, /drawConfiguredAssemblies\(add, configuredAssemblyLayer\)[\s\S]*drawSensorFieldOfViewCones\(add, sensorFieldOfViewLayer, activeMap\)/);
 assert.match(scene, /renderMap\.sensorFieldOfViewCoreV1\s*=\s*true/);
 assert.match(scene, /sensorFieldOfViewCoreV1:\s*true/);
+
 assert.doesNotMatch(
   startup,
   /loadScript\("app\/sensor-field-of-view-integration\.js"/,
-  "The field of view must remain in the core map renderer rather than a timing-sensitive wrapper."
+  "The field-of-view must be owned by the core map renderer, not a timing-sensitive wrapper."
 );
-assert.match(startup, /apl-post-wipe-sensor-hold-v24-production/);
+assert.match(startup, /(?:sensor-field-of-view-core-v18|coder-window-wipe-hold-v22)/);
 
-console.log("Production sensor field-of-view regression passed.");
+const integration = fs.readFileSync(path.join(root, "app", "sensor-field-of-view-integration.js"), "utf8");
+assert.doesNotThrow(() => new vm.Script(integration));
+
+console.log("Core sensor field-of-view regression passed.");

@@ -1,0 +1,29 @@
+name: Validate brand contact parameter defaults
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - app/global-machine-parameter-defaults-integration.js
+      - tests/brand-contact-parameter-defaults.test.js
+      - .github/workflows/validate-brand-contact-parameter-defaults.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check app/global-machine-parameter-defaults-integration.js
+          node --check tests/brand-contact-parameter-defaults.test.js
+      - name: Run brand contact defaults regression
+        run: node tests/brand-contact-parameter-defaults.test.js

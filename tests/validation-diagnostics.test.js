@@ -47,8 +47,36 @@ assert.strictEqual(speed.hmi, 4);
 assert.strictEqual(speed.message, "HMI 4 requires 36.0° bottle per 1° table, exceeding the 21.0:1 limit.");
 assert.ok(sandbox.LabelerValidationResultAggregator.toNotes(result).every((note) => note[2].validationKey));
 
+const mixedSeverity = sandbox.LabelerValidationResultAggregator.aggregateNotes([
+  ["warn", "[SPEED] HMI 4 requires 36.0° bottle per 1° table, exceeding the 21.0:1 limit.", { pipelineCode: "speed-limit-exceeded", hmi: 4 }],
+  ["bad", "Move HMI 4 -> 5 will fault: 180 deg plate in 5 deg table (ratio 36, limit 21)."]
+]);
+assert.strictEqual(mixedSeverity.issues.length, 1, "Issue severity must not create a second copy of the same physical condition.");
+assert.strictEqual(mixedSeverity.duplicateCount, 1);
+assert.strictEqual(mixedSeverity.issues[0].level, "bad", "The strongest severity must win during semantic deduplication.");
+assert.strictEqual(mixedSeverity.issues[0].code, "speed-limit-exceeded", "The strongest severity must retain richer pipeline metadata.");
+
+const firstPassNotes = sandbox.LabelerValidationResultAggregator.toNotes(mixedSeverity);
+const firstValidationKey = firstPassNotes[0][2].validationKey;
+const secondPass = sandbox.LabelerValidationResultAggregator.aggregateNotes(firstPassNotes);
+const secondPassNotes = sandbox.LabelerValidationResultAggregator.toNotes(secondPass);
+assert.strictEqual(secondPassNotes[0][2].validationKey, firstValidationKey, "Canonical validation keys must remain stable across repeated aggregation.");
+assert.ok(!firstValidationKey.startsWith("explicit|"), "Canonical keys must not expose a presentation-only explicit prefix.");
+
+const explicitKeyResult = sandbox.LabelerValidationResultAggregator.aggregateNotes([
+  ["warn", "Custom controller condition", { validationKey: "explicit|warn|custom-controller|hmi:8", hmi: 8 }],
+  ["bad", "Custom controller condition", { validationKey: "custom-controller|hmi:8", hmi: 8 }]
+]);
+assert.strictEqual(explicitKeyResult.issues.length, 1, "Legacy explicit validation keys must normalize to one condition identity.");
+assert.strictEqual(explicitKeyResult.issues[0].level, "bad");
+assert.strictEqual(
+  sandbox.LabelerValidationResultAggregator.toNotes(explicitKeyResult)[0][2].validationKey,
+  "custom-controller|hmi:8"
+);
+
 assert.ok(registered.has("validation.issue"));
 assert.ok(registered.has("validation.result"));
+assert.strictEqual(registered.get("validation.issue").metadata.version, 2);
 assert.deepStrictEqual(Array.from(registered.get("validation.result").metadata.dependencies), ["validation.issue"]);
 
 const issueIndex = manifestSource.indexOf("drivers/validation/validation-issue-driver.js");

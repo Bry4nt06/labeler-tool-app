@@ -1,0 +1,39 @@
+name: Validate repository brands
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - service-worker.js
+      - app/default-bottle-spec-retirement-integration.js
+      - app/repository-brand-download-integration.js
+      - config/default-programs/bottle-specs.json
+      - config/default-programs/label-specs.json
+      - tests/repository-brand-download.test.js
+      - .github/workflows/validate-repository-brands.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check service-worker.js
+          node --check app/default-bottle-spec-retirement-integration.js
+          node --check app/repository-brand-download-integration.js
+          node --check tests/repository-brand-download.test.js
+      - name: Validate catalogs
+        run: |
+          python3 -m json.tool config/default-programs/bottle-specs.json >/dev/null
+          python3 -m json.tool config/default-programs/label-specs.json >/dev/null
+      - name: Run repository brand regression
+        run: node tests/repository-brand-download.test.js

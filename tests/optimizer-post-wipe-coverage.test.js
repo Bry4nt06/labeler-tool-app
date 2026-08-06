@@ -21,7 +21,7 @@ assert.match(fallbackSource, /version:\s*3/);
 assert.match(fallbackSource, /function isWipeHoldCoverageDiagnostic/);
 assert.doesNotMatch(fallbackSource, /analyzeWithMapAwareCoverage/);
 assert.doesNotMatch(fallbackSource, /Number\(row\.cmd\) !== 7/);
-assert.match(startup, /apl-post-wipe-sensor-hold-v24-production/);
+assert.match(startup, /coder-window-wipe-hold-v22/);
 
 const landshark = labelSpecs.find((spec) => /LandShark/i.test(spec.brand));
 const micFamily = labelSpecs.find((spec) => /Mic Family/i.test(spec.brand));

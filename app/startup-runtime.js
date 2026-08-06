@@ -54,6 +54,9 @@ async function initializeLabelerApp() {
     if (!window.LabelerSettingsResetController?.installed) {
       throw new Error("Settings reset controller is not loaded.");
     }
+    if (!window.LabelerLocalPersistenceController?.installed) {
+      throw new Error("Local workspace persistence controller is not loaded.");
+    }
     if (!window.LabelerSpecificationEventController?.installed) {
       throw new Error("Specification field event controller is not loaded.");
     }
@@ -117,6 +120,7 @@ async function initializeLabelerApp() {
     window.LabelerHealthStatusUiController.refresh();
     window.LabelerSensorActivationController.refresh();
     window.LabelerCodingCycleNormalizationController.refresh();
+    window.LabelerLocalPersistenceController.initialize();
     startAnimationLoop();
 
     progress?.set(98, "Registering update service…");

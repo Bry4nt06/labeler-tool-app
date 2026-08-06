@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "production-build-inputs-fit-workspace-pages-20260806-v1";
+  const build = "first-application-zero-datum-v26-workspace-visibility-v1";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -63,6 +63,7 @@
     await loadScript("drivers/profile/sensor-station-label-driver.js", version);
     await loadScript("drivers/profile/sensor-post-inspection-release-driver.js", version);
     await loadScript("app/orientation-constraint-target-service.js", version);
+    await loadScript("app/first-application-zero-datum-integration.js", version);
     await loadScript("app/orientation-constraint-program-planner.js", version);
     await loadScript("app/coder-window-reference-handoff-integration.js", version);
     await loadScript("app/sensor-editor-focus-guard-integration.js", version);
@@ -79,8 +80,6 @@
       await loadScript("app/default-bottle-spec-retirement-integration.js", version);
       await loadScript("app/protected-default-map-integration.js", version);
       await loadScript("app/repository-brand-download-integration.js", version);
-      await loadScript("app/build-inputs-fit-integration.js", version);
-      await loadScript("app/workspace-developer-integration.js", version);
       await loadScript("app/workspace-panel-visibility-guard-integration.js", version);
       await loadScript("app/optimizer-post-wipe-coverage-fix-integration.js", version);
       await window.LabelerSensorEditorFocusGuard?.waitForScopedObservers?.(2, 2000);
@@ -122,7 +121,6 @@
 
     const initialized = await initializeLabelerApp();
     if (initialized === false) return;
-    window.LabelerBuildInputsFitIntegration?.schedule?.();
     progress?.complete("ServoForge ready");
   } catch (error) {
     progress?.fail(error);

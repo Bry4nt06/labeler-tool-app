@@ -1,0 +1,48 @@
+name: Validate Validation Diagnostics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "drivers/validation/validation-issue-driver.js"
+      - "drivers/validation/validation-result-aggregator-driver.js"
+      - "app/validation-diagnostics-integration.js"
+      - "app/simulation-collapsible-integration.js"
+      - "tests/validation-diagnostics.test.js"
+      - ".github/workflows/validate-validation-diagnostics.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fetch committed validation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${GITHUB_SHA}"
+          mkdir -p drivers/validation app tests
+          for file in \
+            drivers/validation/validation-issue-driver.js \
+            drivers/validation/validation-result-aggregator-driver.js \
+            app/validation-diagnostics-integration.js \
+            app/simulation-collapsible-integration.js \
+            tests/validation-diagnostics.test.js
+          do
+            curl --fail --silent --show-error --location \
+              "$base/$file" \
+              --output "$file"
+          done
+      - name: Check JavaScript syntax
+        run: |
+          node --check drivers/validation/validation-issue-driver.js
+          node --check drivers/validation/validation-result-aggregator-driver.js
+          node --check app/validation-diagnostics-integration.js
+          node --check app/simulation-collapsible-integration.js
+          node --check tests/validation-diagnostics.test.js
+      - name: Run validation diagnostics regression
+        run: node tests/validation-diagnostics.test.js

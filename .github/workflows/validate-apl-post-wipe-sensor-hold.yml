@@ -1,0 +1,29 @@
+name: Validate APL post-wipe sensor hold
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - app/apl-post-wipe-sensor-hold-integration.js
+      - tests/apl-post-wipe-sensor-hold.test.js
+      - .github/workflows/validate-apl-post-wipe-sensor-hold.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check app.js
+          node --check app/apl-post-wipe-sensor-hold-integration.js
+          node --check tests/apl-post-wipe-sensor-hold.test.js
+      - name: Run post-wipe sensor hold regression
+        run: node tests/apl-post-wipe-sensor-hold.test.js

@@ -1,7 +1,8 @@
 {
   "schemaVersion": 1,
   "version": "0.9.10",
-  "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.10 now closes the verified Agg 6 two-command back-wipe pair with CMD 3 at the Wipe Hold, then begins the map-positioned sensor orientation 0.5° later while preserving the manually configured sensor position."
+  "buildId": "first-application-zero-datum-v26",
+  "releaseUrl": "https://bry4nt06.github.io/labeler-tool-staging/",
+  "downloadUrl": "https://bry4nt06.github.io/labeler-tool-staging/",
+  "notes": "STAGING 0.9.10 build v26 defaults Starting Servo Position to 0 degrees, keeps Center Line Front at an independent 0-degree datum, and suppresses the pre-application correction before the first enabled label section. Landshark now holds at servo zero through the Aggregate 3 body application reference and begins rotation only during physical label contact."
 }
