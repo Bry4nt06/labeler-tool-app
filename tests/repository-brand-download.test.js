@@ -78,7 +78,7 @@ assert.equal(result.items.find((spec) => spec.brand === "Brand B").id, 5, "New b
 assert.ok(result.items.some((spec) => spec.brand === "Local Custom"), "Local custom brands must remain untouched.");
 
 const startup = read("app.js");
-assert.match(startup, /coder-window-wipe-hold-v22/);
+assert.match(startup, /apl-post-wipe-sensor-hold-v24-production/);
 assert.match(startup, /default-bottle-spec-retirement-integration\.js/);
 assert.match(startup, /repository-brand-download-integration\.js/);
 
