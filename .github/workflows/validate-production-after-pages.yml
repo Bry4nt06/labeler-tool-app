@@ -35,8 +35,10 @@ jobs:
           set -euo pipefail
           grep -q 'content="0.9.10"' index.html
           grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
-          grep -q 'apl-post-wipe-sensor-hold-v24-production' app.js
+          grep -q 'production-build-inputs-fit-workspace-pages-20260806-v1' app.js
           grep -q 'apl-post-wipe-sensor-hold-integration.js' app.js
+          grep -q 'build-inputs-fit-integration.js' app.js
+          grep -q 'workspace-developer-integration.js' app.js
           grep -q 'workspace-panel-visibility-guard-integration.js' app.js
           grep -q 'production-b7b4bda' service-worker.js
           grep -q 'bottle-type-selection-20260806-v3' app/bootstrap.js
@@ -69,6 +71,8 @@ jobs:
           node --check app.js
           node --check service-worker.js
           node --check app/bootstrap.js
+          node --check app/build-inputs-fit-integration.js
+          node --check app/workspace-developer-integration.js
           node --check app/label-specification-service.js
           node --check app/controllers/build-inputs-controller.js
           node --check app/controllers/setup-event-controller-integration.js
@@ -81,12 +85,14 @@ jobs:
           node --check app/optimizer-post-wipe-coverage-fix-integration.js
           node --check app/mechanical-map-scene-renderer.js
           node --check tests/bottle-selection-regeneration.test.js
+          node --check tests/build-inputs-workspace-settings.test.js
 
       - name: Run production regressions
         shell: bash
         run: |
           set -euo pipefail
           node tests/bottle-selection-regeneration.test.js
+          node tests/build-inputs-workspace-settings.test.js
           node tests/apl-post-wipe-sensor-hold.test.js
           node tests/repository-brand-download.test.js
           node tests/optimizer-post-wipe-coverage.test.js
