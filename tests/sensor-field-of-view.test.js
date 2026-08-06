@@ -30,6 +30,6 @@ assert.doesNotMatch(
   /loadScript\("app\/sensor-field-of-view-integration\.js"/,
   "The field of view must remain in the core map renderer rather than a timing-sensitive wrapper."
 );
-assert.match(startup, /coder-window-wipe-hold-v22-production/);
+assert.match(startup, /apl-post-wipe-sensor-hold-v24-production/);
 
 console.log("Production sensor field-of-view regression passed.");
