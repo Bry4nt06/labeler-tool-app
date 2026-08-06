@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "coder-window-wipe-hold-v22-production-workspace-visibility-v1";
+  const build = "apl-post-wipe-sensor-hold-v24-production-workspace-visibility-v1";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -70,6 +70,7 @@
     try {
       await loadScript("app/orientation-constraint-planner-integration.js", version);
       await loadScript("app/sensor-post-inspection-release-integration.js", version);
+      await loadScript("app/apl-post-wipe-sensor-hold-integration.js", version);
       await loadScript("app/sensor-orientation-default-map-fix-integration.js", version);
       await loadScript("app/standard-45h-wipe-down-default-integration.js", version);
       await loadScript("app/sensor-station-label-inheritance-integration.js", version);
