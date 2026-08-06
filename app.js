@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "apl-post-wipe-sensor-hold-v24-production-workspace-visibility-v1";
+  const build = "production-build-inputs-fit-workspace-pages-20260806-v1";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -79,6 +79,8 @@
       await loadScript("app/default-bottle-spec-retirement-integration.js", version);
       await loadScript("app/protected-default-map-integration.js", version);
       await loadScript("app/repository-brand-download-integration.js", version);
+      await loadScript("app/build-inputs-fit-integration.js", version);
+      await loadScript("app/workspace-developer-integration.js", version);
       await loadScript("app/workspace-panel-visibility-guard-integration.js", version);
       await loadScript("app/optimizer-post-wipe-coverage-fix-integration.js", version);
       await window.LabelerSensorEditorFocusGuard?.waitForScopedObservers?.(2, 2000);
@@ -120,6 +122,7 @@
 
     const initialized = await initializeLabelerApp();
     if (initialized === false) return;
+    window.LabelerBuildInputsFitIntegration?.schedule?.();
     progress?.complete("ServoForge ready");
   } catch (error) {
     progress?.fail(error);
