@@ -3,5 +3,5 @@
   "version": "0.9.10",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "ServoForge 0.9.10 promotes approved staging build b7b4bda with the shortened sensor field-of-view cone, repository brand download, retired bottle defaults 1, 4, and 5, explicit coder-window holds, and brand-independent wipe-hold coverage validation."
+  "notes": "ServoForge 0.9.10 now closes the verified Agg 6 two-command back-wipe pair with CMD 3 at the Wipe Hold, then begins the map-positioned sensor orientation 0.5° later while preserving the manually configured sensor position."
 }
