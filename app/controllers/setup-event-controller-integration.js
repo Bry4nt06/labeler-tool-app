@@ -57,9 +57,26 @@
     wipeOuterDepth: "wipeOuter"
   });
 
+  let pendingBottleRenderTimer = 0;
+
   function consume(event, preventDefault = false) {
     if (preventDefault) event.preventDefault();
     event.stopImmediatePropagation();
+  }
+
+  function scheduleBottleSelectionRender() {
+    const enqueue = () => {
+      if (pendingBottleRenderTimer && typeof global.clearTimeout === "function") {
+        global.clearTimeout(pendingBottleRenderTimer);
+      }
+      pendingBottleRenderTimer = global.setTimeout(() => {
+        pendingBottleRenderTimer = 0;
+        global.LabelerWorkspaceActionService?.render?.("all");
+      }, 0);
+    };
+
+    if (typeof global.requestAnimationFrame === "function") global.requestAnimationFrame(enqueue);
+    else enqueue();
   }
 
   function rowIndex(target, container) {
@@ -116,7 +133,11 @@
     else if (target.id === "zoneSelect") build.selectZone(target.value);
     else if (target.id === "siteSelect") build.selectSite(target.value);
     else if (target.id === "brandSelect") build.selectBrand(target.value);
-    else if (target.id === "bottleSelect") build.selectBottle(target.value);
+    else if (target.id === "bottleSelect") {
+      const accepted = build.selectBottle(target.value, { render: null });
+      if (accepted === false) target.value = state.selectedBottle;
+      else scheduleBottleSelectionRender();
+    }
     else if (simpleBuildFields.has(target.id)) build.updateField(target.id, target.value);
     else if (target.id === "neckApplication") build.updateNeckApplication(target.value);
     else if (calculatedBuildFields.has(target.id)) build.updateCalculatedField(target.id, target.value);
