@@ -3,13 +3,17 @@
 (function installBuildInputsController(global) {
   const actions = global.LabelerWorkspaceActionService;
 
+  function hasOption(options, key) {
+    return Object.prototype.hasOwnProperty.call(options, key);
+  }
+
   function commit(mutate, options = {}) {
     return actions.execute({
       mutate,
       syncMap: Boolean(options.syncMap),
       regenerate: Boolean(options.regenerate),
       persist: options.persist !== false,
-      render: options.render || "all"
+      render: hasOption(options, "render") ? options.render : "all"
     });
   }
 
@@ -20,6 +24,16 @@
     const neckCirc = actions.number(label?.neckBottomCircumferenceMm, 0);
     const neckLabelDeg = actions.call("degFromMm", label?.neckBottomCurveMm, neckCirc) ?? 0;
     return { label, bottle, bodyCirc, neckCirc, neckLabelDeg };
+  }
+
+  function bottleKey(value) {
+    return String(value ?? "").trim().toLowerCase();
+  }
+
+  function selectedLabel() {
+    return actions.call("selectedLabelSpec")
+      || state.labelSpecs.find((row) => String(row?.brand ?? "") === String(state.selectedBrand ?? ""))
+      || null;
   }
 
   function selectZone(value) {
@@ -41,8 +55,19 @@
     }, { regenerate: true });
   }
 
-  function selectBottle(value) {
-    commit(() => { state.selectedBottle = value; });
+  function selectBottle(value, options = {}) {
+    const requestedBottleType = bottleKey(value);
+    const selected = state.bottleSpecs.find((row) => bottleKey(row?.bottleType) === requestedBottleType);
+    if (!selected) return false;
+
+    const commitOptions = { regenerate: true };
+    if (hasOption(options, "render")) commitOptions.render = options.render;
+
+    return commit(() => {
+      state.selectedBottle = selected.bottleType;
+      const label = selectedLabel();
+      if (label) label.bottleType = selected.bottleType;
+    }, commitOptions);
   }
 
   function updateField(key, value) {
