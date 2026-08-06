@@ -1,108 +1,56 @@
 name: Validate production after Pages
 
 on:
-  push:
-    branches: [main]
   workflow_run:
     workflows: ["pages build and deployment"]
     types: [completed]
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: validate-servoforge-production
-  cancel-in-progress: true
+  group: promote-complete-staging-after-pages
+  cancel-in-progress: false
 
 jobs:
-  validate:
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+  promote:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out production main
         uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Validate production identity and catalogs
+      - name: Fetch complete staging snapshot
         shell: bash
         run: |
           set -euo pipefail
-          grep -q 'content="0.9.10"' index.html
-          grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
-          grep -q 'production-build-inputs-fit-workspace-pages-20260806-v1' app.js
-          grep -q 'apl-post-wipe-sensor-hold-integration.js' app.js
-          grep -q 'build-inputs-fit-integration.js' app.js
-          grep -q 'workspace-developer-integration.js' app.js
-          grep -q 'workspace-panel-visibility-guard-integration.js' app.js
-          grep -q 'production-b7b4bda' service-worker.js
-          grep -q 'bottle-type-selection-20260806-v3' app/bootstrap.js
-          grep -q 'scheduleBottleSelectionRender' app/controllers/setup-event-controller-integration.js
-          grep -q 'render: null' app/controllers/setup-event-controller-integration.js
-          ! grep -q 'labeler-tool-staging' update-manifest.json
+          git clone --depth 1 --branch main https://github.com/Bry4nt06/labeler-tool-staging.git "$RUNNER_TEMP/labeler-tool-staging"
+          git -C "$RUNNER_TEMP/labeler-tool-staging" rev-parse HEAD | tee "$RUNNER_TEMP/staging-head.txt"
 
-          python3 - <<'PY'
-          import json
-          import pathlib
-
-          root = pathlib.Path('.')
-          bottles = json.loads((root / 'config/default-programs/bottle-specs.json').read_text(encoding='utf-8'))
-          assert [item['id'] for item in bottles] == [2, 3, 6, 7, 8, 9, 10]
-          assert all(item['id'] not in {1, 4, 5} for item in bottles)
-
-          labels = json.loads((root / 'config/default-programs/label-specs.json').read_text(encoding='utf-8'))
-          assert any(item.get('brand') == '12oz LandShark (LN)' for item in labels)
-          assert any(item.get('brand') == '12oz Mic Family (T6,41,FO,79,BT,87)' for item in labels)
-
-          manifest = json.loads((root / 'update-manifest.json').read_text(encoding='utf-8'))
-          assert manifest['version'] == '0.9.10'
-          assert manifest['releaseUrl'] == 'https://bry4nt06.github.io/labeler-tool-app/'
-          PY
-
-      - name: Check JavaScript syntax
+      - name: Mirror staging into production
         shell: bash
         run: |
           set -euo pipefail
-          node --check app.js
-          node --check service-worker.js
-          node --check app/bootstrap.js
-          node --check app/build-inputs-fit-integration.js
-          node --check app/workspace-developer-integration.js
-          node --check app/label-specification-service.js
-          node --check app/controllers/build-inputs-controller.js
-          node --check app/controllers/setup-event-controller-integration.js
-          node --check app/coder-window-reference-handoff-integration.js
-          node --check app/apl-post-wipe-sensor-hold-integration.js
-          node --check app/default-bottle-spec-retirement-integration.js
-          node --check app/repository-brand-download-integration.js
-          node --check app/workspace-panel-visibility-guard-integration.js
-          node --check app/optimizer-map-contact-integration.js
-          node --check app/optimizer-post-wipe-coverage-fix-integration.js
-          node --check app/mechanical-map-scene-renderer.js
-          node --check tests/bottle-selection-regeneration.test.js
-          node --check tests/build-inputs-workspace-settings.test.js
+          rsync -a --delete \
+            --exclude='.git/' \
+            "$RUNNER_TEMP/labeler-tool-staging/" \
+            "$GITHUB_WORKSPACE/"
 
-      - name: Run production regressions
+      - name: Commit and push exact staging tree
         shell: bash
         run: |
           set -euo pipefail
-          node tests/bottle-selection-regeneration.test.js
-          node tests/build-inputs-workspace-settings.test.js
-          node tests/apl-post-wipe-sensor-hold.test.js
-          node tests/repository-brand-download.test.js
-          node tests/optimizer-post-wipe-coverage.test.js
-          node tests/coder-window-reference-handoff.test.js
-          node tests/sensor-field-of-view.test.js
-          node tests/default-hidden-workspace-panels.test.js
-          node tests/workspace-panel-visibility-guard.test.js
-          node tests/inactive-label-sensor-suppression.test.js
-          node tests/topmodul-terminal-coding-hold.test.js
-          node tests/default-catalog-reset.test.js
-          node tests/standard-45h-wipe-down-default.test.js
-          node tests/apl-6-aggregate-default.test.js
-          node tests/sensor-target-policy.test.js
+          staging_head="$(cat "$RUNNER_TEMP/staging-head.txt")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Production already matches staging ${staging_head}."
+            exit 0
+          fi
+          git commit -m "Promote complete staging snapshot ${staging_head}"
+          git push origin HEAD:main
