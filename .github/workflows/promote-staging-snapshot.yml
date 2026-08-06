@@ -1,0 +1,57 @@
+name: Promote complete staging snapshot
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/promote-staging-snapshot.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-complete-staging-snapshot
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out production
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fetch complete staging snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch main https://github.com/Bry4nt06/labeler-tool-staging.git "$RUNNER_TEMP/labeler-tool-staging"
+          git -C "$RUNNER_TEMP/labeler-tool-staging" rev-parse HEAD | tee "$RUNNER_TEMP/staging-head.txt"
+
+      - name: Mirror staging into production
+        shell: bash
+        run: |
+          set -euo pipefail
+          rsync -a --delete \
+            --exclude='.git/' \
+            "$RUNNER_TEMP/labeler-tool-staging/" \
+            "$GITHUB_WORKSPACE/"
+
+      - name: Commit and push exact snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          staging_head="$(cat "$RUNNER_TEMP/staging-head.txt")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Production already matches staging ${staging_head}."
+            exit 0
+          fi
+          git commit -m "Promote complete staging snapshot ${staging_head}"
+          git push origin HEAD:main
