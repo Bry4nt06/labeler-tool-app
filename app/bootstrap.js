@@ -2,7 +2,7 @@
 
 (function loadServoForgeBootstrapModules() {
   const version = "0.9.10";
-  const build = "defaults-sensors-coding-20260804-v3";
+  const build = "bottle-type-selection-20260806-v3";
   window.SERVOFORGE_RELEASE_VERSION = version;
   const banner = document.querySelector(".staging-environment-banner");
   if (banner) banner.textContent = `STAGING ${version} / TEST BUILD — NOT PRODUCTION`;
