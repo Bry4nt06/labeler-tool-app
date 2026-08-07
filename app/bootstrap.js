@@ -2,9 +2,9 @@
 
 (function loadServoForgeBootstrapModules() {
   const version = "0.9.10";
-  const build = "spender-plate-visual-controls-v35-20260807-1402";
-  const buildUpdatedAt = "Aug 7, 2026 2:02 PM ET";
-  // Regression lineage: startup-dom-binding-recovery-v33-20260807-1306 • label-application-reference-v32-20260807-1251
+  const build = "inside-wipe-yellow-sketch-v37-20260807-1954";
+  const buildUpdatedAt = "Aug 7, 2026 7:54 PM ET";
+  // Regression lineage: spender-plate-visual-controls-v35-20260807-1402 • startup-dom-binding-recovery-v33-20260807-1306 • label-application-reference-v32-20260807-1251
   window.SERVOFORGE_RELEASE_VERSION = version;
   window.SERVOFORGE_BUILD_UPDATED_AT = buildUpdatedAt;
   const banner = document.querySelector(".staging-environment-banner");
@@ -15,6 +15,7 @@
     "app/controllers/workspace-action-service.js",
     "app/controllers/theme-presets-controller.js",
     "app/servoforge-brand-theme-integration.js",
+    "app/inside-wipe-mounting-correction-integration.js",
     "app/controllers/health-status-ui-controller.js",
     "app/controllers/validation-panel-ui-controller.js",
     "app/controllers/settings-controller.js",
