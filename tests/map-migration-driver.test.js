@@ -9,6 +9,15 @@ const schema = {
   inferredMachineMapApplicationMode(map) {
     if (map?.applicationMode === "cold-glue") return "cold-glue";
     return /cold[ -]?glue|(^|[\s_-])cg([\s_-]|$)/i.test(String(map?.name || "")) ? "cold-glue" : "apl";
+  },
+  normalizeSpenderPlateAngles(value) {
+    const source = value && typeof value === "object" ? value : {};
+    return Object.fromEntries(Array.from({ length: 6 }, (_, index) => {
+      const key = String(index + 1);
+      const parsed = Number(source[key]);
+      const valueDeg = Number.isFinite(parsed) ? parsed : 75;
+      return [key, Math.max(0, Math.min(180, valueDeg))];
+    }));
   }
 };
 global.LabelerMapSchemaDriver = schema;
@@ -42,6 +51,7 @@ const current = createMap({ id: "map-current", name: "45H TopModul", zone: "Zone
 const result = migration.migrateLibrary({ maps: [current], activeMapId: current.id }, dependencies);
 assert.equal(result.maps[0], current, "current-schema map identity must be preserved");
 assert.equal(result.activeMap, current);
+assert.equal(result.maps[0].spenderPlateAngles["1"], 75);
 assert.ok(result.maps.some((map) => map.id === "map-blank-apl"));
 
 const retired = migration.migrateLibrary({

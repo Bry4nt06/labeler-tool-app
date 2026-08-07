@@ -43,7 +43,7 @@
     workspaceCore: Object.freeze([
       "app/assembly-driver-adapter.js?v=0.9.7-assembly-drivers-v1",
       "app/assembly-editor-controller.js?v=0.9.7-assembly-ui-split-v1",
-      "app/assembly-map-renderer.js?v=0.9.7-assembly-ui-split-v1",
+      "app/assembly-map-renderer.js?v=0.9.10-spender-v35",
       "app/simulation-collapsible-core.js?v=0.9.3-direct",
       "app/servo-replay-loop-controls-integration.js?v=0.9.3-replay-icons-loop",
       "app/release-readiness-staging-alignment-integration.js?v=0.9.3-staging-readiness-v2",

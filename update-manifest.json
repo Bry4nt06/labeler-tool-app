@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "version": "0.9.10",
-  "buildId": "label-centerline-policy-v31",
+  "buildId": "spender-plate-visual-controls-v35",
   "releaseUrl": "https://bry4nt06.github.io/labeler-tool-app/",
   "downloadUrl": "https://bry4nt06.github.io/labeler-tool-app/",
-  "notes": "Production runtime promoted from staging 5b75cad798ce61f79142705b3232c0f31eb319db. Includes editable Map Builder behavior, physical sensor line-of-sight visibility, live sensor updates, and the universal label centerline policy."
+  "notes": "Production runtime promoted from staging 82d45da9cf786ecfbd40c1581ffaefa86b878396. Includes all tested staging changes through spender plate visual controls, the ServoForge brand/theme refresh, Direct view validation, and the latest label application and sensor behavior."
 }

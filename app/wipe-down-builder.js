@@ -1,7 +1,7 @@
 "use strict";
 
 (function loadServoForgeMapBuilderModules() {
-  const releaseVersion = "0.9.8";
+  const releaseVersion = "0.9.10-spender-v35";
   const modulePaths = Object.freeze([
     "drivers/map/map-schema-driver.js",
     "drivers/map/map-migration-driver.js",

@@ -9,7 +9,8 @@ const root = path.resolve(__dirname, "..");
 const geometrySource = fs.readFileSync(path.join(root, "app", "label-sensor-geometry-service.js"), "utf8");
 
 assert.doesNotThrow(() => new vm.Script(geometrySource, { filename: "label-sensor-geometry-service.js" }));
-assert.match(geometrySource, /application plate angle itself is the finished/);
+assert.match(geometrySource, /finished physical label centerline/);
+assert.match(geometrySource, /Application\/tack position and finished label centerline are separate/);
 assert.doesNotMatch(geometrySource, /alignmentPercent/);
 
 const context = {
@@ -32,8 +33,9 @@ const labelDeg = LANDSHARK_LABEL_MM / circumferenceMm * 360;
 assert.ok(Math.abs(circumferenceMm - 188.7468866) < 0.001);
 assert.ok(Math.abs(labelDeg - 123.7791013) < 0.001);
 
-// Ground rule: the label centerline is the plate angle at application. Body
-// and back labels must not be shifted by half of their developed label width.
+// The application-reference policy resolves the physical tack location into a
+// finished label centerline before sensor geometry is evaluated. This helper
+// therefore preserves the already-resolved centerline for every label section.
 assert.equal(context.labelSensorInspectionCenter("body", 0, labelDeg), 0);
 assert.equal(context.labelSensorInspectionCenter("back", 180, labelDeg), 180);
 assert.equal(context.labelSensorInspectionCenter("neck", 45, 80), 45);
@@ -47,7 +49,7 @@ function close(actual, expected, tolerance = 0.05, message = "") {
 }
 
 // LandShark / SSNR physical visibility checkpoints. The sensor is pointed
-// directly at the bottle (aim = 0) and the applied Body-label centerline is 0.
+// directly at the bottle (aim = 0) and the finished Body-label centerline is 0.
 const fullVisibilityEdge = (180 - labelDeg) / 2;
 const angle75 = labelDeg / 2 + 90 - labelDeg * 0.75;
 const angle50 = 90;

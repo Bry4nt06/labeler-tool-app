@@ -91,6 +91,7 @@
       map.applicationMode = applicationMode;
       map.isTemplate = false;
       map.aggregateAngles = normalizeAggregateAngles(map.aggregateAngles, applicationMode, map.objects);
+      map.spenderPlateAngles = schema.normalizeSpenderPlateAngles(map.spenderPlateAngles);
       Object.assign(map, mapLocationFor(map));
       return { map, replaced: false };
     }

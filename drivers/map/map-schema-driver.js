@@ -6,6 +6,7 @@
   const MACHINE_MAP_SCHEMA_VERSION = 11;
   const STELLA_330_FULL_WRAP_CALIBRATION_VERSION = 2;
   const BLANK_MAP_SEED_VERSION = 1;
+  const DEFAULT_SPENDER_PLATE_ANGLE_DEG = 75;
   const VALID_OBJECT_KINDS = Object.freeze([
     "pad", "brush", "brush-channel", "roller", "gripper", "coding", "sensor"
   ]);
@@ -208,6 +209,13 @@
     return normalizeAngleRecord(value, defaults);
   }
 
+  function normalizeSpenderPlateAngles(value, defaultAngle = DEFAULT_SPENDER_PLATE_ANGLE_DEG) {
+    const source = value && typeof value === "object" ? value : {};
+    const result = {};
+    for (let slot = 1; slot <= 6; slot += 1) result[String(slot)] = Math.max(0, Math.min(180, finite(source[String(slot)], defaultAngle)));
+    return result;
+  }
+
   function sortAplMapObjects(objects) {
     const sideOrder = { outer: 0, inner: 1 };
     return objects.sort((a, b) => Number(a.station) - Number(b.station)
@@ -392,6 +400,7 @@
         sourceObjects,
         { aplDefaults: aplAggregateDefaults }
       ),
+      spenderPlateAngles: normalizeSpenderPlateAngles(input.spenderPlateAngles),
       stationAngles: normalizeStationAngles(
         { ...(input.stationAngles || {}), ...(input.aggregateAngles || {}) },
         { defaults: stationDefaults }
@@ -438,6 +447,7 @@
     MACHINE_MAP_SCHEMA_VERSION,
     STELLA_330_FULL_WRAP_CALIBRATION_VERSION,
     BLANK_MAP_SEED_VERSION,
+    DEFAULT_SPENDER_PLATE_ANGLE_DEG,
     VALID_OBJECT_KINDS,
     VALID_LABEL_SECTIONS,
     finite,
@@ -456,6 +466,7 @@
     defaultColdGlueAggregateAngles,
     normalizeAggregateAngles,
     normalizeStationAngles,
+    normalizeSpenderPlateAngles,
     sortAplMapObjects,
     inferredAplStation,
     repairAplStationAssignments,

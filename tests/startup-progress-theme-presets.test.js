@@ -28,13 +28,17 @@ const startupSource = read("app", "startup-runtime.js");
 
 assert.ok(geometrySource.includes("ServoForgeStartupProgress"));
 assert.ok(geometrySource.includes("servoforgeStartupOverlay"));
-assert.ok(geometrySource.includes("assets/labeler-tool-icon.svg"));
+assert.ok(geometrySource.includes("assets/servoforge-mark.svg"));
 assert.ok(geometrySource.includes('role="progressbar"'));
 assert.ok(geometrySource.includes("Loading core modules"));
 assert.ok(geometrySource.includes("function complete"));
 assert.ok(geometrySource.includes("function fail"));
 assert.ok(geometrySource.includes('body.classList.add("servoforge-initializing")'));
 assert.ok(geometrySource.includes('body.classList.remove("servoforge-initializing")'));
+assert.ok(geometrySource.includes("#ff8a00"));
+assert.ok(geometrySource.includes("#ff4d2e"));
+assert.ok(geometrySource.includes("#2d6bff"));
+assert.ok(!geometrySource.includes("rgba(65, 200, 137, 0.18)"), "Startup background must not retain the previous green glow.");
 
 const expectedThemes = Object.freeze({
   "red-black": "Carbon Crimson",

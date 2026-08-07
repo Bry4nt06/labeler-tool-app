@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "first-application-zero-datum-v30-physical-sensor-visibility-label-centerline-policy-v31";
+  const build = "first-application-zero-datum-v30-physical-sensor-visibility-label-application-reference-v32";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -112,7 +112,7 @@
     progress?.set(53, "Loading feature integrations…");
     if (window.ServoForgeFeatureIntegrationsReady) await window.ServoForgeFeatureIntegrationsReady;
 
-    progress?.set(61, "Applying label centerline and sensor rules…");
+    progress?.set(61, "Applying label application and sensor rules…");
     await loadOrientationConstraintPlanner();
 
     progress?.set(70, "Loading workspace controllers…");

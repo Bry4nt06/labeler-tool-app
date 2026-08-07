@@ -2,6 +2,7 @@
 
 function renderBuildInputs() {
   ensureSelectedZoneAndSite();
+  window.LabelerLabelCenterlinePolicy?.ensureApplicationReferenceDefaults?.(state);
   const availableLabels = labelSpecsForApplication();
   const brandOptions = availableLabels.map((spec) => spec.brand).filter(Boolean);
   const bottleOptions = state.bottleSpecs.map((spec) => spec.bottleType).filter(Boolean);
@@ -17,10 +18,19 @@ function renderBuildInputs() {
   const neckContactDeg = degFromMm(state.buildInputs.neckContactMm, neckCirc);
   const bodyContactDeg = degFromMm(state.buildInputs.bodyContactMm, bodyCirc);
   const backContactDeg = degFromMm(state.buildInputs.backContactMm, bodyCirc);
-  const centerLineFront = state.buildInputs.neckApplication === "Leading Edge"
+  const storedFront = num(state.buildInputs.centerLineFrontDeg, NaN);
+  const legacyFront = state.buildInputs.neckApplication === "Leading Edge"
     ? Number.isFinite(neckLabelDeg) ? state.buildInputs.plateStartPositionDeg + neckLabelDeg / 2 : 0
     : -(90 - state.buildInputs.neckSpenderPlateDeg) + state.buildInputs.plateStartPositionDeg;
+  const centerLineFront = Number.isFinite(storedFront) ? storedFront : legacyFront;
   const centerLineBack = centerLineFront + 180;
+  const normalizeReference = (section) => window.LabelerLabelCenterlinePolicy?.applicationReference?.(section)
+    || state.buildInputs?.[`${section}ApplicationReference`]
+    || (section === "neck" ? "center-tack" : "leading-edge");
+  const applicationReferenceOptions = (section) => {
+    const selected = normalizeReference(section);
+    return `<option value="center-tack"${selected === "center-tack" ? " selected" : ""}>Center Tack</option><option value="leading-edge"${selected === "leading-edge" ? " selected" : ""}>Leading Edge</option>`;
+  };
   const modeSpecificInputs = isColdGlue
     ? `
         <h3>Cold Glue Program Parameters</h3>
@@ -36,7 +46,11 @@ function renderBuildInputs() {
     : `
         <h3>APL Program Parameters</h3>
         <label>Neck Spender Plate Angle <input id="neckSpenderPlateDeg" type="number" step="0.1" value="${state.buildInputs.neckSpenderPlateDeg}"></label>
-        <label>Neck Application <select id="neckApplication"><option${state.buildInputs.neckApplication === "Center" ? " selected" : ""}>Center</option><option${state.buildInputs.neckApplication === "Leading Edge" ? " selected" : ""}>Leading Edge</option></select></label>
+        <h4>Label Application Reference</h4>
+        <p class="application-filter-note">Application Reference controls where the bottle is positioned when the label first tacks. Finished label centerlines remain the physical reference used by wipe-down alignment and label sensors.</p>
+        <label>Neck Application Reference <select id="neckApplicationReference">${applicationReferenceOptions("neck")}</select></label>
+        <label>Body Application Reference <select id="bodyApplicationReference">${applicationReferenceOptions("body")}</select></label>
+        <label>Back Application Reference <select id="backApplicationReference">${applicationReferenceOptions("back")}</select></label>
         <label>Center Line Front (deg) <input id="programCenterLineFrontDeg" type="number" step="0.1" value="${fmt(centerLineFront, 3)}"></label>
         <label>Center Line Back (deg) <input id="programCenterLineBackDeg" type="number" step="0.1" value="${fmt(centerLineBack, 3)}"></label>
         <label>Neck Contact Parameter (deg) <input id="programNeckContactDeg" type="number" min="0" step="0.001" value="${fmt(neckContactDeg, 3)}"></label>

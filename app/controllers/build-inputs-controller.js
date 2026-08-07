@@ -36,6 +36,13 @@
       || null;
   }
 
+  function normalizeApplicationReference(value, fallback = "center-tack") {
+    const policy = global.LabelerLabelCenterlinePolicy;
+    if (policy?.normalizeApplicationReference) return policy.normalizeApplicationReference(value, fallback);
+    const normalized = String(value ?? "").trim().toLowerCase().replace(/[_\s]+/g, "-");
+    return normalized === "leading-edge" || normalized === "leading" ? "leading-edge" : fallback;
+  }
+
   function selectZone(value) {
     commit(() => {
       state.selectedZone = value;
@@ -52,6 +59,7 @@
       state.selectedBrand = value;
       actions.call("ensureBottleReferenceForLabel", actions.call("selectedLabelSpec"));
       actions.call("applyLabelLengthStationRules");
+      global.LabelerLabelCenterlinePolicy?.ensureApplicationReferenceDefaults?.(state);
     }, { regenerate: true });
   }
 
@@ -74,8 +82,24 @@
     commit(() => { state.buildInputs[key] = actions.number(value, state.buildInputs[key]); });
   }
 
+  function updateApplicationReference(section, value) {
+    const normalizedSection = String(section || "").trim().toLowerCase();
+    if (!["neck", "body", "back"].includes(normalizedSection)) return false;
+    const fallback = normalizedSection === "neck" ? "center-tack" : "leading-edge";
+    const reference = normalizeApplicationReference(value, fallback);
+    commit(() => {
+      state.buildInputs = state.buildInputs || {};
+      state.buildInputs[`${normalizedSection}ApplicationReference`] = reference;
+      if (normalizedSection === "neck") {
+        state.buildInputs.neckApplication = reference === "leading-edge" ? "Leading Edge" : "Center";
+      }
+      global.LabelerLabelCenterlinePolicy?.ensureApplicationReferenceDefaults?.(state);
+    }, { syncMap: true, regenerate: true });
+    return true;
+  }
+
   function updateNeckApplication(value) {
-    commit(() => { state.buildInputs.neckApplication = value; });
+    return updateApplicationReference("neck", value);
   }
 
   function updateCalculatedField(id, rawValue) {
@@ -118,12 +142,14 @@
           state.buildInputs.backContactMm = Math.max(0, value) / 360 * Math.max(0.001, bodyCirc);
           break;
         case "programCenterLineFrontDeg":
-          if (state.buildInputs.neckApplication === "Leading Edge") state.buildInputs.plateStartPositionDeg = value - neckLabelDeg / 2;
+          if (Number.isFinite(actions.number(state.buildInputs.centerLineFrontDeg, NaN))) state.buildInputs.centerLineFrontDeg = value;
+          else if (state.buildInputs.neckApplication === "Leading Edge") state.buildInputs.plateStartPositionDeg = value - neckLabelDeg / 2;
           else state.buildInputs.neckSpenderPlateDeg = value - state.buildInputs.plateStartPositionDeg + 90;
           break;
         case "programCenterLineBackDeg": {
           const front = value - 180;
-          if (state.buildInputs.neckApplication === "Leading Edge") state.buildInputs.plateStartPositionDeg = front - neckLabelDeg / 2;
+          if (Number.isFinite(actions.number(state.buildInputs.centerLineFrontDeg, NaN))) state.buildInputs.centerLineFrontDeg = front;
+          else if (state.buildInputs.neckApplication === "Leading Edge") state.buildInputs.plateStartPositionDeg = front - neckLabelDeg / 2;
           else state.buildInputs.neckSpenderPlateDeg = front - state.buildInputs.plateStartPositionDeg + 90;
           break;
         }
@@ -155,6 +181,7 @@
     selectBrand,
     selectBottle,
     updateField,
+    updateApplicationReference,
     updateNeckApplication,
     updateCalculatedField
   });

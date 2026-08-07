@@ -8,7 +8,12 @@
     const active = activeSegmentForProgram(program, state.previewAngle);
     const segmentKey = String(active?.hmi ?? "none");
     const headNodes = svg.querySelectorAll("[data-animation-head]");
-    if (svg.dataset.animationSegment !== segmentKey || headNodes.length !== state.headCount) {
+    const pocketNodes = svg.querySelectorAll("[data-animation-pocket]");
+    if (
+      svg.dataset.animationSegment !== segmentKey
+      || headNodes.length !== state.headCount
+      || pocketNodes.length !== state.headCount
+    ) {
       fallbackRender();
       return;
     }
@@ -21,6 +26,7 @@
     }
 
     const currentHeads = heads();
+    const headsByNumber = new Map(currentHeads.map((head) => [String(head.head), head]));
     const servoSign = state.direction === "cw" ? -1 : 1;
     headNodes.forEach((node, index) => {
       const head = currentHeads[index];
@@ -32,6 +38,15 @@
         const applicationAngle = num(indicator.getAttribute("data-application-angle"), 0);
         indicator.setAttribute("display", bottleHasPassedApplication(head.tableAngle, applicationAngle) ? "inline" : "none");
       });
+    });
+
+    // Pocket and bottle center positions are driven from the same live head
+    // geometry. Pockets never rotate with the servo plate; they only travel with
+    // their bottle around the table.
+    pocketNodes.forEach((node) => {
+      const head = headsByNumber.get(String(node.getAttribute("data-animation-pocket") || ""));
+      if (!head) return;
+      node.setAttribute("transform", `translate(${head.x} ${head.y})`);
     });
 
     const rotatorHandle = svg.querySelector("[data-map-rotator-handle]");
@@ -70,6 +85,7 @@
   global.LabelerMapAnimationRenderer = Object.freeze({
     updateAnimatedSvg,
     updateMapAnimationFrame,
-    updateSimulationAnimationFrame
+    updateSimulationAnimationFrame,
+    synchronizedBottlePocketsV1: true
   });
 })(window);

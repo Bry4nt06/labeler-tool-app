@@ -46,6 +46,7 @@ function saveMapDefinitionFromControls(event) {
   map.stationCount = map.enabledStations.filter(Boolean).length;
   map.objects = map.objects.map((item) => normalizeBuilderObject(item, map.applicationMode, 6));
   map.aggregateAngles = normalizeAggregateAngles(map.aggregateAngles, map.applicationMode, map.objects);
+  map.spenderPlateAngles = normalizeSpenderPlateAngles(map.spenderPlateAngles);
   map.stationAngles = normalizeStationAngles({ ...map.stationAngles, ...map.aggregateAngles });
   ensureAplObjectsForNewStations(map, previousLimit);
   if (liveInput) {
@@ -100,6 +101,7 @@ function runGuidedMapSetup() {
   map.enabledStations = Array.from({ length: 6 }, (_, index) => index < stations);
   map.aggregateCount = stations;
   map.stationCount = stations;
+  map.spenderPlateAngles = normalizeSpenderPlateAngles(map.spenderPlateAngles);
   map.stationSections = {};
   labels.slice(0, stations).forEach((section, index) => {
     if (["neck", "body", "back", "none"].includes(section)) map.stationSections[String(index + 1)] = section;

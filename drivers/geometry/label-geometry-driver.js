@@ -29,10 +29,11 @@
         display: grid;
         place-items: center;
         padding: 24px;
-        color: var(--ink, #e6f0ed);
+        color: #e6ecf2;
         background:
-          radial-gradient(circle at 50% 34%, rgba(65, 200, 137, 0.18), transparent 30%),
-          linear-gradient(145deg, var(--bg-a, #081017), var(--bg, #0b1218) 52%, var(--bg-b, #101b24));
+          radial-gradient(circle at 50% 32%, rgba(255, 77, 46, 0.105), transparent 25%),
+          radial-gradient(circle at 60% 42%, rgba(45, 107, 255, 0.055), transparent 33%),
+          linear-gradient(145deg, #070a0e 0%, #0a0f14 52%, #111820 100%);
         opacity: 1;
         transition: opacity 320ms ease, visibility 320ms ease;
       }
@@ -50,12 +51,15 @@
         gap: 18px;
         justify-items: center;
         padding: 30px 30px 26px;
-        border: 1px solid var(--panel-accent, rgba(65, 200, 137, 0.32));
+        border: 1px solid rgba(255, 77, 46, 0.30);
         border-radius: 18px;
         background:
-          linear-gradient(150deg, rgba(255, 255, 255, 0.045), transparent 38%),
-          color-mix(in srgb, var(--panel, #122029) 94%, transparent);
-        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.52), 0 0 48px rgba(65, 200, 137, 0.08);
+          linear-gradient(150deg, rgba(255, 255, 255, 0.04), transparent 38%),
+          linear-gradient(180deg, rgba(26, 34, 44, 0.97), rgba(17, 24, 32, 0.97));
+        box-shadow:
+          0 28px 80px rgba(0, 0, 0, 0.54),
+          0 0 42px rgba(255, 77, 46, 0.055),
+          inset 0 1px 0 rgba(255, 255, 255, 0.035);
         backdrop-filter: blur(12px);
       }
 
@@ -71,19 +75,21 @@
         content: "";
         position: absolute;
         inset: -7px;
-        border: 3px solid color-mix(in srgb, var(--line, #263943) 72%, transparent);
-        border-top-color: var(--accent, var(--green, #41c889));
-        border-right-color: var(--blue, #58aeca);
+        border: 3px solid rgba(38, 49, 61, 0.78);
+        border-top-color: #ff4d2e;
+        border-right-color: #ff8a00;
+        border-bottom-color: #2d6bff;
         border-radius: 50%;
         animation: servoforge-startup-spin 1.25s linear infinite;
-        filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent, #41c889) 45%, transparent));
+        filter: drop-shadow(0 0 8px rgba(255, 77, 46, 0.22));
       }
 
       #${OVERLAY_ID} .servoforge-startup-logo img {
         width: 92px;
         height: 92px;
-        border-radius: 20px;
-        box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
+        object-fit: contain;
+        border-radius: 0;
+        filter: drop-shadow(0 0 12px rgba(255, 77, 46, 0.20));
       }
 
       #${OVERLAY_ID} .servoforge-startup-copy {
@@ -93,12 +99,13 @@
       }
 
       #${OVERLAY_ID} .servoforge-startup-copy strong {
+        color: #e6ecf2;
         font-size: clamp(22px, 5vw, 30px);
         letter-spacing: 0.015em;
       }
 
       #${OVERLAY_ID} .servoforge-startup-copy span {
-        color: var(--muted, #91a7a3);
+        color: #9aa7b3;
         font-size: 12px;
         letter-spacing: 0.11em;
         text-transform: uppercase;
@@ -115,10 +122,10 @@
         width: 100%;
         height: 12px;
         overflow: hidden;
-        border: 1px solid var(--line, #263943);
+        border: 1px solid #26313d;
         border-radius: 999px;
-        background: var(--input, #091117);
-        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.42);
+        background: #0a0f14;
+        box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.48);
       }
 
       #${OVERLAY_ID} .servoforge-startup-fill {
@@ -126,9 +133,8 @@
         inset: 0 auto 0 0;
         width: var(--startup-progress);
         border-radius: inherit;
-        background:
-          linear-gradient(90deg, var(--green-dark, #1f7f58), var(--accent, var(--green, #41c889)), var(--blue, #58aeca));
-        box-shadow: 0 0 16px color-mix(in srgb, var(--accent, #41c889) 54%, transparent);
+        background: linear-gradient(90deg, #ff8a00 0%, #ff4d2e 58%, #2d6bff 100%);
+        box-shadow: 0 0 14px rgba(255, 77, 46, 0.32);
         transition: width 300ms ease;
       }
 
@@ -137,24 +143,24 @@
         align-items: center;
         justify-content: space-between;
         gap: 14px;
-        color: var(--muted, #91a7a3);
+        color: #9aa7b3;
         font-size: 12px;
       }
 
       #${OVERLAY_ID} .servoforge-startup-percent {
         flex: 0 0 auto;
-        color: var(--ink, #e6f0ed);
+        color: #e6ecf2;
         font-weight: 800;
         font-variant-numeric: tabular-nums;
       }
 
       #${OVERLAY_ID}.is-failed .servoforge-startup-logo::before {
-        border-color: var(--red, #e66b6b);
+        border-color: #ff4d2e;
         animation: none;
       }
 
       #${OVERLAY_ID}.is-failed .servoforge-startup-fill {
-        background: var(--red, #e66b6b);
+        background: #ff4d2e;
       }
 
       @keyframes servoforge-startup-spin {
@@ -185,7 +191,7 @@
       overlay.setAttribute("aria-busy", "true");
       overlay.innerHTML = `
         <div class="servoforge-startup-card">
-          <div class="servoforge-startup-logo"><img src="assets/labeler-tool-icon.svg" alt="ServoForge Labeler"></div>
+          <div class="servoforge-startup-logo"><img src="assets/servoforge-mark.svg?brand=20260807-1041" alt="ServoForge Labeler"></div>
           <div class="servoforge-startup-copy"><strong>ServoForge</strong><span>Initializing Labeler Tool</span></div>
           <div class="servoforge-startup-progress">
             <div class="servoforge-startup-track" role="progressbar" aria-label="ServoForge startup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="servoforge-startup-fill"></div></div>

@@ -64,6 +64,9 @@
     normalizeStationAngles(value) {
       return driver.normalizeStationAngles(value, { defaults: aplStationDefaults() });
     },
+    normalizeSpenderPlateAngles(value) {
+      return driver.normalizeSpenderPlateAngles(value);
+    },
     sortAplMapObjects(objects) {
       return driver.sortAplMapObjects(objects);
     },

@@ -1,7 +1,7 @@
 "use strict";
 
 const RELEASE_VERSION = "0.9.10";
-const CACHE_NAME = "servoforge-labeler-v0.9.10-production-label-centerline-policy-v31";
+const CACHE_NAME = "servoforge-labeler-v0.9.10-production-spender-plate-v35-82d45da";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 

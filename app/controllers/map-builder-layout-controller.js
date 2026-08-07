@@ -12,6 +12,11 @@
     return Boolean(typeof els !== "undefined" && els.aggregateAngleEditor?.contains(target));
   }
 
+  function spenderPlateAngleControl(target) {
+    if (!target?.matches?.("[data-spender-plate-angle]")) return false;
+    return Boolean(typeof els !== "undefined" && els.aggregateAngleEditor?.contains(target));
+  }
+
   function machineSlotControl(target) {
     if (!target?.matches?.("[data-machine-slot][data-slot-number]")) return false;
     if (typeof els === "undefined") return false;
@@ -37,6 +42,18 @@
     );
     editable.stationAngles = normalizeStationAngles(editable.stationAngles);
     editable.stationAngles[aggregate] = editable.aggregateAngles[aggregate];
+    refreshAfterBuilderEdit({ persist: true });
+    return true;
+  }
+
+  function updateSpenderPlateAngle(control) {
+    if (!spenderPlateAngleControl(control)) return false;
+    if (["", "-", ".", "-."].includes(String(control.value))) return true;
+    const aggregate = String(control.dataset.spenderPlateAngle || "");
+    const editable = typeof editableMachineMap === "function" ? editableMachineMap() : null;
+    if (!aggregate || !editable) return false;
+    editable.spenderPlateAngles = normalizeSpenderPlateAngles(editable.spenderPlateAngles);
+    editable.spenderPlateAngles[aggregate] = Math.max(0, Math.min(180, num(control.value, editable.spenderPlateAngles[aggregate])));
     refreshAfterBuilderEdit({ persist: true });
     return true;
   }
@@ -85,21 +102,23 @@
 
   document.addEventListener("input", (event) => {
     const target = event.target;
-    if (!(target instanceof Element) || !updateAggregateAngle(target)) return;
-    consume(event);
+    if (!(target instanceof Element)) return;
+    if (updateAggregateAngle(target) || updateSpenderPlateAngle(target)) consume(event);
   }, true);
 
   document.addEventListener("change", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    if (updateMachineSlot(target) || updateAggregateAngle(target)) consume(event);
+    if (updateMachineSlot(target) || updateAggregateAngle(target) || updateSpenderPlateAngle(target)) consume(event);
   }, true);
 
   global.LabelerMapBuilderLayoutController = Object.freeze({
     installed: true,
     aggregateAngleControl,
+    spenderPlateAngleControl,
     machineSlotControl,
     updateAggregateAngle,
+    updateSpenderPlateAngle,
     updateMachineSlot
   });
 })(window);

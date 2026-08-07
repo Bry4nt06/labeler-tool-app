@@ -124,9 +124,9 @@ const defaultLabelSpecs = [
 const state = {
   themePreset: (() => {
     try {
-      return localStorage.getItem("labelerThemePreset") || "dark-green";
+      return localStorage.getItem("labelerThemePreset") || "servoforge";
     } catch {
-      return "dark-green";
+      return "servoforge";
     }
   })(),
   activeTab: "specs",
@@ -181,6 +181,9 @@ const state = {
   buildInputs: {
     neckSpenderPlateDeg: 75,
     neckApplication: "Center",
+    neckApplicationReference: "center-tack",
+    bodyApplicationReference: "leading-edge",
+    backApplicationReference: "leading-edge",
     neckContactMm: 4.4,
     bodyContactMm: 5,
     backContactMm: 5,
@@ -318,16 +321,29 @@ const els = {
   builderObjectName: document.querySelector("#builderObjectName"),
   builderObjectType: document.querySelector("#builderObjectType"),
   builderObjectSide: document.querySelector("#builderObjectSide"),
+  builderObjectStation: document.querySelector("#builderObjectStation"),
+  builderObjectAngle: document.querySelector("#builderObjectAngle"),
   builderObjectStart: document.querySelector("#builderObjectStart"),
   builderObjectEnd: document.querySelector("#builderObjectEnd"),
-  builderObjectExtension: document.querySelector("#builderObjectExtension"),
-  addBuilderObject: document.querySelector("#addBuilderObject"),
-  resetBuilderMap: document.querySelector("#resetBuilderMap"),
-  builderStatus: document.querySelector("#builderStatus"),
-  bottleSpecs: document.querySelector("#bottleSpecs"),
-  labelSpecs: document.querySelector("#labelSpecs"),
+  builderSensorAimOffsetDeg: document.querySelector("#builderSensorAimOffsetDeg"),
+  builderSensorRequiredVisibilityPercent: document.querySelector("#builderSensorRequiredVisibilityPercent"),
+  builderOrientationLabelSection: document.querySelector("#builderOrientationLabelSection"),
+  builderServoAssist: document.querySelector("#builderServoAssist"),
+  builderSensorOrientBottle: document.querySelector("#builderSensorOrientBottle"),
+  builderObjectDepth: document.querySelector("#builderObjectDepth"),
+  addMapObject: document.querySelector("#addMapObject"),
+  updateMapObject: document.querySelector("#updateMapObject"),
+  deleteMapObject: document.querySelector("#deleteMapObject"),
   buildInputs: document.querySelector("#buildInputs"),
+  specs: document.querySelector("#specs"),
+  specTable: document.querySelector("#specTable"),
+  transfer: document.querySelector("#transfer"),
   program: document.querySelector("#program"),
+  validation: document.querySelector("#validation"),
+  diagnosticsSummary: document.querySelector("#diagnosticsSummary"),
   simulation: document.querySelector("#simulation"),
-  heads: document.querySelector("#heads")
+  profileGraph: document.querySelector("#profileGraph"),
+  simEditor: document.querySelector("#simEditor"),
+  tableMap: document.querySelector("#tableMap"),
+  viewTabButtons: [...document.querySelectorAll("[data-tab]")]
 };

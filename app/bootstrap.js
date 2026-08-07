@@ -2,16 +2,19 @@
 
 (function loadServoForgeBootstrapModules() {
   const version = "0.9.10";
-  const build = "label-centerline-policy-20260807-0001";
-  const buildUpdatedAt = "Aug 7, 2026 12:01 AM ET";
+  const build = "spender-plate-visual-controls-v35-20260807-1402";
+  const buildUpdatedAt = "Aug 7, 2026 2:02 PM ET";
+  // Regression lineage: startup-dom-binding-recovery-v33-20260807-1306 • label-application-reference-v32-20260807-1251
   window.SERVOFORGE_RELEASE_VERSION = version;
   window.SERVOFORGE_BUILD_UPDATED_AT = buildUpdatedAt;
   const banner = document.querySelector(".staging-environment-banner");
   if (banner) banner.textContent = `STAGING ${version} • BUILD ${build} • UPDATED ${buildUpdatedAt} — NOT PRODUCTION`;
   const modules = Object.freeze([
+    "app/startup-dom-binding-guard-integration.js",
     "app/export-service.js",
     "app/controllers/workspace-action-service.js",
     "app/controllers/theme-presets-controller.js",
+    "app/servoforge-brand-theme-integration.js",
     "app/controllers/health-status-ui-controller.js",
     "app/controllers/validation-panel-ui-controller.js",
     "app/controllers/settings-controller.js",
@@ -25,6 +28,7 @@
     "app/controllers/specification-sensor-guidance-controller.js",
     "app/controllers/specification-required-fields-controller.js",
     "app/controllers/sensor-activation-controller.js",
+    "app/sensor-map-visibility-color-integration.js",
     "app/controllers/coding-cycle-normalization-controller.js",
     "app/controllers/build-inputs-controller.js",
     "app/controllers/tabs-controller.js",
@@ -44,6 +48,7 @@
     "app/controllers/map-builder-row-controller.js",
     "app/controllers/map-builder-popup-controller.js",
     "app/controllers/setup-event-controller-integration.js",
+    "app/application-reference-build-input-integration.js",
     "app/global-actions.js",
     "app/animation-runtime.js",
     "app/startup-runtime.js"
@@ -53,8 +58,8 @@
     return new Promise((resolve, reject) => {
       const expected = new URL(`./${path}`, window.location.href).pathname;
       const existing = [...document.scripts].find((script) => {
-        try { return new URL(script.src, window.location.href).pathname === expected; }
-        catch { return false; }
+        try { return new URL(script.src, window.location.href).pathname === expected;
+        } catch { return false; }
       });
       if (existing) {
         if (existing.dataset.loaded === "true") resolve();

@@ -58,10 +58,11 @@ function renderAggregateAngleEditor(machineMap) {
   if (!els.aggregateAngleEditor) return;
   if (els.aggregateAnglesSection) els.aggregateAnglesSection.hidden = false;
   machineMap.aggregateAngles = normalizeAggregateAngles(machineMap.aggregateAngles, machineMap.applicationMode, machineMap.objects);
+  machineMap.spenderPlateAngles = normalizeSpenderPlateAngles(machineMap.spenderPlateAngles);
   machineMap.stationAngles = normalizeStationAngles({ ...machineMap.stationAngles, ...machineMap.aggregateAngles });
   const activeAggregates = activeSlotNumbers(machineMap.enabledAggregates);
   if (els.aggregateAnglesSummary) els.aggregateAnglesSummary.textContent = `${activeAggregates.length} active aggregate${activeAggregates.length === 1 ? "" : "s"} • click to expand`;
-  els.aggregateAngleEditor.innerHTML = `<div class="builder-row-grid">${activeAggregates.map((aggregate) => `<label>Aggregate ${aggregate}<input data-aggregate-angle="${aggregate}" type="number" step="0.1" value="${fmt(machineMap.aggregateAngles[String(aggregate)], 1)}"></label>`).join("")}</div>`;
+  els.aggregateAngleEditor.innerHTML = `<div class="builder-row-grid">${activeAggregates.map((aggregate) => `<label>Aggregate ${aggregate} table angle<input data-aggregate-angle="${aggregate}" type="number" step="0.1" value="${fmt(machineMap.aggregateAngles[String(aggregate)], 1)}"></label><label>Spender ${aggregate} plate angle<input data-spender-plate-angle="${aggregate}" type="number" min="0" max="180" step="0.1" value="${fmt(machineMap.spenderPlateAngles[String(aggregate)], 1)}" title="Application arm / spender plate angle. Default 75°."></label>`).join("")}</div>`;
 }
 
 function renderMachineLayoutControls(machineMap) {

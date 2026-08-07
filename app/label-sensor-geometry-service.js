@@ -4,15 +4,14 @@ function signedAngleDifference(value, reference) {
   return ((num(value, 0) - num(reference, 0) + 540) % 360) - 180;
 }
 
-function labelSensorInspectionCenter(section, applicationTarget, labelWidthDeg = 0) {
-  // ServoForge plate-angle convention:
-  // the red bottle centerline is the label centerline at the instant the label
-  // is applied. Therefore the application plate angle itself is the finished
-  // label centerline for neck, body, and back labels. Do not shift body/back
-  // labels by half of their developed width.
+function labelSensorInspectionCenter(section, finishedLabelCenterline, labelWidthDeg = 0) {
+  // Application/tack position and finished label centerline are separate
+  // concepts. The application-reference policy resolves Leading Edge or Center
+  // Tack into the finished physical label centerline before this geometry
+  // service is called. Sensors always inspect that finished label position.
   void section;
   void labelWidthDeg;
-  return num(applicationTarget, 0);
+  return num(finishedLabelCenterline, 0);
 }
 
 function labelSensorVisibility(labelCenter, sensorViewAngle, labelWidthDeg, fieldOfViewDeg = 180) {

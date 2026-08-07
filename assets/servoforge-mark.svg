@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="ServoForge">
+  <defs>
+    <linearGradient id="servoforgeMarkGradient" x1="108" y1="104" x2="404" y2="408" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ff8a00"/>
+      <stop offset="0.42" stop-color="#ff5a36"/>
+      <stop offset="1" stop-color="#ff3d2e"/>
+    </linearGradient>
+    <filter id="servoforgeMarkGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path
+    d="M394 153 L354 111 L170 111 L116 157 L116 214 L161 258 L323 258 L394 326 L394 363 L347 406 L158 406 L116 367"
+    fill="none"
+    stroke="#ff4d2e"
+    stroke-width="52"
+    stroke-linecap="square"
+    stroke-linejoin="round"
+    opacity="0.30"
+    filter="url(#servoforgeMarkGlow)"
+  />
+  <path
+    d="M394 153 L354 111 L170 111 L116 157 L116 214 L161 258 L323 258 L394 326 L394 363 L347 406 L158 406 L116 367"
+    fill="none"
+    stroke="url(#servoforgeMarkGradient)"
+    stroke-width="34"
+    stroke-linecap="square"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M374 143 L344 125 L177 125 L136 162"
+    fill="none"
+    stroke="#ffd0bf"
+    stroke-width="5"
+    stroke-linecap="round"
+    opacity="0.62"
+  />
+</svg>
