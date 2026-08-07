@@ -2,10 +2,12 @@
 
 (function loadServoForgeBootstrapModules() {
   const version = "0.9.10";
-  const build = "bottle-type-selection-20260806-v3";
+  const build = "label-centerline-policy-20260807-0001";
+  const buildUpdatedAt = "Aug 7, 2026 12:01 AM ET";
   window.SERVOFORGE_RELEASE_VERSION = version;
+  window.SERVOFORGE_BUILD_UPDATED_AT = buildUpdatedAt;
   const banner = document.querySelector(".staging-environment-banner");
-  if (banner) banner.textContent = `STAGING ${version} / TEST BUILD — NOT PRODUCTION`;
+  if (banner) banner.textContent = `STAGING ${version} • BUILD ${build} • UPDATED ${buildUpdatedAt} — NOT PRODUCTION`;
   const modules = Object.freeze([
     "app/export-service.js",
     "app/controllers/workspace-action-service.js",
@@ -51,8 +53,8 @@
     return new Promise((resolve, reject) => {
       const expected = new URL(`./${path}`, window.location.href).pathname;
       const existing = [...document.scripts].find((script) => {
-        try { return new URL(script.src, window.location.href).pathname === expected;
-        } catch { return false; }
+        try { return new URL(script.src, window.location.href).pathname === expected; }
+        catch { return false; }
       });
       if (existing) {
         if (existing.dataset.loaded === "true") resolve();

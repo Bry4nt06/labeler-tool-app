@@ -1,7 +1,7 @@
 "use strict";
 
 const RELEASE_VERSION = "0.9.10";
-const CACHE_NAME = "servoforge-labeler-v0.9.10-production-first-application-zero-datum-v26-coder-window-wipe-hold-v22";
+const CACHE_NAME = "servoforge-labeler-v0.9.10-production-label-centerline-policy-v31";
 const CACHE_PREFIX = "servoforge-labeler-";
 const APP_SHELL_URL = new URL("./index.html", self.registration.scope).href;
 
@@ -114,6 +114,7 @@ const CORE_ASSETS = Object.freeze([
   "./app/simulation-collapsible-integration.js",
   "./app/simulation-collapsible-core.js",
   "./app/servo-replay-loop-controls-integration.js",
+  "./app/release-readiness-staging-alignment-integration.js",
   "./app/spec-row-duplicate-integration.js",
   "./app/remove-zone-site-integration.js",
   "./app/multi-map-lock-import-integration-v2.js",

@@ -7,6 +7,7 @@
   let validationInstalled = false;
   let observer = null;
   let resolveReady;
+  let legacySensorStatus = null;
 
   global.ServoForgeOrientationConstraintPlannerReady = new Promise((resolve) => {
     resolveReady = resolve;
@@ -45,10 +46,52 @@
       plan,
       section,
       placement,
+      current,
+      target,
       visibility,
       required,
       visible: visibility + 0.001 >= required
     };
+  }
+
+  function sharedSensorStatus(sensor) {
+    const svc = targetService();
+    const map = svc?.activeMap?.();
+    if (!svc || !map) {
+      return typeof legacySensorStatus === "function"
+        ? legacySensorStatus(sensor)
+        : null;
+    }
+    const result = sensorDiagnostic(sensor, map);
+    if (!result) {
+      return {
+        passes: false,
+        percent: 0,
+        required: Math.min(100, Math.max(1, svc.num(sensor?.requiredVisibilityPercent, 50))),
+        section: "none",
+        source: "orientation-constraint"
+      };
+    }
+    return {
+      passes: result.visible,
+      percent: result.visibility,
+      required: result.required,
+      section: result.section,
+      source: result.plan?.autoTargetSource || "orientation-constraint",
+      targetPlateAngle: svc.num(result.target?.target, result.current),
+      actualPlateAngle: result.current
+    };
+  }
+
+  function installSensorStatus() {
+    const current = global.labelSensorMapStatus;
+    if (typeof current === "function" && current !== sharedSensorStatus && !current.orientationConstraintPlannerStatus) {
+      legacySensorStatus = current;
+    }
+    sharedSensorStatus.orientationConstraintPlannerStatus = true;
+    sharedSensorStatus.previousStatus = legacySensorStatus;
+    global.labelSensorMapStatus = sharedSensorStatus;
+    return true;
   }
 
   function installValidation() {
@@ -110,6 +153,7 @@
 
   function install() {
     if (installed) {
+      installSensorStatus();
       installValidation();
       return true;
     }
@@ -134,6 +178,7 @@
     global.LabelerMapObjectOrientationProcessor = process;
     global.LabelerOrientationConstraintPlannerProcessor = process;
     global.LabelerOrientationConstraintPlannerInstalled = true;
+    installSensorStatus();
     installOptionObserver();
     installValidation();
     installed = true;
@@ -154,6 +199,12 @@
     if (!install()) global.setTimeout(wait, RETRY_MS);
     else if (!installValidation()) global.setTimeout(wait, RETRY_MS);
   }
+
+  global.LabelerOrientationConstraintPlannerDiagnostics = Object.freeze({
+    sensorDiagnostic,
+    sensorStatus: sharedSensorStatus,
+    installSensorStatus
+  });
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", wait, { once: true });
   else wait();

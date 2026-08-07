@@ -24,7 +24,7 @@
 
 (async function startServoForge() {
   const progress = window.ServoForgeStartupProgress;
-  const build = "first-application-zero-datum-v26-workspace-visibility-v1-coder-window-reference-handoff-v21-coder-window-wipe-hold-v22-apl-post-wipe-sensor-hold-v24-brand-contact-defaults-10deg-v25";
+  const build = "first-application-zero-datum-v30-physical-sensor-visibility-label-centerline-policy-v31";
 
   function loadScript(path, version) {
     return new Promise((resolve, reject) => {
@@ -62,6 +62,7 @@
     await loadScript("drivers/profile/sensor-target-policy-driver.js", version);
     await loadScript("drivers/profile/sensor-station-label-driver.js", version);
     await loadScript("drivers/profile/sensor-post-inspection-release-driver.js", version);
+    await loadScript("app/label-centerline-policy-integration.js", version);
     await loadScript("app/orientation-constraint-target-service.js", version);
     await loadScript("app/first-application-zero-datum-integration.js", version);
     await loadScript("app/orientation-constraint-program-planner.js", version);
@@ -88,6 +89,7 @@
     }
 
     await loadScript("app/sensor-editor-compact-interaction-integration.js", version);
+    await loadScript("app/sensor-direction-live-status-integration.js", version);
     const ready = window.ServoForgeOrientationConstraintPlannerReady;
     if (ready && typeof ready.then === "function") {
       await Promise.race([
@@ -110,7 +112,7 @@
     progress?.set(53, "Loading feature integrations…");
     if (window.ServoForgeFeatureIntegrationsReady) await window.ServoForgeFeatureIntegrationsReady;
 
-    progress?.set(61, "Applying compact sensor controls…");
+    progress?.set(61, "Applying label centerline and sensor rules…");
     await loadOrientationConstraintPlanner();
 
     progress?.set(70, "Loading workspace controllers…");

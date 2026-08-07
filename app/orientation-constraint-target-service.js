@@ -25,10 +25,33 @@
       || null;
   }
 
+  function centerlinePolicy() {
+    return global.LabelerLabelCenterlinePolicy || null;
+  }
+
   function sensorAimOffset(item) {
     const driver = sensorStationDriver();
     if (driver?.sensorAimOffset) return driver.sensorAimOffset(item?.sensorAimOffsetDeg);
     return Math.max(-90, Math.min(90, num(item?.sensorAimOffsetDeg, 0)));
+  }
+
+  function machineDirectionSign() {
+    return global.state?.direction === "cw" ? -1 : 1;
+  }
+
+  // Bottle plate angle and sensor aim are both machine-relative logical angles.
+  // The map renderer mirrors both into screen/world coordinates for CW maps, so
+  // the visibility solver must not mirror sensor aim a second time.
+  function sensorPhysicalAimOffset(item) {
+    return sensorAimOffset(item);
+  }
+
+  function sensorViewingAngle(item, plateAngle) {
+    return num(plateAngle, 0) - sensorPhysicalAimOffset(item);
+  }
+
+  function bottleAngleForSensorView(item, viewedAngle) {
+    return num(viewedAngle, 0) + sensorPhysicalAimOffset(item);
   }
 
   function activeMap() {
@@ -67,6 +90,16 @@
   }
 
   function applicationTarget(section, rows, before) {
+    // For an existing/imported program, the physical label centerline is the
+    // bottle plate angle at that label's actual application event. Use that row
+    // before any generated-plan fallback so sensors work for legacy programs,
+    // custom programs, and future ServoForge programs with the same rule.
+    const rowTarget = num(centerlinePolicy()?.centerlineForSection?.(section, rows), NaN);
+    if (Number.isFinite(rowTarget)) return rowTarget;
+
+    const motionTarget = num(global.state?.motionPlan?.[`${section}ApplicationTarget`], NaN);
+    if (Number.isFinite(motionTarget)) return motionTarget;
+
     let seedTarget = 0;
     try {
       const seed = global.generatedAplSeedProfile();
@@ -78,7 +111,7 @@
       section,
       rows,
       before,
-      plannedTarget: global.state?.motionPlan?.[`${section}ApplicationTarget`],
+      plannedTarget: motionTarget,
       seedTarget
     }) ?? seedTarget;
   }
@@ -129,16 +162,14 @@
     const center = typeof global.labelSensorInspectionCenter === "function"
       ? global.labelSensorInspectionCenter(section, application, shape.width)
       : application;
-    const aim = item?.kind === "sensor" ? sensorAimOffset(item) : 0;
+    const configuredAim = item?.kind === "sensor" ? sensorAimOffset(item) : 0;
+    const physicalAim = item?.kind === "sensor" ? sensorPhysicalAimOffset(item) : 0;
     let sensorPlan = null;
     if (item.kind === "sensor") {
       const required = Math.min(100, Math.max(1, num(item.requiredVisibilityPercent, 50)));
       if (typeof global.nearestLabelSensorTarget === "function") {
-        // Solve in the sensor's viewing coordinate, then convert back to the
-        // physical bottle-plate target. Aimed hardware can therefore satisfy
-        // the same view with less bottle rotation.
         const viewedPlan = global.nearestLabelSensorTarget(
-          num(currentPlate, 0) + aim,
+          sensorViewingAngle(item, currentPlate),
           center,
           shape.width,
           required,
@@ -147,15 +178,17 @@
         sensorPlan = {
           ...viewedPlan,
           viewedTarget: viewedPlan.target,
-          target: num(viewedPlan.target, center) - aim,
-          sensorAimOffsetDeg: aim
+          target: bottleAngleForSensorView(item, num(viewedPlan.target, center)),
+          sensorAimOffsetDeg: configuredAim,
+          sensorPhysicalAimOffsetDeg: physicalAim
         };
       } else {
         sensorPlan = {
-          target: center - aim,
+          target: bottleAngleForSensorView(item, center),
           viewedTarget: center,
           visibility: { percent: 100 },
-          sensorAimOffsetDeg: aim
+          sensorAimOffsetDeg: configuredAim,
+          sensorPhysicalAimOffsetDeg: physicalAim
         };
       }
     }
@@ -172,10 +205,10 @@
       codeBoxOffsetDeg: shape.code,
       inspectionOffsetDeg: shape.inspection
     }) || {
-      target: item.kind === "sensor" ? center - aim : currentPlate,
+      target: item.kind === "sensor" ? sensorPlan?.target ?? bottleAngleForSensorView(item, center) : currentPlate,
       mode: item.kind === "coding" ? "code-box" : "label-center",
       required: item.kind === "sensor" ? num(item.requiredVisibilityPercent, 50) : 100,
-      visibility: 100,
+      visibility: item.kind === "sensor" ? num(sensorPlan?.visibility?.percent, 100) : 100,
       center,
       width: shape.width
     };
@@ -183,7 +216,9 @@
       ...target,
       center: num(target.center, center),
       width: num(target.width, shape.width),
-      sensorAimOffsetDeg: aim,
+      sensorAimOffsetDeg: configuredAim,
+      sensorPhysicalAimOffsetDeg: physicalAim,
+      viewedCurrent: item.kind === "sensor" ? sensorViewingAngle(item, currentPlate) : undefined,
       viewedTarget: sensorPlan?.viewedTarget,
       required: item.kind === "sensor"
         ? Math.min(100, Math.max(1, num(target.required, item.requiredVisibilityPercent || 50)))
@@ -194,13 +229,48 @@
   function visibilityAt(object, plateAngle) {
     if (object?.item?.kind !== "sensor") return 100;
     if (typeof global.labelSensorVisibility !== "function") return num(object?.target?.visibility, 0);
-    const effectiveViewAngle = num(plateAngle, 0) + sensorAimOffset(object.item);
+    const effectiveViewAngle = sensorViewingAngle(object.item, plateAngle);
     return num(global.labelSensorVisibility(
       object.target.center,
       effectiveViewAngle,
       object.target.width,
       180
     )?.percent, 0);
+  }
+
+  function labelSensorMapStatus(item, rows = global.state?.program) {
+    const sourceRows = Array.isArray(rows) ? rows : [];
+    const map = activeMap();
+    const station = Number(item?.station);
+    const sections = stationSections(map);
+    const section = sections[String(station)]
+      || (typeof global.labelSectionForStation === "function" ? global.labelSectionForStation(station) : null);
+    const required = Math.min(100, Math.max(1, num(item?.requiredVisibilityPercent, 50)));
+    if (!item || item.kind !== "sensor" || !section || section === "none" || !applications()[section]) {
+      return { percent: 0, required, passes: false, section: section || "none" };
+    }
+
+    const placement = num(item.angle, item.start);
+    const currentPlate = plateAt(placement, sourceRows);
+    const window = windowFor(item, sourceRows);
+    const target = targetFor(item, section, sourceRows, currentPlate, placement);
+    const object = { item, section, window, target };
+    const percent = visibilityAt(object, currentPlate);
+    const resolvedRequired = Math.min(100, Math.max(1, num(target.required, required)));
+    return {
+      percent,
+      required: resolvedRequired,
+      passes: percent + EPS >= resolvedRequired,
+      section,
+      placement,
+      plateAngle: currentPlate,
+      viewedPlateAngle: sensorViewingAngle(item, currentPlate),
+      targetPlateAngle: num(target.target, currentPlate),
+      sensorAimOffsetDeg: sensorAimOffset(item),
+      sensorPhysicalAimOffsetDeg: sensorPhysicalAimOffset(item),
+      labelCenter: num(target.center, 0),
+      labelWidthDeg: num(target.width, 0)
+    };
   }
 
   function enabled(item) {
@@ -214,13 +284,18 @@
     return false;
   }
 
-  global.LabelerOrientationConstraintTargetService = Object.freeze({
+  const api = Object.freeze({
     EPS,
     num,
     done,
     orientationDriver,
     sensorStationDriver,
+    centerlinePolicy,
     sensorAimOffset,
+    machineDirectionSign,
+    sensorPhysicalAimOffset,
+    sensorViewingAngle,
+    bottleAngleForSensorView,
     activeMap,
     applications,
     stationSections,
@@ -231,6 +306,10 @@
     plateAt,
     targetFor,
     visibilityAt,
+    labelSensorMapStatus,
     enabled
   });
+
+  global.LabelerOrientationConstraintTargetService = api;
+  global.labelSensorMapStatus = labelSensorMapStatus;
 })(typeof window !== "undefined" ? window : globalThis);

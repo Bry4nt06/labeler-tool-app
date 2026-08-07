@@ -15,7 +15,7 @@ assert.match(source, /DEFAULT_FRONT_CENTERLINE_DEG\s*=\s*0/);
 assert.match(source, /function resolveApplicationDatum/);
 assert.match(source, /bodyApplicationTarget/);
 assert.match(source, /applicationDatumOffset/);
-assert.match(startup, /first-application-zero-datum-v26/);
+assert.match(startup, /first-application-zero-datum-v30-physical-sensor-visibility/);
 assert.match(
   startup,
   /orientation-constraint-target-service\.js[\s\S]*first-application-zero-datum-integration\.js[\s\S]*orientation-constraint-program-planner\.js/,

@@ -3,7 +3,7 @@
 (function installSensorEditorCompactInteraction(global) {
   if (global.LabelerSensorEditorCompactInteraction?.installed) return;
 
-  const VERSION = 13;
+  const VERSION = 14;
   const SVG_NS = "http://www.w3.org/2000/svg";
   const EDITABLE_FIELDS = new Set([
     "angle",
@@ -11,6 +11,7 @@
     "requiredVisibilityPercent"
   ]);
   let commitTimer = null;
+  let previewTimer = null;
   let mapFrame = null;
   let renderMapWrapped = false;
 
@@ -85,6 +86,31 @@
     return true;
   }
 
+  function refreshLiveStatus(control) {
+    const resolved = sensorFromControl(control);
+    if (!resolved) return false;
+    const liveStatus = global.LabelerSensorDirectionLiveStatus;
+    if (liveStatus?.refreshStatusNode) {
+      return Boolean(liveStatus.refreshStatusNode(resolved.row, resolved.sensor));
+    }
+
+    const svc = global.LabelerOrientationConstraintTargetService;
+    const status = svc?.labelSensorMapStatus?.(resolved.sensor, global.state?.program);
+    const node = resolved.row.querySelector?.(".sensor-inline-status");
+    if (!status || !node) return false;
+    node.classList.toggle("sensor-status-pass", Boolean(status.passes));
+    node.classList.toggle("sensor-status-fail", !status.passes);
+    const strong = node.querySelector("strong");
+    const detail = node.querySelector("span");
+    if (strong) strong.textContent = `${Number(status.percent || 0).toFixed(1).replace(/\.0$/, "")}% visible`;
+    if (detail) detail.textContent = `Required: ${Number(status.required || 0).toFixed(0)}%`;
+    return true;
+  }
+
+  function refreshAllLiveStatus() {
+    global.LabelerSensorDirectionLiveStatus?.refreshAllStatusCards?.();
+  }
+
   function scheduleMapCenterlines() {
     if (mapFrame) return;
     mapFrame = global.requestAnimationFrame(() => {
@@ -93,18 +119,54 @@
     });
   }
 
+  function finishProgramRefresh() {
+    refreshAllLiveStatus();
+    global.renderValidation?.();
+    global.renderMap?.();
+    drawSensorCenterlines();
+  }
+
+  function regenerateSensorPreview() {
+    previewTimer = null;
+    try {
+      if (global.state?.selectedBrand && typeof global.applyGeneratedServoProfile === "function") {
+        const result = global.applyGeneratedServoProfile();
+        Promise.resolve(result)
+          .catch((error) => console.error("Unable to regenerate live sensor preview.", error))
+          .finally(finishProgramRefresh);
+      } else {
+        finishProgramRefresh();
+      }
+    } catch (error) {
+      console.error("Unable to regenerate live sensor preview.", error);
+    }
+  }
+
+  function schedulePreviewRegeneration(delay = 160) {
+    if (previewTimer) global.clearTimeout(previewTimer);
+    previewTimer = global.setTimeout(regenerateSensorPreview, delay);
+  }
+
   function commitSensorEdits() {
     commitTimer = null;
+    if (previewTimer) {
+      global.clearTimeout(previewTimer);
+      previewTimer = null;
+    }
     try {
       const map = editableMap();
       const policy = global.LabelerDriverRegistry?.resolve?.("profile.sensorStationLabel")
         || global.LabelerSensorStationLabelDriver;
       if (map && policy?.normalizeMap) policy.normalizeMap(map, { rename: true });
       global.saveCurrentSettings?.();
-      if (global.state?.selectedBrand) global.applyGeneratedServoProfile?.();
-      global.renderValidation?.();
-      global.renderMap?.();
-      drawSensorCenterlines();
+      if (global.state?.selectedBrand && typeof global.applyGeneratedServoProfile === "function") {
+        const result = global.applyGeneratedServoProfile();
+        Promise.resolve(result)
+          .catch((error) => console.error("Unable to commit compact sensor edits.", error))
+          .finally(finishProgramRefresh);
+      } else {
+        finishProgramRefresh();
+      }
     } catch (error) {
       console.error("Unable to commit compact sensor edits.", error);
     }
@@ -128,12 +190,14 @@
     event.stopPropagation();
 
     applyControlValue(control, { finalize });
+    refreshLiveStatus(control);
     scheduleMapCenterlines();
 
-    // Keep the active input mounted while the user types. Full persistence,
-    // profile regeneration, validation, and map rendering wait until the
-    // value is committed by change, blur, or Enter.
+    // Keep the active input mounted while the user types. The status card is
+    // updated immediately, then the servo profile is regenerated after a short
+    // idle delay without rebuilding the Map Builder row.
     if (finalize) scheduleCommit(0);
+    else schedulePreviewRegeneration(160);
   }
 
   function escapeId(value) {
@@ -226,7 +290,7 @@
       drawSensorCenterlines();
       return result;
     };
-    global.renderMap.sensorEditorCompactV13 = true;
+    global.renderMap.sensorEditorCompactV14 = true;
     global.renderMap.previousFunction = base;
     renderMapWrapped = true;
     return true;
@@ -237,7 +301,20 @@
     const style = document.createElement("style");
     style.id = "sensorEditorCompactInteractionStyles";
     style.textContent = `
-      .sensor-station-inherited-row .builder-object-editor{padding:4px 6px 5px!important}
+      .sensor-station-inherited-row{
+        background:var(--panel)!important;
+        border-color:color-mix(in srgb,var(--blue) 34%,var(--line))!important;
+      }
+      .sensor-station-inherited-row>summary{
+        background:color-mix(in srgb,var(--panel-hi) 84%,var(--input))!important;
+      }
+      .sensor-station-inherited-row .builder-object-editor{
+        padding:4px 6px 5px!important;
+        background:var(--panel-hi)!important;
+      }
+      .sensor-station-inherited-row.selected-builder-object{
+        border-color:var(--accent,#35c98b)!important;
+      }
       .sensor-station-inherited-row .builder-row-title{display:none!important}
       .sensor-station-inherited-row .builder-row-grid{
         display:grid!important;
@@ -253,7 +330,9 @@
         align-self:start!important;
         margin:0!important;
         padding:4px 6px!important;
+        border:1px solid color-mix(in srgb,var(--line) 82%,var(--blue))!important;
         border-radius:5px!important;
+        background:color-mix(in srgb,var(--panel) 74%,var(--input))!important;
       }
       .sensor-station-inherited-row label.sensor-grid-field{
         display:grid!important;
@@ -347,6 +426,7 @@
     if (!EDITABLE_FIELDS.has(String(control.dataset.builderField || ""))) return;
     if (!sensorFromControl(control)) return;
     applyControlValue(control, { finalize: true });
+    refreshLiveStatus(control);
     scheduleCommit(0);
   }, true);
   global.addEventListener("keydown", (event) => {
@@ -370,6 +450,8 @@
     VERSION,
     EDITABLE_FIELDS,
     applyControlValue,
+    refreshLiveStatus,
+    regenerateSensorPreview,
     commitSensorEdits,
     drawSensorCenterlines
   });

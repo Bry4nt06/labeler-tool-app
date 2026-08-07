@@ -2,6 +2,7 @@
 
 (function loadGeometryAndPlanningModules() {
   const version = document.querySelector('meta[name="application-version"]')?.content || "0.9.2";
+  const build = "physical-sensor-visibility-20260806-2336";
   const modules = Object.freeze([
     "app/geometry-primitives.js",
     "app/label-specification-service.js",
@@ -28,9 +29,10 @@
         return;
       }
       const script = document.createElement("script");
-      script.src = `./${path}?v=${encodeURIComponent(version)}`;
+      script.src = `./${path}?v=${encodeURIComponent(version)}&build=${encodeURIComponent(build)}`;
       script.async = false;
       script.dataset.geometryPlanningModule = path;
+      script.dataset.geometryPlanningBuild = build;
       script.addEventListener("load", () => {
         script.dataset.loaded = "true";
         resolve();
@@ -41,6 +43,7 @@
   }
 
   window.ServoForgeGeometryPlanningModules = modules;
+  window.ServoForgeGeometryPlanningBuild = build;
   window.ServoForgeGeometryPlanningReady = modules.reduce(
     (promise, path) => promise.then(() => loadScript(path)),
     Promise.resolve()
