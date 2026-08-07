@@ -1,0 +1,95 @@
+name: Validate production after Pages
+
+on:
+  workflow_run:
+    workflows: ["pages build and deployment"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-servoforge-production
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out production main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate production identity and catalogs
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'content="0.9.10"' index.html
+          grep -q '<title>ServoForge Labeler</title>' index.html
+          ! grep -q 'STAGING / TEST BUILD' index.html
+          grep -q 'bry4nt06.github.io/labeler-tool-app/' update-manifest.json
+          ! grep -q 'labeler-tool-staging' update-manifest.json
+          grep -q 'first-application-zero-datum-v26-workspace-visibility-v1' app.js
+          grep -q 'servoforge-labeler-v0.9.10-production-' service-worker.js
+
+          python3 - <<'PY'
+          import json
+          import pathlib
+
+          root = pathlib.Path('.')
+          bottles = json.loads((root / 'config/default-programs/bottle-specs.json').read_text(encoding='utf-8'))
+          assert [item['id'] for item in bottles] == [2, 3, 6, 7, 8, 9, 10]
+          assert all(item['id'] not in {1, 4, 5} for item in bottles)
+
+          labels = json.loads((root / 'config/default-programs/label-specs.json').read_text(encoding='utf-8'))
+          assert any(item.get('brand') == '12oz LandShark (LN)' for item in labels)
+          assert any('Mic Family' in item.get('brand', '') for item in labels)
+
+          manifest = json.loads((root / 'update-manifest.json').read_text(encoding='utf-8'))
+          assert manifest['version'] == '0.9.10'
+          assert manifest['buildId'] == 'first-application-zero-datum-v26'
+          assert manifest['releaseUrl'] == 'https://bry4nt06.github.io/labeler-tool-app/'
+
+          notes = json.loads((root / 'release-notes.json').read_text(encoding='utf-8'))
+          assert notes['environment'] == 'production'
+          assert notes['currentVersion'] == '0.9.10'
+          PY
+
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node --check service-worker.js
+          node --check app/controllers/local-persistence-controller.js
+          node --check app/first-application-zero-datum-integration.js
+          node --check app/apl-post-wipe-sensor-hold-integration.js
+          node --check app/workspace-panel-visibility-guard-integration.js
+          node --check app/validation-diagnostics-integration.js
+          node --check drivers/validation/validation-issue-driver.js
+          node --check drivers/validation/validation-result-aggregator-driver.js
+
+      - name: Run promoted regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tests/apl-post-wipe-sensor-hold.test.js
+          node tests/bottle-selection-regeneration.test.js
+          node tests/brand-contact-parameter-defaults.test.js
+          node tests/landshark-first-application-zero-datum.test.js
+          node tests/local-workspace-persistence.test.js
+          node tests/sensor-editor-focus-guard.test.js
+          node tests/sensor-field-of-view.test.js
+          node tests/validation-diagnostics.test.js
+          node tests/workspace-panel-visibility-guard.test.js
+          node tests/repository-brand-download.test.js
+          node tests/optimizer-post-wipe-coverage.test.js
+          node tests/coder-window-reference-handoff.test.js
