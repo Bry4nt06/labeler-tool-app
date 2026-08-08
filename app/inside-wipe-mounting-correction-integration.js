@@ -3,10 +3,10 @@
 (function installInsideWipeMountingCorrection(global) {
   if (global.ServoForgeInsideWipeMountingCorrection?.installed) return;
 
-  const PAD_PATTERN_ID = "servoforge-wipe-sponge-pattern";
   const PAD_WIDTH_MM = 22;
   const RETRY_MS = 50;
   const MAX_RETRIES = 200;
+  let observer = null;
 
   function mapUnitsPerMillimeterFallback() {
     const renderer = global.LabelerWipeComponentVisualRenderer;
@@ -19,7 +19,7 @@
     return mapRadius / referenceRadiusMm;
   }
 
-  function sideAwareTrailingPadPath(startAngle, endAngle, centerRadius, widthMapUnits, side = "outer") {
+  function insideMountedPadPath(startAngle, endAngle, centerRadius, widthMapUnits) {
     const start = Number(startAngle) || 0;
     let end = Number(endAngle);
     if (!Number.isFinite(end)) end = start;
@@ -31,14 +31,15 @@
     const span = Math.max(0.1, end - start);
     const physicalBevelDeg = (width / Math.max(1, Number(centerRadius))) * 180 / Math.PI * 0.8;
     const bevelDeg = Math.min(span * 0.38, Math.max(0.75, Math.min(5, physicalBevelDeg)));
-    const isInner = String(side) === "inner";
 
-    // Physical mounting reference:
-    // Inside wipe-downs are radially flipped compared with outside wipe-downs.
-    // The long edge belongs toward the table/machine center. The shorter,
-    // beveled edge belongs toward the bottle path, matching the field sketch.
-    const outerStartAngle = isInner ? start + bevelDeg : start;
-    const innerStartAngle = isInner ? start : start + bevelDeg;
+    // FIELD MOUNTING REFERENCE:
+    // For an INSIDE wipe-down, the pad is the radial mirror of the outside pad.
+    // The long edge must be toward the table/machine center (innerRadius).
+    // The bottle-facing edge (outerRadius) is shortened by the bevel.
+    // This produces the same silhouette as the yellow field sketch: long edge
+    // on the inside, short/beveled edge against the bottle path.
+    const outerStartAngle = start + bevelDeg;
+    const innerStartAngle = start;
     const startOuter = angleToXY(outerStartAngle, outerRadius);
     const endOuter = angleToXY(end, outerRadius);
     const startInner = angleToXY(innerStartAngle, innerRadius);
@@ -57,83 +58,95 @@
     ].join(" ");
   }
 
-  function drawSideAwareSpongePad(add, parent, item, centerRadius) {
-    if (typeof global.ensureWipeComponentVisualDefs === "function") {
-      global.ensureWipeComponentVisualDefs(add, parent);
+  function mapItemById(id) {
+    if (!id) return null;
+    const sources = [
+      Array.isArray(state.aplMapObjects) ? state.aplMapObjects : [],
+      typeof activeMachineMap === "function" && Array.isArray(activeMachineMap()?.objects)
+        ? activeMachineMap().objects
+        : []
+    ];
+    for (const source of sources) {
+      const item = source.find((entry) => String(entry?.id || "") === String(id));
+      if (item) return item;
     }
-    const widthMapUnits = typeof global.wipeDownPadWidthMapUnits === "function"
-      ? global.wipeDownPadWidthMapUnits()
-      : PAD_WIDTH_MM * mapUnitsPerMillimeterFallback();
-    const side = String(item?.side || "outer");
-    const d = sideAwareTrailingPadPath(item?.start, item?.end, centerRadius, widthMapUnits, side);
-    const pad = add("path", {
-      d,
-      fill: `url(#${PAD_PATTERN_ID})`,
-      stroke: "#7d3511",
-      "stroke-width": 1.1,
-      "stroke-linejoin": "round",
-      "data-wipe-down-pad": item?.id || "",
-      "data-pad-width-mm": PAD_WIDTH_MM,
-      "data-sponge-material": "orange-foam",
-      "data-bevel-facing": "against-machine-direction",
-      "data-pad-facing": side === "inner" ? "radially-outward-to-bottle" : "radially-inward-to-bottle",
-      "data-bevel-contact-side": side === "inner" ? "bottle" : "machine-center",
-      "data-long-edge-facing": side === "inner" ? "machine-center" : "machine-outside",
-      "data-inside-wipe-mount": side === "inner" ? "long-edge-center-short-bevel-bottle" : "outside-unchanged",
-      "data-machine-direction": state.direction
-    }, parent);
-    add("path", {
-      d,
-      fill: "none",
-      stroke: "#ffd09b",
-      "stroke-width": 0.55,
-      "stroke-opacity": 0.38,
-      "pointer-events": "none"
-    }, parent);
-    return pad;
+    return null;
   }
 
-  function installOverride() {
-    const renderer = global.LabelerWipeComponentVisualRenderer;
-    if (typeof global.drawSpongeWipeDownPad !== "function" || !renderer?.spongeWipePadsV2) return false;
+  function applyInsidePadGeometry(path) {
+    if (!path?.getAttribute) return false;
+    const id = path.getAttribute("data-wipe-down-pad");
+    const item = mapItemById(id);
+    if (!item || String(item.side || "outer") !== "inner") return false;
 
-    global.machineTrailingPadPath = sideAwareTrailingPadPath;
-    global.drawSpongeWipeDownPad = drawSideAwareSpongePad;
-    global.LabelerWipeComponentVisualRenderer = Object.freeze({
-      ...renderer,
-      machineTrailingPadPath: sideAwareTrailingPadPath,
-      drawSpongeWipeDownPad: drawSideAwareSpongePad,
-      innerPadBottleBevelV3: true,
-      innerPadLongEdgeCenterV3: true,
-      innerPadYellowSketchMountV1: true
+    const widthMapUnits = typeof global.wipeDownPadWidthMapUnits === "function"
+      ? global.wipeDownPadWidthMapUnits()
+      : typeof global.LabelerWipeComponentVisualRenderer?.wipeDownPadWidthMapUnits === "function"
+        ? global.LabelerWipeComponentVisualRenderer.wipeDownPadWidthMapUnits()
+        : PAD_WIDTH_MM * mapUnitsPerMillimeterFallback();
+    const centerRadius = Number(state.radius) + Number(state.depths?.wipeInner || 0);
+    const desired = insideMountedPadPath(item.start, item.end, centerRadius, widthMapUnits);
+
+    if (path.getAttribute("d") !== desired) path.setAttribute("d", desired);
+    path.setAttribute("data-inside-wipe-mount", "long-edge-center-short-bevel-bottle-v2");
+    path.setAttribute("data-long-edge-facing", "machine-center");
+    path.setAttribute("data-bevel-contact-side", "bottle");
+
+    // The renderer adds a highlight path immediately after the orange pad.
+    // Keep that outline on the corrected physical geometry as well.
+    const highlight = path.nextElementSibling;
+    if (highlight?.tagName?.toLowerCase() === "path" && highlight.getAttribute("d") !== desired) {
+      highlight.setAttribute("d", desired);
+    }
+    return true;
+  }
+
+  function refreshRenderedPads() {
+    if (!global.document?.querySelectorAll) return 0;
+    let corrected = 0;
+    global.document.querySelectorAll("path[data-wipe-down-pad]").forEach((path) => {
+      if (applyInsidePadGeometry(path)) corrected += 1;
     });
+    return corrected;
+  }
+
+  function installRenderedGeometryGuard() {
+    if (!global.MutationObserver || !global.document?.body || observer) return false;
+    observer = new global.MutationObserver(() => {
+      global.queueMicrotask?.(refreshRenderedPads) || global.setTimeout(refreshRenderedPads, 0);
+    });
+    observer.observe(global.document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["d"]
+    });
+    refreshRenderedPads();
     return true;
   }
 
   function installWhenRendererReady() {
-    if (installOverride()) {
-      if (typeof global.renderMap === "function") global.renderMap();
-      return;
-    }
-
     let retries = 0;
-    const timer = global.setInterval(() => {
+    const attempt = () => {
       retries += 1;
-      if (installOverride()) {
-        global.clearInterval(timer);
-        if (typeof global.renderMap === "function") global.renderMap();
-      } else if (retries >= MAX_RETRIES) {
-        global.clearInterval(timer);
+      const rendererReady = Boolean(global.LabelerWipeComponentVisualRenderer?.spongeWipePadsV2);
+      if (rendererReady) {
+        installRenderedGeometryGuard();
+        refreshRenderedPads();
+        return true;
       }
+      return false;
+    };
+
+    if (attempt()) return;
+    const timer = global.setInterval(() => {
+      if (attempt() || retries >= MAX_RETRIES) global.clearInterval(timer);
     }, RETRY_MS);
 
     const featureReady = global.ServoForgeFeatureIntegrationsReady;
     if (featureReady && typeof featureReady.then === "function") {
       featureReady.then(() => {
-        if (installOverride()) {
-          global.clearInterval(timer);
-          if (typeof global.renderMap === "function") global.renderMap();
-        }
+        if (attempt()) global.clearInterval(timer);
       }).catch(() => {});
     }
   }
@@ -141,11 +154,12 @@
   global.ServoForgeInsideWipeMountingCorrection = Object.freeze({
     installed: true,
     PAD_WIDTH_MM,
-    sideAwareTrailingPadPath,
-    drawSideAwareSpongePad,
-    installOverride,
-    installWhenRendererReady,
-    innerPadYellowSketchMountV1: true
+    insideMountedPadPath,
+    applyInsidePadGeometry,
+    refreshRenderedPads,
+    installRenderedGeometryGuard,
+    insidePadYellowSketchMountV2: true,
+    renderedGeometryGuardV1: true
   });
 
   installWhenRendererReady();
