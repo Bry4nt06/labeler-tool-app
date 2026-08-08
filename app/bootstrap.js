@@ -2,9 +2,9 @@
 
 (function loadServoForgeBootstrapModules() {
   const version = "0.9.10";
-  const build = "inside-wipe-yellow-sketch-v37-20260807-1954";
-  const buildUpdatedAt = "Aug 7, 2026 7:54 PM ET";
-  // Regression lineage: spender-plate-visual-controls-v35-20260807-1402 • startup-dom-binding-recovery-v33-20260807-1306 • label-application-reference-v32-20260807-1251
+  const build = "inside-wipe-rendered-geometry-v38-20260807-2000";
+  const buildUpdatedAt = "Aug 7, 2026 8:00 PM ET";
+  // Regression lineage: inside-wipe-yellow-sketch-v37-20260807-1954 • spender-plate-visual-controls-v35-20260807-1402 • startup-dom-binding-recovery-v33-20260807-1306 • label-application-reference-v32-20260807-1251
   window.SERVOFORGE_RELEASE_VERSION = version;
   window.SERVOFORGE_BUILD_UPDATED_AT = buildUpdatedAt;
   const banner = document.querySelector(".staging-environment-banner");
